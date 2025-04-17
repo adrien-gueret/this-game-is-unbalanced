@@ -58,21 +58,21 @@ class BootScene extends Phaser.Scene {
     );
     this.load.image(
       "background-yellow",
-      "/assets/images/background-yellow.png"
+      "./assets/images/background-yellow.png"
     );
-    this.load.image("background-green", "/assets/images/background-green.png");
+    this.load.image("background-green", "./assets/images/background-green.png");
     this.load.image(
       "background-platforms",
-      "/assets/images/platforms/background-weird.png"
+      "./assets/images/platforms/background-weird.png"
     );
     this.load.spritesheet(
       "tiles-platforms",
-      "/assets/images/platforms/tiles.png",
+      "./assets/images/platforms/tiles.png",
       { frameWidth: 32, frameHeight: 32, spacing: 2 }
     );
     this.load.spritesheet(
       "player-platforms",
-      "/assets/images/platforms/monster.png",
+      "./assets/images/platforms/monster.png",
       { frameWidth: 32, frameHeight: 32 }
     );
 

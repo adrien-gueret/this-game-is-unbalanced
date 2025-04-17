@@ -88,7 +88,7 @@ window.languages.fr = {
   healingItems: "Objets de soin",
 
   // - Levels
-  timer: (current, max) => `Temps : ${current}/${max}s`,
+  timer: (current, max) => `Temps : ${(max-current).toString().padStart(2, "0")}`,
 
   platforms1_title: "Mon premier jeu",
 };

@@ -22,6 +22,21 @@ class PlatformSimulation {
       .setDepth(100);
 
     player.setScale(2);
+    
+    // Réduire la taille de la hitbox (70% de la largeur, 90% de la hauteur)
+    player.body.setSize(player.width * 0.8, player.height * 0.8);
+    // Centrer la hitbox dans le sprite
+    player.body.setOffset(player.width * 0.1, player.height * 0.2);
+    
+    /*
+    // Activer le debug pour voir les hitboxes
+    this.scene.physics.world.createDebugGraphic();
+    this.scene.physics.world.debugGraphic.visible = true;
+    
+    // Configuration optionnelle des couleurs du debug
+    this.scene.physics.world.defaults.debugShowBody = true;
+    this.scene.physics.world.defaults.bodyDebugColor = 0xff00ff; // Rose vif pour mieux voir
+    */
 
     // Appliquer le masque au joueur
     this.scene.applyGameMask(player);
@@ -82,7 +97,6 @@ class PlatformSimulation {
     const platformsGroup = this.scene.physics.add.staticGroup();
     const obstaclesGroup = this.scene.physics.add.staticGroup();
     const finishGroup = this.scene.physics.add.staticGroup();
-    // Groupe pour l'eau (sans physique car purement décoratif)
     const waterGroup = this.scene.add.group();
 
     // Configurer les collisions
@@ -135,10 +149,149 @@ class PlatformSimulation {
       this.scene.applyGameMask(child);
     });
 
+    const { height, width } = this.scene.cameras.main;
+
+    const instructionsText = this.scene.add
+        .text(width / 2, height / 2, "Regardez le monstre jouer au niveau !", {
+          fontSize: "32px",
+          fontFamily: "Arial",
+          color: "#ffffff",
+          stroke: "#000000",
+          strokeThickness: 4,
+        })
+        .setOrigin(0.5);
+
     this.scene.time.delayedCall(2000, () => {
+      this.scene.tweens.add({
+        targets: instructionsText,
+        alpha: 0,           // Faire disparaître le texte
+        duration: 500,      // Durée de l'animation en ms
+        ease: 'Power2',     // Type d'animation (plus doux)
+        onComplete: () => {
+          instructionsText.destroy();
+         
+        }
+      });
+
       this.startSimulation(player, platformsGroup);
     });
   }
+
+    /**
+   * Démarre la simulation du niveau de plateforme
+   */
+    startSimulation(player, platformsGroup) {
+      const settings = {
+        playerSpeed: 200,
+        playerGravity: 300,
+        jumpHeight: 300,
+        timeLimit: 15, // secondes
+      };
+  
+      player.body.setGravityY(settings.playerGravity);
+  
+      player.anims.play("right", true);
+  
+      const { height, width } = this.scene.cameras.main;
+  
+      const timerText = this.scene.add
+        .text(width - 40, 100, window.i18n.get("timer")(0, settings.timeLimit), {
+          fontSize: "24px",
+          fontFamily: "Arial",
+          color: "#ffffff",
+          stroke: "#000000",
+          strokeThickness: 4,
+        })
+        .setOrigin(1, 0.5);
+  
+      player.setVelocityX(settings.playerSpeed);
+  
+      let isMovingBack = false;
+      let failingJumps = 0;
+  
+      const failingJumpsLimit = 3;
+  
+      this.simulationTimer = this.scene.time.addEvent({
+        delay: 16.6, // ~60 fps
+        callback: () => {
+          this.timerValue += 0.016;
+          timerText.setText(
+            window.i18n.get("timer")(
+              Math.floor(this.timerValue),
+              settings.timeLimit
+            )
+          );
+  
+          let hasReachedFailingJumpsLimit = failingJumps >= failingJumpsLimit;
+  
+          if (hasReachedFailingJumpsLimit) {
+            if (player.body.touching.down) {
+              player.setVelocityX(0);
+              player.anims.stop();
+              player.setFrame(7);
+
+              this.completeSimulation('PLAYER_BLOCKED');
+              return;
+            }
+          } else if(player.y >=height ) {
+            this.completeSimulation('FALL_IN_HOLE');
+            return;
+          } else {
+            if (player.body.blocked.right) {
+              failingJumps++;
+  
+              hasReachedFailingJumpsLimit = failingJumps >= failingJumpsLimit;
+  
+              player.setVelocityX(-50);
+              isMovingBack = true;
+            } else if (player.body.touching.down) {
+              if (isMovingBack) {
+                player.setVelocityX(-settings.playerSpeed);
+                player.setFlipX(true);
+  
+                this.scene.time.delayedCall(400, () => {
+                  player.setVelocityX(settings.playerSpeed);
+                  player.setFlipX(false);
+                  isMovingBack = false;
+                });
+              } else {
+                player.setVelocityX(settings.playerSpeed);
+              }
+            }
+  
+            if (!hasReachedFailingJumpsLimit) {
+              // Vérifier si le joueur a touché le sol après un saut
+              if (player.body.touching.down) {
+                player.anims.play("right", true);
+  
+                // Vérifier s'il y a un mur devant ou un trou et faire sauter le joueur si nécessaire
+                if (
+                  this.isWallAhead(player, platformsGroup) ||
+                  this.isHoleAhead(player, platformsGroup)
+                ) {
+                  this.makePlayerJump(player, settings.jumpHeight);
+                }
+              } else {
+                // Changer la frame à la frame 20 pendant le saut
+                player.anims.stop();
+                player.setFrame(20);
+              }
+            }
+          }
+  
+          if (this.timerValue >= settings.timeLimit) {
+            player.setVelocityX(0);
+            player.anims.play("sad", true);
+           
+            this.completeSimulation('TIMEOUT');
+            return;
+          }
+        },
+        callbackScope: this,
+        loop: true,
+      });
+    }
+  
 
   /**
    * Gère la collision avec un obstacle
@@ -166,8 +319,6 @@ class PlatformSimulation {
    * Gère l'arrivée au drapeau
    */
   handleFinishFlag(player, flag) {
-    console.log("Arrivée au drapeau !");
-
     this.simulationTimer.remove();
 
     if (player.x > flag.x) {
@@ -176,6 +327,8 @@ class PlatformSimulation {
 
       // Remove the overlap detection with the finish flag
       this.flagCollider.destroy();
+
+      this.completeSimulation('WIN');
     }
 
     return;
@@ -222,123 +375,6 @@ class PlatformSimulation {
     }
   }
 
-  /**
-   * Démarre la simulation du niveau de plateforme
-   */
-  startSimulation(player, platformsGroup) {
-    const settings = {
-      playerSpeed: 100,
-      playerGravity: 300,
-      jumpHeight: 300,
-      timeLimit: 15, // secondes
-    };
-
-    player.body.setGravityY(settings.playerGravity);
-
-    player.anims.play("right", true);
-
-    const { width } = this.scene.cameras.main;
-
-    const timerText = this.scene.add
-      .text(width / 2, 140, window.i18n.get("timer")(0, settings.timeLimit), {
-        fontSize: "24px",
-        fontFamily: "Arial",
-        color: "#ffffff",
-        stroke: "#000000",
-        strokeThickness: 4,
-      })
-      .setOrigin(0.5);
-
-    player.setVelocityX(settings.playerSpeed);
-
-    let isMovingBack = false;
-    let failingJumps = 0;
-
-    const failingJumpsLimit = 3;
-
-    this.simulationTimer = this.scene.time.addEvent({
-      delay: 16.6, // ~60 fps
-      callback: () => {
-        this.timerValue += 0.016;
-        timerText.setText(
-          window.i18n.get("timer")(
-            Math.floor(this.timerValue),
-            settings.timeLimit
-          )
-        );
-
-        let hasReachedFailingJumpsLimit = failingJumps >= failingJumpsLimit;
-
-        if (hasReachedFailingJumpsLimit) {
-          if (player.body.touching.down) {
-            player.setVelocityX(0);
-            player.anims.stop();
-            player.setFrame(7);
-
-            this.simulationTimer.remove();
-
-            // TODO: terminer la simulation avec "joueur bloqué"
-          }
-        } else {
-          if (player.body.blocked.right) {
-            failingJumps++;
-
-            hasReachedFailingJumpsLimit = failingJumps >= failingJumpsLimit;
-
-            player.setVelocityX(-50);
-            isMovingBack = true;
-          } else if (player.body.touching.down) {
-            if (isMovingBack) {
-              player.setVelocityX(-settings.playerSpeed);
-              player.setFlipX(true);
-
-              this.scene.time.delayedCall(400, () => {
-                player.setVelocityX(settings.playerSpeed);
-                player.setFlipX(false);
-                isMovingBack = false;
-              });
-            } else {
-              player.setVelocityX(settings.playerSpeed);
-            }
-          }
-
-          if (!hasReachedFailingJumpsLimit) {
-            // Vérifier si le joueur a touché le sol après un saut
-            if (player.body.touching.down) {
-              player.anims.play("right", true);
-
-              // Vérifier s'il y a un mur devant ou un trou et faire sauter le joueur si nécessaire
-              if (
-                this.isWallAhead(player, platformsGroup) ||
-                this.isHoleAhead(player, platformsGroup)
-              ) {
-                this.makePlayerJump(player, settings.jumpHeight);
-              }
-            } else {
-              // Changer la frame à la frame 20 pendant le saut
-              player.anims.stop();
-              player.setFrame(20);
-            }
-          }
-        }
-
-        if (this.timerValue >= settings.timeLimit) {
-          player.setVelocityX(0);
-          player.anims.play("sad", true);
-          this.simulationTimer.remove();
-
-          // TODO: terminer la simulation avec "échec de la mission"
-
-          /* this.levelData.playerFeedback =
-            "Ce niveau est beaucoup trop long ! Je n'ai même pas réussi à atteindre la fin à temps. Tu devrais ajuster le chronomètre ou réduire la difficulté.";
-          this.levelData.completed = true;
-          this.completeSimulation(false); */
-        }
-      },
-      callbackScope: this,
-      loop: true,
-    });
-  }
 
   /**
    * Vérifie si un mur ou obstacle est présent devant le joueur
@@ -401,18 +437,15 @@ class PlatformSimulation {
 
   /**
    * Termine la simulation
-   * @param {boolean} success - Indique si le niveau a été terminé avec succès
+   * @param {string} finishReason - PLAYER_BLOCKED, TIMEOUT, FAILURE
    */
-  completeSimulation(success = true) {
-    if (this.simulationComplete) return;
-    this.simulationComplete = true;
+  completeSimulation(finishReason) {
+    this.simulationTimer.remove();
 
-    if (this.simulationTimer) {
-      this.simulationTimer.remove();
-    }
+    console.log({ finishReason })
 
     // Signaler à la scène principale que la simulation est terminée
-    this.scene.onSimulationComplete(success);
+    // TODO: this.scene.onSimulationComplete(success);
   }
 
   /**
