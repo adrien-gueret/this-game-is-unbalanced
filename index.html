@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>This game is unbalanced!</title>
+    <link rel="stylesheet" href="style.css" />
+    <!-- Chargement de la bibliothèque Phaser via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+  </head>
+  <body>
+    <div id="game-container"></div>
+
+    <!-- Chargement du système d'internationalisation -->
+    <script src="assets/languages/en.js"></script>
+    <script src="assets/languages/fr.js"></script>
+    <script src="src/i18n/index.js"></script>
+
+    <!-- Chargement des simulations -->
+    <script src="src/simulations/PlatformSimulation.js"></script>
+    <script src="src/simulations/RacingSimulation.js"></script>
+    <script src="src/simulations/BossSimulation.js"></script>
+
+    <!-- Chargement des niveaux -->
+    <script src="src/levels/Level.js"></script>
+    <script src="src/levels/platforms.js"></script>
+    <script src="src/levels/racing.js"></script>
+    <script src="src/levels/boss.js"></script>
+
+    <!-- Chargement des scènes -->
+    <script src="src/scenes/BootScene.js"></script>
+    <script src="src/scenes/MainMenuScene.js"></script>
+    <script src="src/scenes/LevelSelectScene.js"></script>
+    <script src="src/scenes/GameScene.js"></script>
+    <script src="src/scenes/FeedbackScene.js"></script>
+    <script src="src/scenes/EditorScene.js"></script>
+    <script src="src/scenes/ResultScene.js"></script>
+
+    <!-- Chargement du fichier principal -->
+    <script src="src/main.js"></script>
+  </body>
+</html>
