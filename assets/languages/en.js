@@ -87,8 +87,15 @@ window.languages.en = {
   healingItems: "Healing Items",
 
   // - Levels
-  timer: (current, max) => `Time: ${(max - current).toString().padStart(2, "0")}`,
-  watchInstruction: 'Watch the little monster playing the game!',
+  timer: (current, max) =>
+    `Time: ${(max - current).toString().padStart(2, "0")}`,
+  watchInstruction: "Watch the little monster playing the game!",
+  timeout: "Time out!",
+  clickToContinue: "Click to continue",
+
+  platformsSuccess: "Little monster has won!",
+  platformsBlocked: "Little monster is blocked...",
+  platformsFailure: "Little monster has fallen!",
 
   platforms1_title: "My first game",
 };

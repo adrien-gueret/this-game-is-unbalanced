@@ -88,8 +88,15 @@ window.languages.fr = {
   healingItems: "Objets de soin",
 
   // - Levels
-  timer: (current, max) => `Temps : ${(max-current).toString().padStart(2, "0")}`,
-  watchInstruction: 'Regardez le petit monstre jouer au niveau !',
+  timer: (current, max) =>
+    `Temps : ${(max - current).toString().padStart(2, "0")}`,
+  watchInstruction: "Regardez le petit monstre jouer au niveau !",
+  timeout: "Temps écoulé...",
+  clickToContinue: "Cliquez pour continuer",
+
+  platformsSuccess: "Le petit monstre a gagné !",
+  platformsBlocked: "Le petit monstre est bloqué...",
+  platformsFailure: "Le petit monstre est tombé !",
 
   platforms1_title: "Mon premier jeu",
 };
