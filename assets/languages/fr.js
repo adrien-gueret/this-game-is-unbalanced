@@ -89,6 +89,7 @@ window.languages.fr = {
 
   // - Levels
   timer: (current, max) => `Temps : ${(max-current).toString().padStart(2, "0")}`,
+  watchInstruction: 'Regardez le petit monstre jouer au niveau !',
 
   platforms1_title: "Mon premier jeu",
 };

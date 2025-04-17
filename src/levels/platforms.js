@@ -28,7 +28,7 @@ function createAnimatedWaterTile(
 Level.addLevels([
   new PlatformsLevel(({ scene, player, platformsGroup, finishGroup }) => {
     const settings = {
-      wallHeight: 2,
+      wallHeight: 5,
     };
 
     const { width, height } = scene.cameras.main;
