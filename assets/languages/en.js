@@ -89,13 +89,14 @@ window.languages.en = {
   // - Levels
   timer: (current, max) =>
     `Time: ${(max - current).toString().padStart(2, "0")}`,
-  watchInstruction: "Watch the little monster playing the game!",
+  watchInstruction: "Watch the little monster play the game!",
   timeout: "Time out!",
+  clickToStart: "Click to start",
   clickToContinue: "Click to continue",
 
-  platformsSuccess: "Little monster has won!",
-  platformsBlocked: "Little monster is blocked...",
-  platformsFailure: "Little monster has fallen!",
+  platformsSuccess: "Little Monster has won!",
+  platformsBlocked: "Little Monster is blocked...",
+  platformsFailure: "Little Monster has fallen!",
 
   platforms1_title: "My first game",
 };

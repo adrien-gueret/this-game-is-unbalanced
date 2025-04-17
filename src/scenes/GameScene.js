@@ -177,12 +177,13 @@ class GameScene extends Phaser.Scene {
   }
 
   startSimulation() {
-    this.simulation.startLevel(this.level);
-  }
+    this.events.once("simulationComplete", (data) => {
+      console.log(`Simulation terminée avec résultat: ${data.result}`);
+      console.log(`Temps écoulé: ${data.time} secondes`);
+      // Traiter la fin de la simulation ici
+    });
 
-  onSimulationComplete(success) {
-    // Cette méthode est appelée par les classes de simulation quand elles se terminent
-    this.completeSimulation(success);
+    this.simulation.startLevel(this.level);
   }
 
   completeSimulation(success = true) {

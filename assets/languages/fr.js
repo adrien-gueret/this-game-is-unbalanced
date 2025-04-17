@@ -23,11 +23,6 @@ window.languages.fr = {
   balanceButton: "Équilibrer",
   skipButton: "PASSER ⏭️",
 
-  // Messages de simulation
-  simulationInProgress: "SIMULATION EN COURS",
-  levelSucceeded: "NIVEAU TERMINÉ !",
-  levelFailed: "ÉCHEC",
-
   // Statuts des niveaux
   lockedLevel: "Verrouillé",
   balanced: "Équilibré",
@@ -90,13 +85,14 @@ window.languages.fr = {
   // - Levels
   timer: (current, max) =>
     `Temps : ${(max - current).toString().padStart(2, "0")}`,
-  watchInstruction: "Regardez le petit monstre jouer au niveau !",
+  watchInstruction: "Regardez Petit Monstre jouer au niveau !",
   timeout: "Temps écoulé...",
+  clickToStart: "Cliquez pour commencer",
   clickToContinue: "Cliquez pour continuer",
 
-  platformsSuccess: "Le petit monstre a gagné !",
-  platformsBlocked: "Le petit monstre est bloqué...",
-  platformsFailure: "Le petit monstre est tombé !",
+  platformsSuccess: "Petit Monstre a gagné !",
+  platformsBlocked: "Petit Monstre est bloqué...",
+  platformsFailure: "Petit Monstre est tombé !",
 
   platforms1_title: "Mon premier jeu",
 };

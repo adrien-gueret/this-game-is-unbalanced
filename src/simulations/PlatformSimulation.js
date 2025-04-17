@@ -12,9 +12,6 @@ class PlatformSimulation {
   }
 
   async startLevel(level) {
-    // Activer la physique
-    this.scene.physics.world.enable(this.scene);
-
     // Joueur fictif avec physique
     const player = this.scene.physics.add
       .sprite(0, 0, "player-platforms", 4)
@@ -22,12 +19,12 @@ class PlatformSimulation {
       .setDepth(100);
 
     player.setScale(2);
-    
+
     // Réduire la taille de la hitbox (70% de la largeur, 90% de la hauteur)
     player.body.setSize(player.width * 0.8, player.height * 0.8);
     // Centrer la hitbox dans le sprite
     player.body.setOffset(player.width * 0.1, player.height * 0.2);
-    
+
     /*
     // Activer le debug pour voir les hitboxes
     this.scene.physics.world.createDebugGraphic();
@@ -95,22 +92,13 @@ class PlatformSimulation {
 
     // Groupes de physique
     const platformsGroup = this.scene.physics.add.staticGroup();
-    const obstaclesGroup = this.scene.physics.add.staticGroup();
     const finishGroup = this.scene.physics.add.staticGroup();
     const waterGroup = this.scene.add.group();
 
     // Configurer les collisions
     this.scene.physics.add.collider(player, platformsGroup);
 
-    // Observer les collisions avec les obstacles et le drapeau
-    this.scene.physics.add.overlap(
-      player,
-      obstaclesGroup,
-      this.handleObstacleCollision,
-      null,
-      this
-    );
-
+    // Observer les collisions avec le drapeau
     this.flagCollider = this.scene.physics.add.overlap(
       player,
       finishGroup,
@@ -123,19 +111,13 @@ class PlatformSimulation {
       scene: this.scene,
       player,
       platformsGroup,
-      obstaclesGroup,
       finishGroup,
-      waterGroup, // Ajouter waterGroup aux paramètres
+      waterGroup,
     });
 
     // Appliquer le masque aux éléments créés par level.onStart
     // Pour platformsGroup
     platformsGroup.getChildren().forEach((child) => {
-      this.scene.applyGameMask(child);
-    });
-
-    // Pour obstaclesGroup
-    obstaclesGroup.getChildren().forEach((child) => {
       this.scene.applyGameMask(child);
     });
 
@@ -149,185 +131,131 @@ class PlatformSimulation {
       this.scene.applyGameMask(child);
     });
 
-    const { height, width } = this.scene.cameras.main;
-
-    const instructionsText = this.scene.add
-        .text(width / 2, height / 2, window.i18n.get('watchInstruction'), {
-          fontSize: "32px",
-          fontFamily: "Arial",
-          color: "#ffffff",
-          stroke: "#000000",
-          strokeThickness: 4,
-        })
-        .setOrigin(0.5);
-    
-    // Changer le curseur en pointeur pour indiquer que l'utilisateur peut cliquer
-    this.scene.input.setDefaultCursor('pointer');
-  
-    const startSimulation = () => {
-      startTimer.remove();
-      this.scene.input.off('pointerdown', startSimulation);
-      
-      // Restaurer le curseur par défaut
-      this.scene.input.setDefaultCursor('default');
-      
-      // Animer la disparition des textes
-      this.scene.tweens.add({
-        targets: [instructionsText],
-        alpha: 0,
-        duration: 500,
-        ease: 'Power2',
-        onComplete: () => {
-          instructionsText.destroy();
-        }
-      });
-      
-      this.startSimulation(player, platformsGroup);
-    };
-
-    // Timer pour démarrer automatiquement
-    const startTimer = this.scene.time.delayedCall(3000, startSimulation);
-    // Ajouter l'écouteur de clic sur toute la scène
-    this.scene.input.on('pointerdown', startSimulation);
+    showMessage(
+      this.scene,
+      window.i18n.get("watchInstruction"),
+      "#ffffff",
+      () => {
+        this.startSimulation(player, platformsGroup);
+      },
+      window.i18n.get("clickToStart")
+    );
   }
 
-    /**
+  /**
    * Démarre la simulation du niveau de plateforme
    */
-    startSimulation(player, platformsGroup) {
-      const settings = {
-        playerSpeed: 100,
-        playerGravity: 300,
-        jumpHeight: 300,
-        timeLimit: 15, // secondes
-      };
-  
-      player.body.setGravityY(settings.playerGravity);
-  
-      player.anims.play("right", true);
-  
-      const { height, width } = this.scene.cameras.main;
-  
-      const timerText = this.scene.add
-        .text(width - 40, 100, window.i18n.get("timer")(0, settings.timeLimit), {
-          fontSize: "24px",
-          fontFamily: "Arial",
-          color: "#ffffff",
-          stroke: "#000000",
-          strokeThickness: 4,
-        })
-        .setOrigin(1, 0.5);
-  
-      player.setVelocityX(settings.playerSpeed);
-  
-      let isMovingBack = false;
-      let failingJumps = 0;
-  
-      const failingJumpsLimit = 3;
-  
-      this.simulationTimer = this.scene.time.addEvent({
-        delay: 16.6, // ~60 fps
-        callback: () => {
-          this.timerValue += 0.016;
-          timerText.setText(
-            window.i18n.get("timer")(
-              Math.floor(this.timerValue),
-              settings.timeLimit
-            )
-          );
-  
-          let hasReachedFailingJumpsLimit = failingJumps >= failingJumpsLimit;
-  
-          if (hasReachedFailingJumpsLimit) {
-            if (player.body.touching.down) {
-              player.setVelocityX(0);
-              player.anims.stop();
-              player.setFrame(7);
+  startSimulation(player, platformsGroup) {
+    const settings = {
+      playerSpeed: 100,
+      playerGravity: 300,
+      jumpHeight: 300,
+      timeLimit: 15, // secondes
+    };
 
-              this.completeSimulation('PLAYER_BLOCKED');
-              return;
-            }
-          } else if(player.y >=height ) {
-            this.completeSimulation('FALL_IN_HOLE');
-            return;
-          } else {
-            if (player.body.blocked.right) {
-              failingJumps++;
-  
-              hasReachedFailingJumpsLimit = failingJumps >= failingJumpsLimit;
-  
-              player.setVelocityX(-50);
-              isMovingBack = true;
-            } else if (player.body.touching.down) {
-              if (isMovingBack) {
-                player.setVelocityX(-settings.playerSpeed);
-                player.setFlipX(true);
-  
-                this.scene.time.delayedCall(400, () => {
-                  player.setVelocityX(settings.playerSpeed);
-                  player.setFlipX(false);
-                  isMovingBack = false;
-                });
-              } else {
-                player.setVelocityX(settings.playerSpeed);
-              }
-            }
-  
-            if (!hasReachedFailingJumpsLimit) {
-              // Vérifier si le joueur a touché le sol après un saut
-              if (player.body.touching.down) {
-                player.anims.play("right", true);
-  
-                // Vérifier s'il y a un mur devant ou un trou et faire sauter le joueur si nécessaire
-                if (
-                  this.isWallAhead(player, platformsGroup) ||
-                  this.isHoleAhead(player, platformsGroup)
-                ) {
-                  // Faire sauter le joueur
-                  player.setVelocityY(-settings.jumpHeight);
-                }
-              } else {
-                // Changer la frame à la frame 20 pendant le saut
-                player.anims.stop();
-                player.setFrame(20);
-              }
-            }
-          }
-  
-          if (this.timerValue >= settings.timeLimit) {
+    player.body.setGravityY(settings.playerGravity);
+
+    player.anims.play("right", true);
+
+    const { height, width } = this.scene.cameras.main;
+
+    const timerText = this.scene.add
+      .text(width - 40, 100, window.i18n.get("timer")(0, settings.timeLimit), {
+        fontSize: "24px",
+        fontFamily: "Arial",
+        color: "#ffffff",
+        stroke: "#000000",
+        strokeThickness: 4,
+      })
+      .setOrigin(1, 0.5);
+
+    player.setVelocityX(settings.playerSpeed);
+
+    let isMovingBack = false;
+    let failingJumps = 0;
+
+    const failingJumpsLimit = 3;
+
+    this.simulationTimer = this.scene.time.addEvent({
+      delay: 16.6, // ~60 fps
+      callback: () => {
+        this.timerValue += 0.016;
+        timerText.setText(
+          window.i18n.get("timer")(
+            Math.floor(this.timerValue),
+            settings.timeLimit
+          )
+        );
+
+        let hasReachedFailingJumpsLimit = failingJumps >= failingJumpsLimit;
+
+        if (hasReachedFailingJumpsLimit) {
+          if (player.body.touching.down) {
             player.setVelocityX(0);
-            player.anims.play("sad", true);
-           
-            this.completeSimulation('TIMEOUT');
+            player.anims.stop();
+            player.setFrame(7);
+
+            this.completeSimulation("PLAYER_BLOCKED");
             return;
           }
-        },
-        callbackScope: this,
-        loop: true,
-      });
-    }
-  
+        } else if (player.y >= height) {
+          this.completeSimulation("FALL_IN_HOLE");
+          return;
+        } else {
+          if (player.body.blocked.right) {
+            failingJumps++;
 
-  /**
-   * Gère la collision avec un obstacle
-   */
-  handleObstacleCollision(player) {
-    return;
+            hasReachedFailingJumpsLimit = failingJumps >= failingJumpsLimit;
 
-    if (!this.hasCollided) {
-      this.hasCollided = true;
-      // Ralentir le joueur mais ne pas l'arrêter complètement
-      player.setVelocityX(this.settings.playerSpeed * 0.5);
+            player.setVelocityX(-50);
+            isMovingBack = true;
+          } else if (player.body.touching.down) {
+            if (isMovingBack) {
+              player.setVelocityX(-settings.playerSpeed);
+              player.setFlipX(true);
 
-      // Animation de collision
-      this.scene.tweens.add({
-        targets: player,
-        alpha: 0.5,
-        yoyo: true,
-        duration: 200,
-        repeat: 3,
-      });
-    }
+              this.scene.time.delayedCall(400, () => {
+                player.setVelocityX(settings.playerSpeed);
+                player.setFlipX(false);
+                isMovingBack = false;
+              });
+            } else {
+              player.setVelocityX(settings.playerSpeed);
+            }
+          }
+
+          if (!hasReachedFailingJumpsLimit) {
+            // Vérifier si le joueur a touché le sol après un saut
+            if (player.body.touching.down) {
+              player.anims.play("right", true);
+
+              // Vérifier s'il y a un mur devant ou un trou et faire sauter le joueur si nécessaire
+              if (
+                this.isWallAhead(player, platformsGroup) ||
+                this.isHoleAhead(player, platformsGroup)
+              ) {
+                // Faire sauter le joueur
+                player.setVelocityY(-settings.jumpHeight);
+              }
+            } else {
+              // Changer la frame à la frame 20 pendant le saut
+              player.anims.stop();
+              player.setFrame(20);
+            }
+          }
+        }
+
+        if (this.timerValue >= settings.timeLimit) {
+          player.setVelocityX(0);
+          player.anims.play("sad", true);
+
+          this.completeSimulation("TIMEOUT");
+          return;
+        }
+      },
+      callbackScope: this,
+      loop: true,
+    });
   }
 
   /**
@@ -343,11 +271,11 @@ class PlatformSimulation {
       // Remove the overlap detection with the finish flag
       this.flagCollider.destroy();
 
-      this.completeSimulation('SUCCESS');
+      this.completeSimulation("SUCCESS");
     }
 
     return;
-    
+
     // Logique d'équilibrage améliorée
     if (timeRatio < 0.4) {
       // Trop facile - moins de 40% du temps utilisé
@@ -373,7 +301,6 @@ class PlatformSimulation {
       this.levelData.balanced = true;
     }
   }
-
 
   /**
    * Vérifie si un mur ou obstacle est présent devant le joueur
@@ -430,106 +357,47 @@ class PlatformSimulation {
     return true; // Il y a un trou ou de l'eau, il faut sauter
   }
 
-
   /**
    * Termine la simulation
    * @param {string} finishReason - PLAYER_BLOCKED, TIMEOUT, FAILURE
    */
   completeSimulation(finishReason) {
-    this.simulationTimer.remove();
-
-    const { width, height } = this.scene.cameras.main;
-    
-    // Style commun pour tous les messages de résultat
-    const messageStyle = {
-      fontSize: "36px",
-      fontFamily: "Arial",
-      color: "#ffffff",
-      stroke: "#000000",
-      strokeThickness: 5,
-      align: "center"
-    };
-    
-    // Variable pour stocker le message à afficher
-    let message = "";
-
-    switch (finishReason) {
-      case 'SUCCESS':
-        message = window.i18n.get('monsterWon') || "Le petit monstre a gagné !";
-        messageStyle.color = "#7CFC00"; // Vert vif pour succès
-        break;
-
-      case 'PLAYER_BLOCKED':
-        message = window.i18n.get('monsterBlocked') || "Le petit monstre est bloqué...";
-        messageStyle.color = "#FFA500"; // Orange pour blocage
-        break;
-
-      case 'TIMEOUT':
-        message = window.i18n.get('timeOver') || "Temps écoulé...";
-        messageStyle.color = "#FF6347"; // Rouge-orange pour échec de temps
-        break;
-      
-      case 'FALL_IN_HOLE':
-        message = window.i18n.get('monsterFell') || "Le petit monstre est tombé !";
-        messageStyle.color = "#FF6347"; // Rouge-orange pour chute
-        break;
-    }
-
-    // Créer et afficher le message
-    const resultText = this.scene.add
-      .text(width / 2, height / 2, message, messageStyle)
-      .setOrigin(0.5)
-      .setAlpha(0); // Commencer invisible pour l'animation
-
-    // Animation d'apparition en fondu
-    this.scene.tweens.add({
-      targets: resultText,
-      alpha: 1,
-      y: height / 2 - 20, // Léger mouvement vers le haut pour plus de dynamisme
-      duration: 800,
-      ease: 'Power2'
-    });
-    
-    // Ajouter un message "Cliquez pour continuer" après un délai
-    this.scene.time.delayedCall(1500, () => {
-      const continueText = this.scene.add
-        .text(width / 2, height / 2 + 50, window.i18n.get('clickToContinue') || "Cliquez pour continuer", {
-          fontSize: "24px",
-          fontFamily: "Arial",
-          color: "#ffffff",
-          stroke: "#000000", 
-          strokeThickness: 3
-        })
-        .setOrigin(0.5)
-        .setAlpha(0);
-      
-      // Animation pour le texte "continuer"
-      this.scene.tweens.add({
-        targets: continueText,
-        alpha: 1,
-        duration: 500
-      });
-      
-      // Rendre la scène cliquable pour continuer
-      this.scene.input.once('pointerdown', () => {
-        // Si une callback de continuation existe, l'appeler ici
-        //TODO
-        //if (typeof this.scene.onSimulationComplete === 'function') {
-          //this.scene.onSimulationComplete(finishReason === 'SUCCESS');
-        //}
-      });
-      
-      // Changer le curseur en pointeur
-      this.scene.input.setDefaultCursor('pointer');
-    });
-  }
-
-  /**
-   * Arrête proprement la simulation
-   */
-  destroy() {
     if (this.simulationTimer) {
       this.simulationTimer.remove();
     }
+
+    // Variable pour stocker le message à afficher
+    let message = "";
+    let messageColor = "#ffffff";
+
+    switch (finishReason) {
+      case "SUCCESS":
+        message = window.i18n.get("platformsSuccess");
+        messageColor = "#7CFC00"; // Vert vif pour succès
+        break;
+
+      case "PLAYER_BLOCKED":
+        message = window.i18n.get("platformsBlocked");
+        messageColor = "#FFA500"; // Orange pour blocage
+        break;
+
+      case "TIMEOUT":
+        message = window.i18n.get("timeout");
+        messageColor = "#FF6347"; // Rouge-orange pour échec de temps
+        break;
+
+      case "FALL_IN_HOLE":
+        message = window.i18n.get("platformsFailure");
+        messageColor = "#FF6347"; // Rouge-orange pour chute
+        break;
+    }
+
+    showMessage(this.scene, message, messageColor, () => {
+      // Emit an event to notify the scene that the simulation is complete
+      this.scene.events.emit("simulationComplete", {
+        result: finishReason,
+        time: this.timerValue,
+      });
+    });
   }
 }

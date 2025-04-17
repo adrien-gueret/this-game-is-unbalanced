@@ -14,7 +14,7 @@ function createAnimatedWaterTile(
   texture = "tiles-platforms"
 ) {
   // Créer la tuile d'eau
-  const waterTile = scene.add.sprite(x, y, texture, 7);
+  const waterTile = scene.add.sprite(x, y, texture, 7).setDepth(200);
 
   // Démarrer l'animation
   waterTile.play("water");
@@ -28,7 +28,7 @@ function createAnimatedWaterTile(
 Level.addLevels([
   new PlatformsLevel(({ scene, player, platformsGroup, finishGroup }) => {
     const settings = {
-      wallHeight: 5,
+      wallHeight: 2,
     };
 
     const { width, height } = scene.cameras.main;
