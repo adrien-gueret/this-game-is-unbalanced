@@ -57,55 +57,8 @@ class PlatformSimulation {
     // Appliquer le masque au joueur
     this.scene.applyGameMask(player);
 
-    this.scene.anims.create({
-      key: "right",
-      frames: this.scene.anims.generateFrameNumbers("player-platforms", {
-        start: 4,
-        end: 5,
-      }),
-      frameRate: 5,
-      repeat: -1,
-    });
-
-    this.scene.anims.create({
-      key: "hello",
-      frames: this.scene.anims.generateFrameNumbers("player-platforms", {
-        start: 2,
-        end: 3,
-      }),
-      frameRate: 3,
-      repeat: -1,
-    });
-
-    this.scene.anims.create({
-      key: "happy",
-      frames: this.scene.anims.generateFrameNumbers("player-platforms", {
-        start: 0,
-        end: 1,
-      }),
-      frameRate: 3,
-      repeat: -1,
-    });
-
-    this.scene.anims.create({
-      key: "sad",
-      frames: this.scene.anims.generateFrameNumbers("player-platforms", {
-        start: 16,
-        end: 17,
-      }),
-      frameRate: 2,
-      repeat: -1,
-    });
-
-    this.scene.anims.create({
-      key: "water",
-      frames: [
-        { key: "tiles-platforms", frame: 7 },
-        { key: "tiles-platforms", frame: 10 },
-      ],
-      frameRate: 2,
-      repeat: -1,
-    });
+    // Enregistrer les animations via AnimationManager
+    AnimationManager.registerAnimations(this.scene);
 
     player.anims.play("hello", true);
 
@@ -368,6 +321,8 @@ class PlatformSimulation {
 
     let isBalanced = false;
     let feedback = "";
+    let monsterAnimation = undefined;
+    let monsterStaticFrame = undefined;
 
     // Variable pour stocker le message à afficher
     let message = "";
@@ -386,19 +341,24 @@ class PlatformSimulation {
         switch (difficulty) {
           case "easy":
             feedback = window.i18n.get("gameFeedbackTooEasy");
+            monsterAnimation = "oopsy";
             break;
 
           case "hard":
             feedback = window.i18n.get("gameFeedbackTooHard");
+            monsterStaticFrame = 6;
             break;
 
           case "medium":
             if (timerRatio < 40) {
               feedback = window.i18n.get("platformsFeedbackTooFarLimit");
+              monsterAnimation = "oopsy";
             } else if (timerRatio > 85) {
               feedback = window.i18n.get("platformsFeedbackTooNearLimit");
+              monsterStaticFrame = 6;
             } else {
               feedback = window.i18n.get("gameFeedbackBalanced");
+              monsterAnimation = "happy";
               isBalanced = true;
             }
 
@@ -407,23 +367,29 @@ class PlatformSimulation {
 
         break;
 
-      case "PLAYER_BLOCKED":
+      case "PLAYER_BLOCKED": {
         message = window.i18n.get("platformsBlocked");
         messageColor = "#FFA500";
         feedback = window.i18n.get("platformsFeedbackBlocked");
+        monsterAnimation = "speaking";
         break;
+      }
 
-      case "TIMEOUT":
+      case "TIMEOUT": {
         message = window.i18n.get("timeout");
         messageColor = "#FF6347";
         feedback = window.i18n.get("platformsFeedbackTimeout");
+        monsterAnimation = "sad";
         break;
+      }
 
-      case "FALL_IN_HOLE":
+      case "FALL_IN_HOLE": {
         message = window.i18n.get("platformsFailure");
         messageColor = "#FF6347";
         feedback = window.i18n.get("platformsFeedbackFailure");
+        monsterAnimation = "angry";
         break;
+      }
     }
 
     showMessage(this.scene, message, messageColor, () => {
@@ -431,6 +397,8 @@ class PlatformSimulation {
       this.scene.events.emit("simulationComplete", {
         feedback,
         isBalanced,
+        monsterAnimation,
+        monsterStaticFrame,
       });
     });
   }

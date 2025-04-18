@@ -36,7 +36,7 @@ Level.addLevels([
     function () {
       const wallHeight = this.settings.wallHeight.value;
 
-      if (wallHeight <= 1) {
+      if (wallHeight === 0) {
         return "easy";
       }
 

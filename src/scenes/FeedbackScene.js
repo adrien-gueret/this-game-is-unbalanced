@@ -8,13 +8,32 @@ class FeedbackScene extends Phaser.Scene {
     super({ key: "FeedbackScene" });
   }
 
-  init({ level, isBalanced, feedback }) {
+  init({ level, isBalanced, feedback, monsterAnimation, monsterStaticFrame }) {
     this.level = level;
     this.isBalanced = isBalanced;
     this.feedback = feedback;
+
+    this.renderMonster = (x, y) => {
+      const monsterSprite = this.add.sprite(
+        x,
+        y,
+        "player-platforms",
+        monsterStaticFrame
+      );
+
+      // Jouer l'animation
+      if (!monsterStaticFrame && monsterAnimation) {
+        monsterSprite.anims.play(monsterAnimation, true);
+      }
+
+      return monsterSprite;
+    };
   }
 
   create() {
+    // Enregistrer les animations via AnimationManager
+    AnimationManager.registerAnimations(this);
+
     const { width, height } = this.cameras.main;
 
     // Background
@@ -71,27 +90,12 @@ class FeedbackScene extends Phaser.Scene {
     );
 
     // Ajouter le sprite du monstre
-    const monsterSprite = this.add.sprite(
+    const monsterSprite = this.renderMonster(
       frameX + frameWidth / 2,
-      frameY + frameHeight / 2,
-      "player-platforms"
+      frameY + frameHeight / 2
     );
     monsterSprite.setDisplaySize(frameWidth - 20, frameHeight - 20); // Ajuster la taille du sprite pour qu'il rentre dans le cadre
     monsterSprite.setDepth(1); // S'assurer que le sprite est au-dessus du cadre
-
-    // Créer les animations pour le monstre
-    this.anims.create({
-      key: "happy",
-      frames: this.anims.generateFrameNumbers("player-platforms", {
-        start: 0,
-        end: 1,
-      }),
-      frameRate: 3,
-      repeat: -1,
-    });
-
-    // Jouer l'animation "happy"
-    monsterSprite.anims.play("happy", true);
 
     // État de complétion du niveau
     const statusColor = this.isBalanced ? 0x2ecc71 : 0xe74c3c;

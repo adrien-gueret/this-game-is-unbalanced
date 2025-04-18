@@ -179,12 +179,12 @@ class GameScene extends Phaser.Scene {
 
   startSimulation() {
     this.events.once("simulationComplete", (data) => {
-      console.log(`Simulation terminée avec résultat:`, data);
-
       this.scene.start("FeedbackScene", {
         level: this.level,
         isBalanced: data.isBalanced,
         feedback: data.feedback,
+        monsterAnimation: data.monsterAnimation,
+        monsterStaticFrame: data.monsterStaticFrame,
       });
     });
 

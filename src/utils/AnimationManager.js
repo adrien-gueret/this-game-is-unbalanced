@@ -1,4 +1,4 @@
-export default class AnimationManager {
+class AnimationManager {
   static registerAnimations(scene) {
     // Vérifie si les animations sont déjà enregistrées pour éviter les doublons
     if (scene.anims.exists("happy")) return;
@@ -38,6 +38,36 @@ export default class AnimationManager {
       frames: scene.anims.generateFrameNumbers("player-platforms", {
         start: 16,
         end: 17,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+
+    scene.anims.create({
+      key: "oopsy",
+      frames: scene.anims.generateFrameNumbers("player-platforms", {
+        start: 10,
+        end: 11,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+
+    scene.anims.create({
+      key: "speaking",
+      frames: scene.anims.generateFrameNumbers("player-platforms", {
+        start: 12,
+        end: 13,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+
+    scene.anims.create({
+      key: "angry",
+      frames: scene.anims.generateFrameNumbers("player-platforms", {
+        start: 14,
+        end: 15,
       }),
       frameRate: 2,
       repeat: -1,
