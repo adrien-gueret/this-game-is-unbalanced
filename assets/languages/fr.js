@@ -23,34 +23,6 @@ window.languages.fr = {
   balanceButton: "Équilibrer",
   skipButton: "PASSER ⏭️",
 
-  // Statuts des niveaux
-  lockedLevel: "Verrouillé",
-  balanced: "Équilibré",
-  previousAttempt: "Tentative précédente",
-  newLevel: "Nouveau",
-
-  // Feedback
-  completedLevelsCount: "Niveaux complétés:",
-  feedbackTitle: "Quel est votre ressenti?",
-  feedbackQuestion: "Comment était l'expérience de jeu?",
-  feedbackDifficulty: "Difficulté:",
-  feedbackFun: "Amusant:",
-  feedbackSuggestion: "Suggestions pour améliorer ce jeu:",
-  thanksForFeedback: "Merci pour votre avis!",
-
-  // Édition
-  editorTitle: "Équilibrage du jeu",
-  editorInstructions:
-    "Ajustez les paramètres pour rendre le jeu plus équilibré",
-  saveChanges: "Sauvegarder les changements",
-  resetToDefault: "Réinitialiser",
-
-  // Résultats
-  levelBalanced: "Game équilibré!",
-  unlockedNew: "Nouveau jeu débloqué!",
-  nextLevel: "Jeu suivant",
-  returnToMenu: "Retour au menu",
-
   // Instructions du tutoriel
   tutorialInstructions: [
     "1. Regardez quelqu'un jouer à un jeu",
@@ -59,28 +31,6 @@ window.languages.fr = {
     "4. Débloquez de nouveaux jeux en équilibrant les précédents",
     "5. Amusez-vous à créer l'expérience de jeu parfaite !",
   ],
-
-  // Simulateurs spécifiques
-  // - Plateforme
-  platformSpeed: "Vitesse du joueur",
-  jumpHeight: "Hauteur de saut",
-  obstacleCount: "Nombre d'obstacles",
-  platformCount: "Nombre de plateformes",
-  timeLimit: "Limite de temps",
-
-  // - Course
-  carSpeed: "Vitesse de votre voiture",
-  trackLength: "Longueur de la piste",
-  opponentCount: "Nombre d'adversaires",
-  opponentSpeed: "Vitesse des adversaires",
-  boostCount: "Nombre de boosts",
-
-  // - Boss
-  playerHealth: "Points de vie du joueur",
-  bossHealth: "Points de vie du boss",
-  playerDamage: "Dégâts du joueur",
-  bossDamage: "Dégâts du boss",
-  healingItems: "Objets de soin",
 
   // - Levels
   timer: (current, max) =>
@@ -114,4 +64,9 @@ window.languages.fr = {
     "J'ai gagné, mais vraiment de justesse... ! Il faudrait sans doute ajuster un petit peu le chronomètre.",
 
   platforms1_title: "Mon premier jeu",
+  platforms2_title: "Oh, de l'eau !",
+
+  // Feedback
+  balancedGame: "JEU ÉQUILIBRÉ",
+  unbalancedGame: "JEU NON ÉQUILIBRÉ",
 };

@@ -23,38 +23,6 @@ window.languages.en = {
   balanceButton: "Balance",
   skipButton: "SKIP ⏭️",
 
-  // Messages de simulation
-  simulationInProgress: "SIMULATION IN PROGRESS",
-  levelSucceeded: "LEVEL COMPLETED!",
-  levelFailed: "FAILED",
-
-  // Statuts des niveaux
-  lockedLevel: "Locked",
-  balanced: "Balanced",
-  previousAttempt: "Previous attempt",
-  newLevel: "New",
-
-  // Feedback
-  completedLevelsCount: "Completed levels:",
-  feedbackTitle: "How was your experience?",
-  feedbackQuestion: "How was the gameplay experience?",
-  feedbackDifficulty: "Difficulty:",
-  feedbackFun: "Fun:",
-  feedbackSuggestion: "Suggestions to improve this game:",
-  thanksForFeedback: "Thanks for your feedback!",
-
-  // Édition
-  editorTitle: "Game balancing",
-  editorInstructions: "Adjust parameters to make the game more balanced",
-  saveChanges: "Save changes",
-  resetToDefault: "Reset to Default",
-
-  // Résultats
-  levelBalanced: "Game balanced!",
-  unlockedNew: "New game unlocked!",
-  nextLevel: "Next game",
-  returnToMenu: "Return to Menu",
-
   // Instructions du tutoriel
   tutorialInstructions: [
     "1. See someone playing a game",
@@ -64,28 +32,6 @@ window.languages.en = {
     "5. Have fun creating the perfect gameplay experience!",
   ],
 
-  // Simulateurs spécifiques
-  // - Plateforme
-  platformSpeed: "Player Speed",
-  jumpHeight: "Jump Height",
-  obstacleCount: "Obstacle Count",
-  platformCount: "Platform Count",
-  timeLimit: "Time Limit",
-
-  // - Course
-  carSpeed: "Your Car Speed",
-  trackLength: "Track Length",
-  opponentCount: "Opponent Count",
-  opponentSpeed: "Opponent Speed",
-  boostCount: "Boost Count",
-
-  // - Boss
-  playerHealth: "Player Health",
-  bossHealth: "Boss Health",
-  playerDamage: "Player Damage",
-  bossDamage: "Boss Damage",
-  healingItems: "Healing Items",
-
   // - Levels
   timer: (current, max) =>
     `Time: ${(max - current).toString().padStart(2, "0")}`,
@@ -93,6 +39,12 @@ window.languages.en = {
   timeout: "Time out!",
   clickToStart: "Click to start",
   clickToContinue: "Click to continue",
+
+  gameFeedbackTooEasy: "This game is too easy! I won without any difficulty...",
+  gameFeedbackTooHard:
+    "I won, but wow... That wasn't easy! Maybe there should be fewer obstacles.",
+  gameFeedbackBalanced:
+    "This game is well-balanced! I had just the right amount of challenge to have fun!",
 
   platformsSuccess: "Lilmonster has won!",
   platformsBlocked: "Lilmonster is blocked...",
@@ -111,4 +63,9 @@ window.languages.en = {
     "I won, but just barely...! The timer probably needs a slight adjustment.",
 
   platforms1_title: "My first game",
+  platforms2_title: "Oh. Water!",
+
+  // Feedback
+  balancedGame: "THIS GAME IS WELL-BALANCED",
+  unbalancedGame: "THIS GAME IS UNBALANCED",
 };

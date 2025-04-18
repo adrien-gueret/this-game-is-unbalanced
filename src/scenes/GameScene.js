@@ -183,7 +183,7 @@ class GameScene extends Phaser.Scene {
 
       this.scene.start("FeedbackScene", {
         level: this.level,
-        balanced: data.balanced,
+        isBalanced: data.isBalanced,
         feedback: data.feedback,
       });
     });

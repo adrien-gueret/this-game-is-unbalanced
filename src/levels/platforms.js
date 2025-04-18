@@ -53,9 +53,6 @@ Level.addLevels([
       const groundY = height - tileSize;
 
       const wallX = 384;
-
-      console.log(this);
-
       const wallHeight = this.settings.wallHeight.value;
 
       if (wallHeight > 0) {
@@ -128,7 +125,7 @@ Level.addLevels([
         label: "platforms2WaterLengthSettings",
       },
     },
-    () => {
+    function () {
       const waterLength = this.settings.waterLength.value;
 
       if (waterLength <= 2) {
@@ -141,7 +138,7 @@ Level.addLevels([
 
       return "medium";
     },
-    ({ scene, player, platformsGroup, waterGroup, finishGroup }) => {
+    function ({ scene, player, platformsGroup, waterGroup, finishGroup }) {
       const waterLength = this.settings.waterLength.value;
 
       const { width, height } = scene.cameras.main;

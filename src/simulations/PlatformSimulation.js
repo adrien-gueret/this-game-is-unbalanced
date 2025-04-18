@@ -366,7 +366,7 @@ class PlatformSimulation {
   completeSimulation(finishReason, difficulty) {
     this.simulationTimer.remove();
 
-    let balanced = false;
+    let isBalanced = false;
     let feedback = "";
 
     // Variable pour stocker le message à afficher
@@ -399,7 +399,7 @@ class PlatformSimulation {
               feedback = window.i18n.get("platformsFeedbackTooNearLimit");
             } else {
               feedback = window.i18n.get("gameFeedbackBalanced");
-              balanced = true;
+              isBalanced = true;
             }
 
             break;
@@ -430,7 +430,7 @@ class PlatformSimulation {
       // Emit an event to notify the scene that the simulation is complete
       this.scene.events.emit("simulationComplete", {
         feedback,
-        balanced,
+        isBalanced,
       });
     });
   }
