@@ -22,9 +22,8 @@ class FeedbackScene extends Phaser.Scene {
       .image(width / 2, height / 2, "background-grey")
       .setDisplaySize(width, height);
 
-    // Niveau joué
     this.add
-      .text(width / 2, 60, `${this.level.getTitle()}`, {
+      .text(width / 2, 60, window.i18n.get("feedbackTitle"), {
         fontSize: "36px",
         fontFamily: "Arial",
         color: "#ffffff",
@@ -35,9 +34,64 @@ class FeedbackScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     // Bulle de dialogue
-    this.createSpeechBubble(300, height / 3 - 20, width - 350, 160);
+    const { height: bubbleHeight, bubble } = this.createSpeechBubble(
+      300,
+      height / 2 - 60,
+      width - 350,
+      this.feedback
+    );
 
-    // Feedback du joueur fictif
+    // Ajuster la position du cadre du monstre pour l'aligner dynamiquement avec la queue de la bulle
+    const bubbleY = bubble.y; // Position Y de la bulle
+    const bubbleTailY = bubbleY + bubbleHeight / 2; // Position Y de la queue de la bulle
+
+    const monsterFrame = this.add.graphics();
+    const frameWidth = 120;
+    const frameHeight = 120;
+    const frameX = 150; // Position à gauche de la bulle
+    const frameY = bubbleTailY - frameHeight / 2; // Centré verticalement sur la queue de la bulle
+
+    // Dessiner le cadre avec des bords arrondis
+    const frameRadius = 20;
+    monsterFrame.fillStyle(0xffffff, 0.5); // Fond blanc semi-transparent
+    monsterFrame.lineStyle(4, 0x000000, 1); // Bords noirs
+    monsterFrame.strokeRoundedRect(
+      frameX,
+      frameY,
+      frameWidth,
+      frameHeight,
+      frameRadius
+    );
+    monsterFrame.fillRoundedRect(
+      frameX,
+      frameY,
+      frameWidth,
+      frameHeight,
+      frameRadius
+    );
+
+    // Ajouter le sprite du monstre
+    const monsterSprite = this.add.sprite(
+      frameX + frameWidth / 2,
+      frameY + frameHeight / 2,
+      "player-platforms"
+    );
+    monsterSprite.setDisplaySize(frameWidth - 20, frameHeight - 20); // Ajuster la taille du sprite pour qu'il rentre dans le cadre
+    monsterSprite.setDepth(1); // S'assurer que le sprite est au-dessus du cadre
+
+    // Créer les animations pour le monstre
+    this.anims.create({
+      key: "happy",
+      frames: this.anims.generateFrameNumbers("player-platforms", {
+        start: 0,
+        end: 1,
+      }),
+      frameRate: 3,
+      repeat: -1,
+    });
+
+    // Jouer l'animation "happy"
+    monsterSprite.anims.play("happy", true);
 
     // État de complétion du niveau
     const statusColor = this.isBalanced ? 0x2ecc71 : 0xe74c3c;
@@ -86,19 +140,83 @@ class FeedbackScene extends Phaser.Scene {
     );
   }
 
-  createSpeechBubble(x, y, width, height) {
-    // Forme principale de la bulle
-    const bubble = this.add.graphics({ x, y });
+  createSpeechBubble(x, y, width, message) {
+    // Définir des marges pour le texte à l'intérieur de la bulle
+    const padding = 30;
+    const textWidth = width - padding * 2;
 
-    // Style de la bulle
+    // Dessiner d'abord la bulle
+    const bubble = this.add.graphics({ x, y });
     bubble.fillStyle(0xffffff, 1);
     bubble.lineStyle(4, 0x000000, 1);
 
-    // Dessiner le corps de la bulle avec des coins arrondis
-    // Au lieu d'utiliser arcTo qui n'est pas disponible, utilisons des courbes
-    const radius = 20; // Rayon des coins arrondis
+    // Dimensionnement temporaire de la bulle
+    const tempHeight = 160; // Hauteur temporaire
+    const radius = 20;
 
-    // Dessiner le rectangle principal avec coins arrondis
+    // Dessiner la bulle avec une hauteur temporaire
+    bubble.beginPath();
+
+    // Coin supérieur gauche
+    bubble.moveTo(radius, 0);
+
+    // Bord supérieur
+    bubble.lineTo(width - radius, 0);
+
+    // Coin supérieur droit
+    bubble.arc(width - radius, radius, radius, -Math.PI / 2, 0);
+
+    // Bord droit
+    bubble.lineTo(width, tempHeight - radius);
+
+    // Coin inférieur droit
+    bubble.arc(width - radius, tempHeight - radius, radius, 0, Math.PI / 2);
+
+    // Bord inférieur
+    bubble.lineTo(radius, tempHeight);
+
+    // Coin inférieur gauche
+    bubble.arc(radius, tempHeight - radius, radius, Math.PI / 2, Math.PI);
+
+    // Bord gauche jusqu'au point où commence la flèche
+    bubble.lineTo(0, tempHeight / 2 + 20);
+
+    // Dessiner la pointe de la flèche (centrée verticalement)
+    bubble.lineTo(-20, tempHeight / 2);
+    bubble.lineTo(0, tempHeight / 2 - 20);
+
+    // Continuer le bord gauche jusqu'au coin supérieur
+    bubble.lineTo(0, radius);
+
+    // Compléter le coin supérieur gauche
+    bubble.arc(radius, radius, radius, Math.PI, (3 * Math.PI) / 2);
+
+    bubble.closePath();
+    bubble.fillPath();
+    bubble.strokePath();
+
+    // APRÈS avoir dessiné la bulle, créer le texte
+    const textObj = this.add
+      .text(x + width / 2, y + padding, message, {
+        fontSize: "24px",
+        fontFamily: "Arial",
+        color: "#000000",
+        fontStyle: "bold", // Rendre le texte plus visible
+        align: "center",
+        wordWrap: { width: textWidth },
+      })
+      .setOrigin(0.5, 0);
+
+    // Calculer la hauteur finale de la bulle
+    const textHeight = textObj.height;
+    const height = textHeight + padding * 2;
+
+    // Effacer la bulle temporaire
+    bubble.clear();
+
+    // Redessiner la bulle avec la hauteur correcte
+    bubble.fillStyle(0xffffff, 1);
+    bubble.lineStyle(4, 0x000000, 1);
     bubble.beginPath();
 
     // Coin supérieur gauche
@@ -122,28 +240,35 @@ class FeedbackScene extends Phaser.Scene {
     // Coin inférieur gauche
     bubble.arc(radius, height - radius, radius, Math.PI / 2, Math.PI);
 
-    // Bord gauche
+    // Bord gauche jusqu'au point où commence la flèche
+    bubble.lineTo(0, height / 2 + 20);
+
+    // Dessiner la pointe de la flèche (centrée verticalement)
+    bubble.lineTo(-20, height / 2);
+    bubble.lineTo(0, height / 2 - 20);
+
+    // Continuer le bord gauche jusqu'au coin supérieur
     bubble.lineTo(0, radius);
 
-    // Coin supérieur gauche
+    // Compléter le coin supérieur gauche
     bubble.arc(radius, radius, radius, Math.PI, (3 * Math.PI) / 2);
 
     bubble.closePath();
     bubble.fillPath();
     bubble.strokePath();
 
-    // Dessiner la pointe de la bulle vers l'avatar
-    bubble.fillStyle(0xffffff, 1);
-    bubble.lineStyle(4, 0x000000, 1);
-    bubble.beginPath();
-    bubble.moveTo(0, height / 2);
-    bubble.lineTo(-20, height / 2 + 20);
-    bubble.lineTo(0, height / 2 + 40);
-    bubble.closePath();
-    bubble.fillPath();
-    bubble.strokePath();
+    // S'assurer que le texte est positionné au-dessus de la bulle (en z-index)
+    textObj.setDepth(1);
+    bubble.setDepth(0);
 
-    return bubble;
+    // Positionner le texte au centre de la bulle
+    textObj.setPosition(x + width / 2, y + height / 2);
+    textObj.setOrigin(0.5);
+
+    // Ajouter un contour au texte pour s'assurer qu'il est visible
+    textObj.setStroke("#333333", 1);
+
+    return { bubble, textObj, height };
   }
 
   createButton(x, y, text, color, callback) {

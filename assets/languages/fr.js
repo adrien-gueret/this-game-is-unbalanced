@@ -67,6 +67,7 @@ window.languages.fr = {
   platforms2_title: "Oh, de l'eau !",
 
   // Feedback
+  feedbackTitle: "L'avis de Potimonstre",
   balancedGame: "JEU ÉQUILIBRÉ",
   unbalancedGame: "JEU NON ÉQUILIBRÉ",
 };

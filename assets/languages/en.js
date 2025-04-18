@@ -66,6 +66,7 @@ window.languages.en = {
   platforms2_title: "Oh. Water!",
 
   // Feedback
+  feedbackTitle: "Lilmonster's Feedback",
   balancedGame: "THIS GAME IS WELL-BALANCED",
   unbalancedGame: "THIS GAME IS UNBALANCED",
 };
