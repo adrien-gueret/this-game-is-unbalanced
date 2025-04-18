@@ -22,7 +22,6 @@ const config = {
     GameScene,
     FeedbackScene,
     EditorScene,
-    ResultScene,
   ],
 };
 

@@ -9,6 +9,25 @@ class PlatformSimulation {
     this.scene = scene;
     this.timerValue = 0;
     this.simulationTimer = null;
+
+    this.commonSimulationsSettings = {
+      playerSpeed: {
+        value: 200,
+        label: "platformsPlayerSpeedSettings",
+      },
+      playerGravity: {
+        value: 300,
+        label: "platformsPlayerGravitySettings",
+      },
+      jumpHeight: {
+        value: 300,
+        label: "platformsJumpHeightSettings",
+      },
+      timeLimit: {
+        value: 30,
+        label: "platformsTimeLimitSettings",
+      },
+    };
   }
 
   async startLevel(level) {
@@ -102,12 +121,13 @@ class PlatformSimulation {
     this.flagCollider = this.scene.physics.add.overlap(
       player,
       finishGroup,
-      this.handleFinishFlag,
+      (player, flag) =>
+        this.handleFinishFlag(player, flag, level.getDifficulty()),
       null,
       this
     );
 
-    await level.onStart({
+    level.start({
       scene: this.scene,
       player,
       platformsGroup,
@@ -115,7 +135,7 @@ class PlatformSimulation {
       waterGroup,
     });
 
-    // Appliquer le masque aux éléments créés par level.onStart
+    // Appliquer le masque aux éléments créés par level.start
     // Pour platformsGroup
     platformsGroup.getChildren().forEach((child) => {
       this.scene.applyGameMask(child);
@@ -146,30 +166,31 @@ class PlatformSimulation {
    * Démarre la simulation du niveau de plateforme
    */
   startSimulation(player, platformsGroup) {
-    const settings = {
-      playerSpeed: 100,
-      playerGravity: 300,
-      jumpHeight: 300,
-      timeLimit: 15, // secondes
-    };
-
-    player.body.setGravityY(settings.playerGravity);
+    player.body.setGravityY(this.commonSimulationsSettings.playerGravity.value);
 
     player.anims.play("right", true);
 
     const { height, width } = this.scene.cameras.main;
 
     const timerText = this.scene.add
-      .text(width - 40, 100, window.i18n.get("timer")(0, settings.timeLimit), {
-        fontSize: "24px",
-        fontFamily: "Arial",
-        color: "#ffffff",
-        stroke: "#000000",
-        strokeThickness: 4,
-      })
+      .text(
+        width - 40,
+        100,
+        window.i18n.get("timer")(
+          0,
+          this.commonSimulationsSettings.timeLimit.value
+        ),
+        {
+          fontSize: "24px",
+          fontFamily: "Arial",
+          color: "#ffffff",
+          stroke: "#000000",
+          strokeThickness: 4,
+        }
+      )
       .setOrigin(1, 0.5);
 
-    player.setVelocityX(settings.playerSpeed);
+    player.setVelocityX(this.commonSimulationsSettings.playerSpeed.value);
 
     let isMovingBack = false;
     let failingJumps = 0;
@@ -183,7 +204,7 @@ class PlatformSimulation {
         timerText.setText(
           window.i18n.get("timer")(
             Math.floor(this.timerValue),
-            settings.timeLimit
+            this.commonSimulationsSettings.timeLimit.value
           )
         );
 
@@ -211,16 +232,22 @@ class PlatformSimulation {
             isMovingBack = true;
           } else if (player.body.touching.down) {
             if (isMovingBack) {
-              player.setVelocityX(-settings.playerSpeed);
+              player.setVelocityX(
+                -this.commonSimulationsSettings.playerSpeed.value
+              );
               player.setFlipX(true);
 
               this.scene.time.delayedCall(400, () => {
-                player.setVelocityX(settings.playerSpeed);
+                player.setVelocityX(
+                  this.commonSimulationsSettings.playerSpeed.value
+                );
                 player.setFlipX(false);
                 isMovingBack = false;
               });
             } else {
-              player.setVelocityX(settings.playerSpeed);
+              player.setVelocityX(
+                this.commonSimulationsSettings.playerSpeed.value
+              );
             }
           }
 
@@ -235,7 +262,9 @@ class PlatformSimulation {
                 this.isHoleAhead(player, platformsGroup)
               ) {
                 // Faire sauter le joueur
-                player.setVelocityY(-settings.jumpHeight);
+                player.setVelocityY(
+                  -this.commonSimulationsSettings.jumpHeight.value
+                );
               }
             } else {
               // Changer la frame à la frame 20 pendant le saut
@@ -245,7 +274,7 @@ class PlatformSimulation {
           }
         }
 
-        if (this.timerValue >= settings.timeLimit) {
+        if (this.timerValue >= this.commonSimulationsSettings.timeLimit.value) {
           player.setVelocityX(0);
           player.anims.play("sad", true);
 
@@ -261,7 +290,7 @@ class PlatformSimulation {
   /**
    * Gère l'arrivée au drapeau
    */
-  handleFinishFlag(player, flag) {
+  handleFinishFlag(player, flag, difficulty) {
     this.simulationTimer.remove();
 
     if (player.x > flag.x) {
@@ -271,34 +300,7 @@ class PlatformSimulation {
       // Remove the overlap detection with the finish flag
       this.flagCollider.destroy();
 
-      this.completeSimulation("SUCCESS");
-    }
-
-    return;
-
-    // Logique d'équilibrage améliorée
-    if (timeRatio < 0.4) {
-      // Trop facile - moins de 40% du temps utilisé
-      this.levelData.playerFeedback =
-        "Ce niveau est beaucoup trop facile ! J'ai terminé en un rien de temps. Tu devrais augmenter la difficulté en ajoutant plus d'obstacles ou en réduisant la vitesse du joueur.";
-    } else if (timeRatio > 0.85 && this.hasCollided) {
-      // Trop difficile - près du temps limite ET collision
-      this.levelData.playerFeedback =
-        "Ce niveau est trop difficile ! J'ai à peine réussi à le terminer et j'ai percuté des obstacles. Tu pourrais réduire le nombre d'obstacles ou augmenter la hauteur de saut.";
-    } else if (this.hasCollided && this.settings.obstacleCount > 3) {
-      // Difficile mais jouable
-      this.levelData.playerFeedback =
-        "Le niveau est assez difficile avec tous ces obstacles ! J'ai réussi mais j'ai percuté quelque chose. C'était stimulant mais peut-être un peu trop.";
-    } else if (timeRatio > 0.75) {
-      // Bon équilibre - temps correct
-      this.levelData.playerFeedback =
-        "C'était un niveau bien équilibré ! Un bon défi qui m'a fait utiliser mon temps de manière efficace.";
-      this.levelData.balanced = true;
-    } else {
-      // Bon équilibre - ni trop facile, ni trop difficile
-      this.levelData.playerFeedback =
-        "C'était un niveau parfaitement équilibré ! Juste assez difficile pour être stimulant, mais pas frustrant.";
-      this.levelData.balanced = true;
+      this.completeSimulation("SUCCESS", difficulty);
     }
   }
 
@@ -361,10 +363,11 @@ class PlatformSimulation {
    * Termine la simulation
    * @param {string} finishReason - PLAYER_BLOCKED, TIMEOUT, FAILURE
    */
-  completeSimulation(finishReason) {
-    if (this.simulationTimer) {
-      this.simulationTimer.remove();
-    }
+  completeSimulation(finishReason, difficulty) {
+    this.simulationTimer.remove();
+
+    let balanced = false;
+    let feedback = "";
 
     // Variable pour stocker le message à afficher
     let message = "";
@@ -373,30 +376,61 @@ class PlatformSimulation {
     switch (finishReason) {
       case "SUCCESS":
         message = window.i18n.get("platformsSuccess");
-        messageColor = "#7CFC00"; // Vert vif pour succès
+        messageColor = "#7CFC00";
+
+        const timerRatio = Math.floor(
+          (this.timerValue / this.commonSimulationsSettings.timeLimit.value) *
+            100
+        );
+
+        switch (difficulty) {
+          case "easy":
+            feedback = window.i18n.get("gameFeedbackTooEasy");
+            break;
+
+          case "hard":
+            feedback = window.i18n.get("gameFeedbackTooHard");
+            break;
+
+          case "medium":
+            if (timerRatio < 40) {
+              feedback = window.i18n.get("platformsFeedbackTooFarLimit");
+            } else if (timerRatio > 85) {
+              feedback = window.i18n.get("platformsFeedbackTooNearLimit");
+            } else {
+              feedback = window.i18n.get("gameFeedbackBalanced");
+              balanced = true;
+            }
+
+            break;
+        }
+
         break;
 
       case "PLAYER_BLOCKED":
         message = window.i18n.get("platformsBlocked");
-        messageColor = "#FFA500"; // Orange pour blocage
+        messageColor = "#FFA500";
+        feedback = window.i18n.get("platformsFeedbackBlocked");
         break;
 
       case "TIMEOUT":
         message = window.i18n.get("timeout");
-        messageColor = "#FF6347"; // Rouge-orange pour échec de temps
+        messageColor = "#FF6347";
+        feedback = window.i18n.get("platformsFeedbackTimeout");
         break;
 
       case "FALL_IN_HOLE":
         message = window.i18n.get("platformsFailure");
-        messageColor = "#FF6347"; // Rouge-orange pour chute
+        messageColor = "#FF6347";
+        feedback = window.i18n.get("platformsFeedbackFailure");
         break;
     }
 
     showMessage(this.scene, message, messageColor, () => {
       // Emit an event to notify the scene that the simulation is complete
       this.scene.events.emit("simulationComplete", {
-        result: finishReason,
-        time: this.timerValue,
+        feedback,
+        balanced,
       });
     });
   }

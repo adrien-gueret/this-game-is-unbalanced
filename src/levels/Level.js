@@ -12,10 +12,12 @@ class Level {
     });
   }
 
-  constructor({ onStart, type }) {
+  constructor({ start, settings, getDifficulty, type }) {
     this.id = null;
     this.type = type;
-    this.onStart = onStart.bind(this);
+    this.settings = settings;
+    this.getDifficulty = getDifficulty.bind(this);
+    this.start = start.bind(this);
   }
 
   getTitle() {
@@ -25,26 +27,22 @@ class Level {
   getDescription() {
     return window.i18n.get(`${this.type}${this.id}.description`);
   }
-
-  onStart() {
-    throw new Error("onStart method must be implemented in subclass");
-  }
 }
 
 class PlatformsLevel extends Level {
-  constructor(onStart) {
-    super({ onStart, type: "platforms" });
+  constructor(settings, getDifficulty, start) {
+    super({ start, settings, getDifficulty, type: "platforms" });
   }
 }
 
 class RacingLevel extends Level {
-  constructor(onStart) {
-    super({ onStart, type: "racing" });
+  constructor(settings, getDifficulty, start) {
+    super({ start, settings, getDifficulty, type: "racing" });
   }
 }
 
 class BossLevel extends Level {
-  constructor(onStart) {
-    super({ onStart, type: "boss" });
+  constructor(settings, getDifficulty, start) {
+    super({ start, settings, getDifficulty, type: "boss" });
   }
 }

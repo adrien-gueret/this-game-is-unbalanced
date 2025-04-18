@@ -10,9 +10,11 @@ class GameScene extends Phaser.Scene {
     super({ key: "GameScene" });
   }
 
-  create() {
-    this.level = window.currentLevel;
+  init({ level }) {
+    this.level = level;
+  }
 
+  create() {
     const { width, height } = this.cameras.main;
 
     // Variables pour la simulation
@@ -105,7 +107,6 @@ class GameScene extends Phaser.Scene {
 
     skipButton.on("pointerdown", () => {
       // TODO: Not working yet
-      this.completeSimulation();
     });
 
     // Création du masque basé sur le rectangle de la zone de jeu
@@ -178,56 +179,15 @@ class GameScene extends Phaser.Scene {
 
   startSimulation() {
     this.events.once("simulationComplete", (data) => {
-      console.log(`Simulation terminée avec résultat: ${data.result}`);
-      console.log(`Temps écoulé: ${data.time} secondes`);
-      // Traiter la fin de la simulation ici
+      console.log(`Simulation terminée avec résultat:`, data);
+
+      this.scene.start("FeedbackScene", {
+        level: this.level,
+        balanced: data.balanced,
+        feedback: data.feedback,
+      });
     });
 
     this.simulation.startLevel(this.level);
-  }
-
-  completeSimulation(success = true) {
-    if (this.simulationComplete) return;
-
-    this.simulationComplete = true;
-
-    if (this.simulation) {
-      this.simulation.destroy();
-    }
-
-    // Animation de succès ou d'échec
-    const { width, height } = this.cameras.main;
-
-    const resultText = this.add
-      .text(
-        width / 2,
-        height / 2,
-        success
-          ? window.i18n.get("levelSucceeded")
-          : window.i18n.get("levelFailed"),
-        {
-          fontSize: "48px",
-          fontFamily: "Arial",
-          color: success ? "#2ecc71" : "#e74c3c",
-          fontStyle: "bold",
-          stroke: "#000000",
-          strokeThickness: 6,
-        }
-      )
-      .setOrigin(0.5)
-      .setAlpha(0);
-
-    // Fondu d'entrée pour le texte
-    this.tweens.add({
-      targets: resultText,
-      alpha: 1,
-      duration: 500,
-      onComplete: () => {
-        // Passer à la scène suivante après un délai
-        this.time.delayedCall(1500, () => {
-          this.scene.start("FeedbackScene");
-        });
-      },
-    });
   }
 }

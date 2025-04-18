@@ -1,3 +1,4 @@
+/*
 Level.addLevels([
   new RacingLevel(
     ({ scene, player, platformsGroup, obstactleGroup, finishGroup }) => {
@@ -15,3 +16,4 @@ Level.addLevels([
     }
   ),
 ]);
+*/

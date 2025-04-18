@@ -89,14 +89,26 @@ window.languages.en = {
   // - Levels
   timer: (current, max) =>
     `Time: ${(max - current).toString().padStart(2, "0")}`,
-  watchInstruction: "Watch the little monster play the game!",
+  watchInstruction: "Watch Lilmonster play the game!",
   timeout: "Time out!",
   clickToStart: "Click to start",
   clickToContinue: "Click to continue",
 
-  platformsSuccess: "Little Monster has won!",
-  platformsBlocked: "Little Monster is blocked...",
-  platformsFailure: "Little Monster has fallen!",
+  platformsSuccess: "Lilmonster has won!",
+  platformsBlocked: "Lilmonster is blocked...",
+  platformsFailure: "Lilmonster has fallen!",
+
+  platformsFeedbackBlocked:
+    "This game is impossible! I got stuck, I couldn't jump high enough...",
+  platformsFeedbackTimeout:
+    "This game is unbalanced! There's just not enough time to finish it...",
+  platformsFeedbackFailure:
+    "This game is too difficult! How am I supposed to jump over that gap?",
+
+  platformsFeedbackTooFarLimit:
+    "This game is too easy! The timer is too generous, it doesn't pose any challenge!",
+  platformsFeedbackTooNearLimit:
+    "I won, but just barely...! The timer probably needs a slight adjustment.",
 
   platforms1_title: "My first game",
 };

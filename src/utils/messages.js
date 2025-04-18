@@ -104,7 +104,7 @@ function showMessage(
 
     // Créer l'arrière-plan pour le texte "Cliquez pour continuer"
     const continueY = textY + 80;
-    const continueBgWidth = nextLabel.length * 12; // Estimation de la largeur basée sur le texte
+    const continueBgWidth = nextLabel.length * 13; // Estimation de la largeur basée sur le texte
     const continueBgHeight = 40;
 
     backgroundContinueText = scene.add.graphics();

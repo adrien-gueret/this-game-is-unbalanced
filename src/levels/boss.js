@@ -1,3 +1,4 @@
+/*
 Level.addLevels([
   new BossLevel(
     ({ scene, player, platformsGroup, obstactleGroup, finishGroup }) => {
@@ -15,3 +16,4 @@ Level.addLevels([
     }
   ),
 ]);
+ */

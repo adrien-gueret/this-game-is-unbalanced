@@ -58,7 +58,7 @@ class LevelSelectScene extends Phaser.Scene {
   }
 
   displayLevels() {
-    const { width, height } = this.cameras.main;
+    const { width } = this.cameras.main;
     const padding = 20;
     const startY = 150;
 
@@ -141,10 +141,9 @@ class LevelSelectScene extends Phaser.Scene {
             .on("pointerover", () => background.setFillStyle(0x2980b9))
             .on("pointerout", () => background.setFillStyle(0x3498db))
             .on("pointerdown", () => {
-              window.currentLevel = level;
               this.cameras.main.fade(500, 0, 0, 0);
               this.time.delayedCall(500, () => {
-                this.scene.start("GameScene");
+                this.scene.start("GameScene", { level });
               });
             });
         }
