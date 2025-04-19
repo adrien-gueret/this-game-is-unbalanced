@@ -94,21 +94,6 @@ class GameScene extends Phaser.Scene {
       speedButton.setText(this.simulationSpeed === 1 ? "⏩" : "⏩⏩⏩");
     });
 
-    // Bouton de saut (permet de sauter la simulation)
-    const skipButton = this.add
-      .text(width - 100, 30, window.i18n.get("skipButton"), {
-        fontSize: "18px",
-        color: "#ffffff",
-        backgroundColor: "#e67e22",
-        padding: { x: 10, y: 5 },
-      })
-      .setOrigin(1, 0.5)
-      .setInteractive({ useHandCursor: true });
-
-    skipButton.on("pointerdown", () => {
-      // TODO: Not working yet
-    });
-
     // Création du masque basé sur le rectangle de la zone de jeu
     const mask = this.make.graphics();
     mask.fillStyle(0xffffff);

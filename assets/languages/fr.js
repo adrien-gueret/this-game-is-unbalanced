@@ -21,7 +21,6 @@ window.languages.fr = {
   submitButton: "Soumettre",
   retryButton: "Réessayer",
   balanceButton: "Équilibrer",
-  skipButton: "PASSER ⏭️",
 
   // Instructions du tutoriel
   tutorialInstructions: [

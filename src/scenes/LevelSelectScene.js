@@ -29,26 +29,22 @@ class LevelSelectScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     // Bouton retour au menu
-    const backButton = this.add
-      .text(100, 50, window.i18n.get("backButton"), {
-        fontSize: "24px",
-        fontFamily: "Arial",
-        color: "#ffffff",
-        backgroundColor: "#e74c3c",
-        padding: { x: 10, y: 5 },
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-
-    backButton
-      .on("pointerover", () => backButton.setScale(1.1))
-      .on("pointerout", () => backButton.setScale(1))
-      .on("pointerdown", () => {
+    createButton(
+      this,
+      window.i18n.get("backButton"),
+      100,
+      50,
+      () => {
         this.cameras.main.fade(500, 0, 0, 0);
         this.time.delayedCall(500, () => {
           this.scene.start("MainMenuScene");
         });
-      });
+      },
+      {
+        color: "#e74c3c",
+        size: "small",
+      }
+    );
 
     // Affichage des niveaux
     this.displayLevels();

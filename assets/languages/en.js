@@ -21,7 +21,6 @@ window.languages.en = {
   submitButton: "Submit",
   retryButton: "Retry",
   balanceButton: "Balance",
-  skipButton: "SKIP ⏭️",
 
   // Instructions du tutoriel
   tutorialInstructions: [

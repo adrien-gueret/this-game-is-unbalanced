@@ -67,9 +67,20 @@ function createButton(scene, label, x, y, onClick, styleOptions = {}) {
       ease: "Sine.Out",
     });
 
-    // Créer un effet de contour lumineux
+    // Créer un effet de contour lumineux avec anti-aliasing
     const glowColor = 0xffffff;
-    background.lineStyle(2, glowColor, 0.8);
+    background.clear();
+    background.fillStyle(parseInt(color.replace("#", "0x")), 1);
+    background.fillRoundedRect(
+      -width / 2,
+      -height / 2,
+      width,
+      height,
+      borderRadius
+    );
+
+    // Ajouter un contour avec anti-aliasing
+    background.lineStyle(1.5, glowColor, 0.8, 1); // Ajout du paramètre 1 pour l'anti-aliasing
     background.strokeRoundedRect(
       -width / 2,
       -height / 2,
