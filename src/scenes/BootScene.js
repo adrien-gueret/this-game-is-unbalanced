@@ -53,10 +53,6 @@ class BootScene extends Phaser.Scene {
 
     // Chargement des assets du jeu
     this.load.image(
-      "logo",
-      "https://labs.phaser.io/assets/sprites/phaser3-logo.png"
-    );
-    this.load.image(
       "background-yellow",
       "./assets/images/background-yellow.png"
     );

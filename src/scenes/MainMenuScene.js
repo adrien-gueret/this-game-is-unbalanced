@@ -17,9 +17,9 @@ class MainMenuScene extends Phaser.Scene {
       .image(width / 2, height / 2, "background-yellow")
       .setDisplaySize(width, height);
 
-    // Titre du jeu
-    this.add
-      .text(width / 2, height / 4, window.i18n.get("mainTitle"), {
+    // Titre du jeu - initialement hors écran (à gauche)
+    const title = this.add
+      .text(-600, height / 4, window.i18n.get("mainTitle"), {
         fontSize: "40px",
         fontFamily: "Arial",
         color: "#ffffff",
@@ -36,103 +36,220 @@ class MainMenuScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    // Sous-titre
-    this.add
-      .text(width / 2, height / 4 + 50, window.i18n.get("subtitle"), {
+    // Sous-titre - initialement hors écran (à droite)
+    const subtitle = this.add
+      .text(width + 600, height / 4 + 50, window.i18n.get("subtitle"), {
         fontSize: "24px",
         fontFamily: "Arial",
-        color: "#ffff00",
+        color: "#000000",
         fontStyle: "italic",
-        stroke: "#000000",
+        stroke: "#ffffff",
         strokeThickness: 3,
       })
       .setOrigin(0.5);
 
-    // Logo du jeu (si disponible)
-    this.add.image(width / 2, height / 2 - 20, "logo").setScale(0.5);
+    // Animation d'entrée pour le titre (depuis la gauche)
+    this.tweens.add({
+      targets: title,
+      x: width / 2,
+      duration: 400,
+      ease: "Power2.easeOut",
+      delay: 100,
+    });
 
-    // Bouton de démarrage
-    const startButton = this.add
-      .text(width / 2, height / 2 + 100, window.i18n.get("playButton"), {
-        fontSize: "32px",
-        fontFamily: "Arial",
-        color: "#ffffff",
-        backgroundColor: "#1a6b38",
-        padding: { x: 20, y: 10 },
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
+    // Animation d'entrée pour le sous-titre (depuis la droite)
+    this.tweens.add({
+      targets: subtitle,
+      x: width / 2,
+      duration: 400,
+      ease: "Power2.easeOut",
+      delay: 400, // Léger décalage par rapport au titre
+    });
 
-    // Animation de survol du bouton
-    startButton
-      .on("pointerover", () => {
-        startButton.setStyle({ color: "#ffff00" });
-        startButton.setScale(1.1);
-      })
-      .on("pointerout", () => {
-        startButton.setStyle({ color: "#ffffff" });
-        startButton.setScale(1);
-      })
-      .on("pointerdown", () => {
-        this.cameras.main.fade(500, 0, 0, 0);
-        this.time.delayedCall(500, () => {
-          this.scene.start("LevelSelectScene");
+    this.time.delayedCall(1000, () => {
+      // Fonction pour créer un bouton avec effet de fondu
+      const createFadingButton = (label, x, y, onClick, options, delay) => {
+        const button = createButton(this, label, x, y, onClick, options);
+
+        // Rendre le bouton initialement invisible
+        button.setAlpha(0);
+
+        // Animation de fondu
+        this.tweens.add({
+          targets: button,
+          alpha: 1,
+          duration: 500,
+          ease: "Cubic.easeIn",
+          delay: delay,
         });
+
+        return button;
+      };
+
+      // Bouton de démarrage avec fondu
+      createFadingButton(
+        window.i18n.get("playButton"),
+        width / 2,
+        height / 2 + 100,
+        () => {
+          this.cameras.main.fade(500, 0, 0, 0);
+          this.time.delayedCall(500, () => {
+            this.scene.start("LevelSelectScene");
+          });
+        },
+        { size: "big", color: "#3498db" },
+        0 // Premier bouton à apparaître
+      );
+
+      // Bouton tutoriel avec fondu
+      createFadingButton(
+        window.i18n.get("tutorialButton"),
+        width / 2,
+        height / 2 + 160,
+        () => {
+          this.showTutorial();
+        },
+        { color: "#26a524" },
+        150 // Légère attente après le premier bouton
+      );
+
+      // Bouton de changement de langue avec fondu
+      createFadingButton(
+        window.i18n.get("languageButton"),
+        width - 100,
+        height - 40,
+        () => {
+          // Changer de langue
+          window.i18n.toggleLanguage();
+          // Rafraîchir la scène pour appliquer les changements
+          this.scene.restart();
+        },
+        { size: "small" },
+        300 // Dernier bouton à apparaître
+      );
+    });
+
+    // Initialisation du sprite monstre en dehors de l'écran
+    const monsterSprite = this.add
+      .sprite(100, height + 356 / 2, "player-platforms", 0)
+      .setDisplaySize(356, 356); // Rendre le sprite interactif
+
+    // Variable pour stocker la position finale du monstre
+    const monsterFinalY = height - 356 / 2 + 100;
+    const monsterIdleOffset = 10; // Différence pour l'oscillation
+
+    // Animation d'entrée du monstre avec un délai de 1.5s
+    this.time.delayedCall(1000, () => {
+      this.tweens.add({
+        targets: monsterSprite,
+        y: monsterFinalY, // Position finale
+        duration: 1600,
+        ease: "Back.easeOut", // Effet de rebond léger à la fin
+        onComplete: () => {
+          // Animation d'idle après l'entrée
+          this.startIdleAnimation(
+            monsterSprite,
+            monsterFinalY,
+            monsterIdleOffset
+          );
+
+          monsterSprite.setInteractive({ useHandCursor: true });
+
+          // Easter egg au clic sur le monstre
+          monsterSprite.on("pointerdown", () => {
+            // Si un easter egg est déjà en cours, ignorer le clic
+            if (monsterSprite.isEasterEggActive) return;
+
+            monsterSprite.isEasterEggActive = true;
+
+            // Stopper l'animation d'idle si elle existe
+            if (this.idleTween) {
+              this.idleTween.stop();
+              this.idleTween = null; // Très important pour éviter les bugs
+            }
+
+            // Changer la frame du monstre
+            monsterSprite.setFrame(6);
+
+            // Créer et animer le point d'exclamation avec un style amélioré
+            const exclamation = this.add
+              .text(monsterSprite.x, monsterSprite.y - 180, "!", {
+                fontSize: "72px", // Taille augmentée
+                fontFamily: "Arial Black",
+                fontStyle: "bold",
+                color: "#ff0000",
+                stroke: "#000000", // Contour noir
+                strokeThickness: 8, // Épaisseur du contour
+                shadow: {
+                  offsetX: 2,
+                  offsetY: 2,
+                  color: "#000",
+                  blur: 5,
+                  fill: true,
+                },
+              })
+              .setOrigin(0.5);
+
+            // Animation d'apparition du point d'exclamation
+            this.tweens.add({
+              targets: exclamation,
+              scale: { from: 0, to: 1.2 },
+              y: monsterSprite.y - 220,
+              duration: 400,
+              ease: "Back.easeOut",
+              yoyo: true,
+              hold: 400,
+              onComplete: () => {
+                exclamation.destroy();
+              },
+            });
+
+            // Retour à la normale après une seconde
+            this.time.delayedCall(1000, () => {
+              monsterSprite.setFrame(0);
+              monsterSprite.isEasterEggActive = false;
+              monsterSprite.y = monsterFinalY; // Important: réinitialiser la position
+
+              // Petit délai pour assurer une transition fluide
+              this.time.delayedCall(50, () => {
+                // Redémarrer l'animation d'idle avec la fonction dédiée
+                this.startIdleAnimation(
+                  monsterSprite,
+                  monsterFinalY,
+                  monsterIdleOffset
+                );
+              });
+            });
+          });
+        },
       });
-
-    // Bouton tutoriel
-    const tutorialButton = this.add
-      .text(width / 2, height / 2 + 160, window.i18n.get("tutorialButton"), {
-        fontSize: "24px",
-        fontFamily: "Arial",
-        color: "#ffffff",
-        backgroundColor: "#3498db",
-        padding: { x: 20, y: 10 },
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-
-    tutorialButton
-      .on("pointerover", () => {
-        tutorialButton.setStyle({ color: "#ffff00" });
-        tutorialButton.setScale(1.1);
-      })
-      .on("pointerout", () => {
-        tutorialButton.setStyle({ color: "#ffffff" });
-        tutorialButton.setScale(1);
-      })
-      .on("pointerdown", () => {
-        this.showTutorial();
-      });
-
-    // Bouton de changement de langue
-    const languageButton = this.add
-      .text(width - 20, height - 20, window.i18n.get("languageButton"), {
-        fontSize: "18px",
-        fontFamily: "Arial",
-        color: "#ffffff",
-        backgroundColor: "#2980b9",
-        padding: { x: 10, y: 5 },
-      })
-      .setOrigin(1, 1)
-      .setInteractive({ useHandCursor: true });
-
-    languageButton
-      .on("pointerover", () => {
-        languageButton.setScale(1.05);
-      })
-      .on("pointerout", () => {
-        languageButton.setScale(1);
-      })
-      .on("pointerdown", () => {
-        // Changer de langue
-        window.i18n.toggleLanguage();
-        // Rafraîchir la scène pour appliquer les changements
-        this.scene.restart();
-      });
+    });
 
     // Animation d'entrée
     this.cameras.main.fadeIn(1000);
+  }
+
+  // Méthode pour démarrer l'animation d'idle
+  startIdleAnimation(sprite, baseY, offset) {
+    // Assurer qu'on n'ait pas plusieurs animations idle en même temps
+    if (this.idleTween) {
+      this.idleTween.stop();
+      this.idleTween = null;
+    }
+
+    // S'assurer que le sprite est à sa position de base
+    sprite.y = baseY;
+
+    // Créer une nouvelle animation idle avec un léger délai au démarrage
+    this.idleTween = this.tweens.add({
+      targets: sprite,
+      y: baseY - offset,
+      duration: 1500,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+      delay: 100, // Petit délai pour une transition plus naturelle
+    });
   }
 
   showTutorial() {
