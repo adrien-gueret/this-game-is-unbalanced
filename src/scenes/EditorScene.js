@@ -177,10 +177,14 @@ class EditorScene extends Phaser.Scene {
           barX,
           barX + sliderBarWidth
         );
-        knob.x = clickX;
         const newRatio = (clickX - barX) / sliderBarWidth;
         let newValue = setting.min + newRatio * (setting.max - setting.min);
         newValue = Phaser.Math.Snap.To(newValue, setting.step);
+        const snappedX =
+          barX +
+          ((newValue - setting.min) / (setting.max - setting.min)) *
+            sliderBarWidth;
+        knob.x = snappedX; // Aligner le knob
         this.sliderValues[key] = newValue;
         this.currentSettings[key].value = newValue;
         valueText.setText(newValue.toString());
@@ -190,10 +194,14 @@ class EditorScene extends Phaser.Scene {
       // Drag du knob
       knob.on("drag", (pointer, dragX) => {
         const clampedX = Phaser.Math.Clamp(dragX, barX, barX + sliderBarWidth);
-        knob.x = clampedX;
         const newRatio = (clampedX - barX) / sliderBarWidth;
         let newValue = setting.min + newRatio * (setting.max - setting.min);
         newValue = Phaser.Math.Snap.To(newValue, setting.step);
+        const snappedX =
+          barX +
+          ((newValue - setting.min) / (setting.max - setting.min)) *
+            sliderBarWidth;
+        knob.x = snappedX; // Aligner le knob
         this.sliderValues[key] = newValue;
         this.currentSettings[key].value = newValue;
         valueText.setText(newValue.toString());
