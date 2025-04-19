@@ -258,48 +258,54 @@ class MainMenuScene extends Phaser.Scene {
     // Groupe pour tous les éléments du tutoriel
     const tutorialGroup = this.add.group();
 
-    // Fond semi-transparent
+    // Fond semi-transparent avec fondu
     const overlay = this.add
-      .rectangle(0, 0, width * 2, height * 2, 0x000000, 0.8)
+      .rectangle(0, 0, width * 2, height * 2, 0x000000, 0)
       .setOrigin(0)
       .setInteractive();
     tutorialGroup.add(overlay);
+
+    // Animation de fondu pour l'overlay
+    this.tweens.add({
+      targets: overlay,
+      fillAlpha: 0.8,
+      duration: 300,
+      ease: "Power2.easeIn",
+    });
 
     // Dimensions optimisées de la boîte de tutoriel
     const boxWidth = 650;
     const boxHeight = 450;
 
+    // Container pour tous les éléments du tutoriel (sauf overlay)
+    const contentContainer = this.add.container(width / 2, -boxHeight);
+    tutorialGroup.add(contentContainer);
+
     // Boîte de tutoriel
     const tutorialBox = this.add
-      .rectangle(width / 2, height / 2, boxWidth, boxHeight, 0x333333)
-      .setOrigin(0.5)
+      .rectangle(0, 0, boxWidth, boxHeight, 0x333333)
       .setStrokeStyle(4, 0xffffff);
-    tutorialGroup.add(tutorialBox);
+    contentContainer.add(tutorialBox);
 
     // Titre du tutoriel
     const title = this.add
-      .text(
-        width / 2,
-        height / 2 - boxHeight / 2 + 40,
-        window.i18n.get("tutorialTitle"),
-        {
-          fontSize: "28px",
-          fontFamily: "Arial",
-          color: "#ffffff",
-          fontStyle: "bold",
-        }
-      )
+      .text(0, -boxHeight / 2 + 40, window.i18n.get("tutorialTitle"), {
+        fontSize: "28px",
+        fontFamily: "Arial",
+        color: "#ffffff",
+        fontStyle: "bold",
+      })
       .setOrigin(0.5);
-    tutorialGroup.add(title);
+    contentContainer.add(title);
 
     // Instructions
     const instructions = window.i18n.get("tutorialInstructions");
-    let yPos = height / 2 - boxHeight / 2 + 100;
+    let yPos = -boxHeight / 2 + 100;
     const textAreaWidth = boxWidth - 100; // Marge pour le texte
 
     instructions.forEach((instruction) => {
       const instructionText = this.add
-        .text(width / 2 - textAreaWidth / 2 + 20, yPos, instruction, {
+        .text(-textAreaWidth / 2 + 20, yPos, instruction, {
           fontSize: "18px",
           fontFamily: "Arial",
           color: "#ffffff",
@@ -308,7 +314,7 @@ class MainMenuScene extends Phaser.Scene {
         })
         .setOrigin(0, 0); // Aligné en haut à gauche
 
-      tutorialGroup.add(instructionText);
+      contentContainer.add(instructionText);
 
       // Ajuster la hauteur en fonction de la hauteur réelle du texte
       yPos += instructionText.height + 15;
@@ -318,15 +324,39 @@ class MainMenuScene extends Phaser.Scene {
     const closeButton = createButton(
       this,
       window.i18n.get("closeButton"),
-      width / 2,
-      height / 2 + boxHeight / 2 - 40,
+      0,
+      boxHeight / 2 - 40,
       () => {
-        tutorialGroup.destroy(true);
+        // Animation de sortie
+        this.tweens.add({
+          targets: contentContainer,
+          y: -boxHeight,
+          duration: 400,
+          ease: "Back.easeIn",
+          onComplete: () => {
+            tutorialGroup.destroy(true);
+          },
+        });
+
+        // Fondu de l'overlay
+        this.tweens.add({
+          targets: overlay,
+          fillAlpha: 0,
+          duration: 300,
+          ease: "Power2.easeOut",
+        });
       },
       { color: "#e74c3c", size: "medium" }
     );
-    // Détruire tous les éléments du tutoriel d'un coup
+    contentContainer.add(closeButton);
 
-    tutorialGroup.add(closeButton);
+    // Animation d'entrée pour le conteneur de tutoriel
+    this.tweens.add({
+      targets: contentContainer,
+      y: height / 2,
+      duration: 500,
+      ease: "Back.easeOut",
+      delay: 100,
+    });
   }
 }
