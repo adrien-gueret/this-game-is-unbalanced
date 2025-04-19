@@ -25,8 +25,8 @@ window.languages.en = {
 
   // Instructions du tutoriel
   tutorialInstructions: [
-    "1. See someone playing a game",
-    "2. This player gives you feedback on their gameplay experience",
+    "1. See Lilmonster playing a game",
+    "2. It then gives you feedback on its gameplay experience",
     "3. Balance the game by adjusting some parameters",
     "4. Unlock new games by balancing previous ones",
     "5. Have fun creating the perfect gameplay experience!",

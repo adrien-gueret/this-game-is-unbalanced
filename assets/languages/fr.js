@@ -25,8 +25,8 @@ window.languages.fr = {
 
   // Instructions du tutoriel
   tutorialInstructions: [
-    "1. Regardez quelqu'un jouer à un jeu",
-    "2. Ce joueur vous donne son avis sur son expérience de jeu",
+    "1. Regardez Potimonstre jouer à un jeu",
+    "2. Il vous donnera ensuite son avis sur son expérience de jeu",
     "3. Équilibrez le jeu en ajustant divers paramètres",
     "4. Débloquez de nouveaux jeux en équilibrant les précédents",
     "5. Amusez-vous à créer l'expérience de jeu parfaite !",
