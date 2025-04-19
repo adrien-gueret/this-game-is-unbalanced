@@ -31,14 +31,17 @@ class FeedbackScene extends Phaser.Scene {
   }
 
   create() {
-    // Enregistrer les animations via AnimationManager
     AnimationManager.registerAnimations(this);
 
     const { width, height } = this.cameras.main;
 
     // Background
     this.add
-      .image(width / 2, height / 2, "background-grey")
+      .image(
+        width / 2,
+        height / 2,
+        this.isBalanced ? "background-green" : "background-red"
+      )
       .setDisplaySize(width, height);
 
     this.add
@@ -148,6 +151,55 @@ class FeedbackScene extends Phaser.Scene {
         size: this.isBalanced ? "big" : "small",
       }
     );
+
+    if (this.isBalanced) {
+      const confettis = this.add.particles(0, 0, "confettis", {
+        speed: 70, // Vitesse réduite
+        lifespan: 5000,
+        gravityY: 50, // Gravité réduite pour une chute plus lente
+        frequency: 50,
+        quantity: 2,
+        frame: [
+          0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+          20, 21, 22, 23, 24,
+        ],
+        x: { min: 0, max: width },
+        y: -10,
+        alpha: {
+          start: 1,
+          end: 0,
+          ease: "Sine.easeIn", // Effet de fondu progressif
+        },
+        scaleX: {
+          onEmit: (particle) => {
+            return -1.0;
+          },
+          onUpdate: (particle) => {
+            return particle.scaleX > 1.0 ? -1.0 : particle.scaleX + 0.05;
+          },
+        },
+        scaleY: {
+          onEmit: (particle) => {
+            // Valeur initiale aléatoire entre 0.3 et 1.0
+            return Phaser.Math.FloatBetween(0.3, 1.0);
+          },
+          onUpdate: (particle) => {
+            // Animation indépendante de scaleX
+            // Oscillation sinusoïdale pour simuler un effet de retournement
+            return 0.3 + Math.abs(Math.sin(particle.life * 0.002)) * 0.7;
+          },
+        },
+        rotate: {
+          onEmit: (particle) => {
+            return 0;
+          },
+          onUpdate: (particle) => {
+            return particle.angle + 2;
+          },
+        },
+      });
+      confettis.setDepth(10);
+    }
   }
 
   createSpeechBubble(x, y, width, message) {

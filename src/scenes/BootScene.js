@@ -59,6 +59,7 @@ class BootScene extends Phaser.Scene {
     this.load.image("background-green", "./assets/images/background-green.png");
     this.load.image("background-grey", "./assets/images/background-grey.png");
     this.load.image("background-blue", "./assets/images/background-blue.png");
+    this.load.image("background-red", "./assets/images/background-red.png");
     this.load.image(
       "background-platforms",
       "./assets/images/platforms/background-weird.png"
@@ -73,6 +74,10 @@ class BootScene extends Phaser.Scene {
       "./assets/images/platforms/monster.png",
       { frameWidth: 32, frameHeight: 32 }
     );
+    this.load.spritesheet("confettis", "./assets/images/confettis.png", {
+      frameWidth: 16,
+      frameHeight: 16,
+    });
 
     // Si vous avez des sons
     // this.load.audio('music', 'assets/audio/music.mp3');

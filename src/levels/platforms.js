@@ -207,6 +207,13 @@ Level.addLevels([
   ),
   new PlatformsLevel(
     {
+      playerSpeed: {
+        value: 300,
+        min: 50,
+        max: 400,
+        step: 20,
+        label: "platformsPlayerSpeedSettings",
+      },
       playerGravity: {
         value: 300,
         min: 100,

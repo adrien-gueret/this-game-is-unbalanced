@@ -19,25 +19,9 @@ class GameScene extends Phaser.Scene {
 
     this.simulation = null; // Stockera l'objet de simulation actif
 
-    // Background approprié selon le type de niveau
-    let backgroundImage;
-    switch (this.level.type) {
-      case "platforms":
-        backgroundImage = "background-green";
-        break;
-      case "racing":
-        backgroundImage = "background-blue";
-        break;
-      case "boss":
-        backgroundImage = "background-red";
-        break;
-      default:
-        break;
-    }
-
     // Affichage du background
     this.add
-      .image(width / 2, height / 2, backgroundImage)
+      .image(width / 2, height / 2, "background-blue")
       .setDisplaySize(width, height);
 
     // Interface supérieure - Type de niveau et titre
