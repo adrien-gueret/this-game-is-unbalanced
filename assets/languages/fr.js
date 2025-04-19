@@ -88,4 +88,5 @@ window.languages.fr = {
 
   platforms1WallHeightSettings: "Hauteur du mur",
   platforms2WaterLengthSettings: "Longueur de l'étendue d'eau",
+  platforms3PlatformLengthSettings: "Largeur de la plateforme",
 };

@@ -221,16 +221,16 @@ Level.addLevels([
         step: 2,
         label: "platformsTimeLimitSettings",
       },
-      waterLength: {
-        value: 2,
+      platformLength: {
+        value: 7,
         min: 2,
         max: 7,
         step: 1,
-        label: "platforms2WaterLengthSettings",
+        label: "platforms3PlatformLengthSettings",
       },
     },
     function () {
-      const waterLength = this.settings.waterLength.value;
+      const waterLength = 9 - this.settings.platformLength.value;
 
       if (waterLength <= 4) {
         return "easy";
@@ -243,7 +243,7 @@ Level.addLevels([
       return "medium";
     },
     function ({ scene, player, platformsGroup, waterGroup, finishGroup }) {
-      const waterLength = this.settings.waterLength.value;
+      const waterLength = 9 - this.settings.platformLength.value;
 
       const { width } = scene.cameras.main;
 

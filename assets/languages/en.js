@@ -87,4 +87,5 @@ window.languages.en = {
 
   platforms1WallHeightSettings: "Wall height",
   platforms2WaterLengthSettings: "Water stretch length",
+  platforms3PlatformLengthSettings: "Platform width",
 };
