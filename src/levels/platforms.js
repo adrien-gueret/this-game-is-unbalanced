@@ -205,4 +205,116 @@ Level.addLevels([
         .refreshBody();
     }
   ),
+  new PlatformsLevel(
+    {
+      playerGravity: {
+        value: 300,
+        min: 100,
+        max: 1500,
+        step: 50,
+        label: "platformsPlayerGravitySettings",
+      },
+      timeLimit: {
+        value: 10,
+        min: 2,
+        max: 20,
+        step: 2,
+        label: "platformsTimeLimitSettings",
+      },
+      waterLength: {
+        value: 2,
+        min: 2,
+        max: 7,
+        step: 1,
+        label: "platforms2WaterLengthSettings",
+      },
+    },
+    function () {
+      const waterLength = this.settings.waterLength.value;
+
+      if (waterLength <= 4) {
+        return "easy";
+      }
+
+      if (waterLength >= 7) {
+        return "hard";
+      }
+
+      return "medium";
+    },
+    function ({ scene, player, platformsGroup, waterGroup, finishGroup }) {
+      const waterLength = this.settings.waterLength.value;
+
+      const { width } = scene.cameras.main;
+
+      const tileSize = 32;
+      const startGroundY = tileSize * 5 + 20;
+      const bottomY = startGroundY + tileSize * 12;
+
+      for (let y = startGroundY; y <= bottomY; y += tileSize) {
+        const firstLine = y === startGroundY;
+        const mainTileIndex = firstLine ? 1 : 4;
+
+        platformsGroup.create(tileSize, y, "tiles-platforms", mainTileIndex);
+        platformsGroup.create(
+          tileSize * 2,
+          y,
+          "tiles-platforms",
+          mainTileIndex
+        );
+        platformsGroup.create(
+          tileSize * 3,
+          y,
+          "tiles-platforms",
+          mainTileIndex
+        );
+        platformsGroup.create(
+          tileSize * 4,
+          y,
+          "tiles-platforms",
+          firstLine ? 2 : y === bottomY && waterLength === 0 ? 8 : 5
+        );
+      }
+
+      const flagX = tileSize * 12;
+      const startGroundX = tileSize * 5;
+
+      for (let x = startGroundX; x < width; x += tileSize) {
+        const tileIndex = (() => {
+          if (waterLength > 0) {
+            if (x < startGroundX + waterLength * tileSize) {
+              return 7;
+            }
+
+            if (x === startGroundX + waterLength * tileSize) {
+              return 0;
+            }
+          }
+
+          if (x === flagX + tileSize) {
+            return 2;
+          }
+          if (x > flagX) {
+            return 7;
+          }
+
+          return 1;
+        })();
+
+        if (tileIndex === 7) {
+          createAnimatedWaterTile(scene, waterGroup, x, bottomY);
+          continue;
+        }
+
+        platformsGroup.create(x, bottomY, "tiles-platforms", tileIndex);
+      }
+
+      finishGroup.create(flagX, bottomY - tileSize, "tiles-platforms", 11);
+
+      player
+        .setX(70)
+        .setY(startGroundY - 48)
+        .refreshBody();
+    }
+  ),
 ]);

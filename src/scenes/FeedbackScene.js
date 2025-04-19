@@ -117,42 +117,35 @@ class FeedbackScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     // Boutons d'action
-    if (this.isBalanced) {
-      // Si le niveau est équilibré, permettre de l'éditer à nouveau
-      this.createButton(
-        this.cameras.main.width / 2,
-        this.cameras.main.height - 100,
-        window.i18n.get("editGameLabel"),
-        0x3498db,
-        () => {
-          this.scene.start("EditorScene", {
-            level: this.level,
-          });
-        }
-      );
-    } else {
-      // Si le niveau n'est pas équilibré, permettre de l'éditer
-      this.createButton(
-        width / 2,
-        height - 100,
-        window.i18n.get("editGameLabel"),
-        0x3498db,
-        () => {
-          this.scene.start("EditorScene", {
-            level: this.level,
-          });
-        }
-      );
-    }
+    // Si le niveau n'est pas équilibré, permettre de l'éditer
+    createButton(
+      this,
+      window.i18n.get("editGameLabel"),
+      width / 2,
+      this.isBalanced ? height - 50 : height - 120,
+      () => {
+        this.scene.start("EditorScene", {
+          level: this.level,
+        });
+      },
+      {
+        color: this.isBalanced ? "#e67e22" : "#3498db",
+        size: this.isBalanced ? "small" : "big",
+      }
+    );
 
     // Bouton retour au menu de sélection de niveau
-    this.createButton(
-      width / 2,
-      height - 50,
+    createButton(
+      this,
       window.i18n.get("selectGameLabel"),
-      0xe67e22,
+      width / 2,
+      this.isBalanced ? height - 120 : height - 50,
       () => {
         this.scene.start("LevelSelectScene");
+      },
+      {
+        color: this.isBalanced ? "#3498db" : "#e67e22",
+        size: this.isBalanced ? "big" : "small",
       }
     );
   }
@@ -286,31 +279,5 @@ class FeedbackScene extends Phaser.Scene {
     textObj.setStroke("#333333", 1);
 
     return { bubble, textObj, height };
-  }
-
-  createButton(x, y, text, color, callback) {
-    const button = this.add
-      .text(x, y, text, {
-        fontSize: "24px",
-        fontFamily: "Arial",
-        color: "#ffffff",
-        backgroundColor: "#" + color.toString(16),
-        padding: { x: 20, y: 10 },
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-
-    button
-      .on("pointerover", () => {
-        button.setStyle({ color: "#ffff00" });
-        button.setScale(1.05);
-      })
-      .on("pointerout", () => {
-        button.setStyle({ color: "#ffffff" });
-        button.setScale(1);
-      })
-      .on("pointerdown", callback);
-
-    return button;
   }
 }

@@ -57,7 +57,7 @@ window.languages.en = {
   platformsFeedbackTimeout:
     "This game is unbalanced! There's just not enough time to finish it...",
   platformsFeedbackFailure:
-    "This game is too difficult! How am I supposed to jump over that gap?",
+    "This game is too difficult! How am I supposed not falling in the water?",
 
   platformsFeedbackTooFarLimit:
     "This game is too easy! The timer is too generous, it doesn't pose any challenge!",
@@ -66,6 +66,7 @@ window.languages.en = {
 
   platforms1_title: "My first game",
   platforms2_title: "Oh. Water!",
+  platforms3_title: "Let's drop it...",
 
   // Feedback
   feedbackTitle: "Lilmonster's Feedback",

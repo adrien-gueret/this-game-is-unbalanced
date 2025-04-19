@@ -217,38 +217,27 @@ class EditorScene extends Phaser.Scene {
     const { width, height } = this.cameras.main;
 
     // Bouton de réinitialisation
-    const resetButton = this.add
-      .text(0, 0, window.i18n.get("editorResetButton"), {
-        fontSize: "20px",
-        fontFamily: "Arial",
-        color: "#ffffff",
-        backgroundColor: "#e67e22",
-        padding: { x: 15, y: 8 },
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-
-    resetButton
-      .on("pointerover", () => resetButton.setScale(1.05))
-      .on("pointerout", () => resetButton.setScale(1))
-      .on("pointerdown", () => this.resetSettings());
-
+    const resetButton = createButton(
+      this,
+      window.i18n.get("editorResetButton"),
+      0,
+      0,
+      () => {
+        this.resetSettings();
+      },
+      { color: "#e67e22", size: "small" }
+    );
     // Bouton de test
-    const testButton = this.add
-      .text(0, 0, window.i18n.get("editorPlayButton"), {
-        fontSize: "20px",
-        fontFamily: "Arial",
-        color: "#ffffff",
-        backgroundColor: "#2ecc71",
-        padding: { x: 15, y: 8 },
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-
-    testButton
-      .on("pointerover", () => testButton.setScale(1.05))
-      .on("pointerout", () => testButton.setScale(1))
-      .on("pointerdown", () => this.testLevel());
+    const testButton = createButton(
+      this,
+      window.i18n.get("editorPlayButton"),
+      0,
+      0,
+      () => {
+        this.testLevel();
+      },
+      { color: "#2ecc71", size: "big" }
+    );
 
     // Calculer les positions en fonction de la largeur des textes
     const resetButtonWidth = resetButton.width;
@@ -297,7 +286,6 @@ class EditorScene extends Phaser.Scene {
   }
 
   destroy() {
-    console.log("destroying editor scene...");
     // Nettoyer tous les sliders et leurs objets associés
     if (this.sliders && this.sliders.length > 0) {
       this.sliders.forEach(({ knob, valueText, updateBar, barGraphics }) => {

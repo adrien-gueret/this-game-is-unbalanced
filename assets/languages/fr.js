@@ -37,7 +37,7 @@ window.languages.fr = {
   // - Levels
   timer: (current, max) =>
     `Temps : ${(max - current).toString().padStart(2, "0")}`,
-  watchInstruction: "Regardez Potimonstre jouer au niveau !",
+  watchInstruction: "Regardez Potimonstre jouer au jeu !",
   timeout: "Temps écoulé...",
   clickToStart: "Cliquez pour commencer",
   clickToContinue: "Cliquez pour continuer",
@@ -58,7 +58,7 @@ window.languages.fr = {
   platformsFeedbackTimeout:
     "Ce jeu est mal équilibré ! On n'a juste pas le temps de le finir...",
   platformsFeedbackFailure:
-    "Ce jeu est trop difficile ! Comment suis-je censé sauter par dessus ce trou ?",
+    "Ce jeu est trop difficile ! Comment suis-je censé ne pas tomber dans l'eau ?",
 
   platformsFeedbackTooFarLimit:
     "Ce jeu est trop facile ! Le chronomètre est trop généreux, il ne représente aucun défi !",
@@ -67,6 +67,7 @@ window.languages.fr = {
 
   platforms1_title: "Mon premier jeu",
   platforms2_title: "Oh, de l'eau !",
+  platforms3_title: "Laisse tomber...",
 
   // Feedback
   feedbackTitle: "L'avis de Potimonstre",

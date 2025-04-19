@@ -54,10 +54,10 @@ class PlatformsLevel extends Level {
         label: "platformsJumpHeightSettings",
       },
       timeLimit: {
-        value: 30,
+        value: 15,
         min: 5,
-        max: 60,
-        step: 5,
+        max: 20,
+        step: 1,
         label: "platformsTimeLimitSettings",
       },
     };

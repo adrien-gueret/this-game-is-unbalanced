@@ -17,10 +17,6 @@ class GameScene extends Phaser.Scene {
   create() {
     const { width, height } = this.cameras.main;
 
-    // Variables pour la simulation
-    this.simulationComplete = false;
-    this.simulationTime = 0;
-    this.simulationSpeed = 1; // Vitesse normale par défaut
     this.simulation = null; // Stockera l'objet de simulation actif
 
     // Background approprié selon le type de niveau
@@ -77,22 +73,6 @@ class GameScene extends Phaser.Scene {
         fontSize: "30px",
       })
       .setOrigin(0, 0.5);
-
-    // Boutons de contrôle de la simulation
-    const speedButton = this.add
-      .text(width - 20, 30, "⏩", {
-        fontSize: "24px",
-        color: "#ffffff",
-        backgroundColor: "#2c3e50",
-        padding: { x: 10, y: 5 },
-      })
-      .setOrigin(1, 0.5)
-      .setInteractive({ useHandCursor: true });
-
-    speedButton.on("pointerdown", () => {
-      this.simulationSpeed = this.simulationSpeed === 1 ? 3 : 1;
-      speedButton.setText(this.simulationSpeed === 1 ? "⏩" : "⏩⏩⏩");
-    });
 
     // Création du masque basé sur le rectangle de la zone de jeu
     const mask = this.make.graphics();

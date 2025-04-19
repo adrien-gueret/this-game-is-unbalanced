@@ -133,6 +133,10 @@ class PlatformSimulation {
 
     const failingJumpsLimit = 3;
 
+    if (this.simulationTimer) {
+      this.simulationTimer.remove();
+    }
+
     this.simulationTimer = this.scene.time.addEvent({
       delay: 16.6, // ~60 fps
       callback: () => {
@@ -298,6 +302,9 @@ class PlatformSimulation {
    * @param {string} finishReason - PLAYER_BLOCKED, TIMEOUT, FAILURE
    */
   completeSimulation(finishReason, timeLimit, difficulty) {
+    this.scene.physics.world.timeScale = 1;
+    this.scene.time.timeScale = 1;
+
     this.simulationTimer.remove();
 
     let isBalanced = false;
@@ -328,10 +335,10 @@ class PlatformSimulation {
             break;
 
           case "medium":
-            if (timerRatio < 40) {
+            if (timerRatio <= 40) {
               feedback = window.i18n.get("platformsFeedbackTooFarLimit");
               monsterAnimation = "oopsy";
-            } else if (timerRatio > 85) {
+            } else if (timerRatio >= 80) {
               feedback = window.i18n.get("platformsFeedbackTooNearLimit");
               monsterStaticFrame = 6;
             } else {
