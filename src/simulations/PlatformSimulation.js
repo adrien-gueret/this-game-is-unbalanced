@@ -9,25 +9,6 @@ class PlatformSimulation {
     this.scene = scene;
     this.timerValue = 0;
     this.simulationTimer = null;
-
-    this.commonSimulationsSettings = {
-      playerSpeed: {
-        value: 200,
-        label: "platformsPlayerSpeedSettings",
-      },
-      playerGravity: {
-        value: 300,
-        label: "platformsPlayerGravitySettings",
-      },
-      jumpHeight: {
-        value: 300,
-        label: "platformsJumpHeightSettings",
-      },
-      timeLimit: {
-        value: 30,
-        label: "platformsTimeLimitSettings",
-      },
-    };
   }
 
   async startLevel(level) {
@@ -75,7 +56,12 @@ class PlatformSimulation {
       player,
       finishGroup,
       (player, flag) =>
-        this.handleFinishFlag(player, flag, level.getDifficulty()),
+        this.handleFinishFlag(
+          player,
+          flag,
+          level.getDifficulty(),
+          level.settings.timeLimit.value
+        ),
       null,
       this
     );
@@ -109,7 +95,7 @@ class PlatformSimulation {
       window.i18n.get("watchInstruction"),
       "#ffffff",
       () => {
-        this.startSimulation(player, platformsGroup);
+        this.startSimulation(player, platformsGroup, level);
       },
       window.i18n.get("clickToStart")
     );
@@ -118,8 +104,8 @@ class PlatformSimulation {
   /**
    * Démarre la simulation du niveau de plateforme
    */
-  startSimulation(player, platformsGroup) {
-    player.body.setGravityY(this.commonSimulationsSettings.playerGravity.value);
+  startSimulation(player, platformsGroup, level) {
+    player.body.setGravityY(level.settings.playerGravity.value);
 
     player.anims.play("right", true);
 
@@ -129,10 +115,7 @@ class PlatformSimulation {
       .text(
         width - 40,
         100,
-        window.i18n.get("timer")(
-          0,
-          this.commonSimulationsSettings.timeLimit.value
-        ),
+        window.i18n.get("timer")(0, level.settings.timeLimit.value),
         {
           fontSize: "24px",
           fontFamily: "Arial",
@@ -143,7 +126,7 @@ class PlatformSimulation {
       )
       .setOrigin(1, 0.5);
 
-    player.setVelocityX(this.commonSimulationsSettings.playerSpeed.value);
+    player.setVelocityX(level.settings.playerSpeed.value);
 
     let isMovingBack = false;
     let failingJumps = 0;
@@ -157,7 +140,7 @@ class PlatformSimulation {
         timerText.setText(
           window.i18n.get("timer")(
             Math.floor(this.timerValue),
-            this.commonSimulationsSettings.timeLimit.value
+            level.settings.timeLimit.value
           )
         );
 
@@ -169,11 +152,17 @@ class PlatformSimulation {
             player.anims.stop();
             player.setFrame(7);
 
-            this.completeSimulation("PLAYER_BLOCKED");
+            this.completeSimulation(
+              "PLAYER_BLOCKED",
+              level.settings.timeLimit.value
+            );
             return;
           }
         } else if (player.y >= height) {
-          this.completeSimulation("FALL_IN_HOLE");
+          this.completeSimulation(
+            "FALL_IN_HOLE",
+            level.settings.timeLimit.value
+          );
           return;
         } else {
           if (player.body.blocked.right) {
@@ -185,22 +174,16 @@ class PlatformSimulation {
             isMovingBack = true;
           } else if (player.body.touching.down) {
             if (isMovingBack) {
-              player.setVelocityX(
-                -this.commonSimulationsSettings.playerSpeed.value
-              );
+              player.setVelocityX(-level.settings.playerSpeed.value);
               player.setFlipX(true);
 
               this.scene.time.delayedCall(400, () => {
-                player.setVelocityX(
-                  this.commonSimulationsSettings.playerSpeed.value
-                );
+                player.setVelocityX(level.settings.playerSpeed.value);
                 player.setFlipX(false);
                 isMovingBack = false;
               });
             } else {
-              player.setVelocityX(
-                this.commonSimulationsSettings.playerSpeed.value
-              );
+              player.setVelocityX(level.settings.playerSpeed.value);
             }
           }
 
@@ -215,9 +198,7 @@ class PlatformSimulation {
                 this.isHoleAhead(player, platformsGroup)
               ) {
                 // Faire sauter le joueur
-                player.setVelocityY(
-                  -this.commonSimulationsSettings.jumpHeight.value
-                );
+                player.setVelocityY(-level.settings.jumpHeight.value);
               }
             } else {
               // Changer la frame à la frame 20 pendant le saut
@@ -227,11 +208,11 @@ class PlatformSimulation {
           }
         }
 
-        if (this.timerValue >= this.commonSimulationsSettings.timeLimit.value) {
+        if (this.timerValue >= level.settings.timeLimit.value) {
           player.setVelocityX(0);
           player.anims.play("sad", true);
 
-          this.completeSimulation("TIMEOUT");
+          this.completeSimulation("TIMEOUT", level.settings.timeLimit.value);
           return;
         }
       },
@@ -243,7 +224,7 @@ class PlatformSimulation {
   /**
    * Gère l'arrivée au drapeau
    */
-  handleFinishFlag(player, flag, difficulty) {
+  handleFinishFlag(player, flag, difficulty, timeLimit) {
     this.simulationTimer.remove();
 
     if (player.x > flag.x) {
@@ -253,7 +234,7 @@ class PlatformSimulation {
       // Remove the overlap detection with the finish flag
       this.flagCollider.destroy();
 
-      this.completeSimulation("SUCCESS", difficulty);
+      this.completeSimulation("SUCCESS", timeLimit, difficulty);
     }
   }
 
@@ -316,7 +297,7 @@ class PlatformSimulation {
    * Termine la simulation
    * @param {string} finishReason - PLAYER_BLOCKED, TIMEOUT, FAILURE
    */
-  completeSimulation(finishReason, difficulty) {
+  completeSimulation(finishReason, timeLimit, difficulty) {
     this.simulationTimer.remove();
 
     let isBalanced = false;
@@ -333,10 +314,7 @@ class PlatformSimulation {
         message = window.i18n.get("platformsSuccess");
         messageColor = "#7CFC00";
 
-        const timerRatio = Math.floor(
-          (this.timerValue / this.commonSimulationsSettings.timeLimit.value) *
-            100
-        );
+        const timerRatio = Math.floor((this.timerValue / timeLimit) * 100);
 
         switch (difficulty) {
           case "easy":

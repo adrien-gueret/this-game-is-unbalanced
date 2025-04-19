@@ -118,16 +118,29 @@ class FeedbackScene extends Phaser.Scene {
 
     // Boutons d'action
     if (this.isBalanced) {
-      // TODO
+      // Si le niveau est équilibré, permettre de l'éditer à nouveau
+      this.createButton(
+        this.cameras.main.width / 2,
+        this.cameras.main.height - 100,
+        window.i18n.get("editGameLabel"),
+        0x3498db,
+        () => {
+          this.scene.start("EditorScene", {
+            level: this.level,
+          });
+        }
+      );
     } else {
       // Si le niveau n'est pas équilibré, permettre de l'éditer
       this.createButton(
         width / 2,
         height - 100,
-        "MODIFIER LE NIVEAU",
+        window.i18n.get("editGameLabel"),
         0x3498db,
         () => {
-          this.scene.start("EditorScene");
+          this.scene.start("EditorScene", {
+            level: this.level,
+          });
         }
       );
     }
@@ -136,7 +149,7 @@ class FeedbackScene extends Phaser.Scene {
     this.createButton(
       width / 2,
       height - 50,
-      "MENU DE SÉLECTION",
+      window.i18n.get("selectGameLabel"),
       0xe67e22,
       () => {
         this.scene.start("LevelSelectScene");

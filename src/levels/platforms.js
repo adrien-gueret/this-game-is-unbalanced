@@ -29,18 +29,21 @@ Level.addLevels([
   new PlatformsLevel(
     {
       wallHeight: {
-        value: 0,
+        value: 1,
+        min: 0,
+        max: 10,
+        step: 1,
         label: "platforms1WallHeightSettings",
       },
     },
     function () {
       const wallHeight = this.settings.wallHeight.value;
 
-      if (wallHeight === 0) {
+      if (wallHeight <= 3) {
         return "easy";
       }
 
-      if (wallHeight >= 3) {
+      if (wallHeight >= 8) {
         return "hard";
       }
 
@@ -120,19 +123,36 @@ Level.addLevels([
   ),
   new PlatformsLevel(
     {
+      playerSpeed: {
+        value: 150,
+        min: 50,
+        max: 400,
+        step: 10,
+        label: "platformsPlayerSpeedSettings",
+      },
+      playerGravity: {
+        value: 500,
+        min: 300,
+        max: 800,
+        step: 50,
+        label: "platformsPlayerGravitySettings",
+      },
       waterLength: {
-        value: 0,
+        value: 10,
+        min: 2,
+        max: 10,
+        step: 1,
         label: "platforms2WaterLengthSettings",
       },
     },
     function () {
       const waterLength = this.settings.waterLength.value;
 
-      if (waterLength <= 2) {
+      if (waterLength <= 3) {
         return "easy";
       }
 
-      if (waterLength >= 5) {
+      if (waterLength >= 8) {
         return "hard";
       }
 
@@ -146,7 +166,7 @@ Level.addLevels([
       const tileSize = 32;
       const groundY = height - tileSize;
 
-      const waterStartX = 384;
+      const waterStartX = 288;
 
       for (let x = 0; x < width; x += tileSize) {
         const tileIndex = (() => {

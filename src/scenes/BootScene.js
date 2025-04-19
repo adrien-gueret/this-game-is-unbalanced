@@ -62,6 +62,7 @@ class BootScene extends Phaser.Scene {
     );
     this.load.image("background-green", "./assets/images/background-green.png");
     this.load.image("background-grey", "./assets/images/background-grey.png");
+    this.load.image("background-blue", "./assets/images/background-blue.png");
     this.load.image(
       "background-platforms",
       "./assets/images/platforms/background-weird.png"

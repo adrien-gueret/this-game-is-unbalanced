@@ -31,7 +31,43 @@ class Level {
 
 class PlatformsLevel extends Level {
   constructor(settings, getDifficulty, start) {
-    super({ start, settings, getDifficulty, type: "platforms" });
+    const commonSimulationsSettings = {
+      playerSpeed: {
+        value: 200,
+        min: 50,
+        max: 400,
+        step: 10,
+        label: "platformsPlayerSpeedSettings",
+      },
+      playerGravity: {
+        value: 300,
+        min: 300,
+        max: 800,
+        step: 50,
+        label: "platformsPlayerGravitySettings",
+      },
+      jumpHeight: {
+        value: 300,
+        min: 50,
+        max: 600,
+        step: 50,
+        label: "platformsJumpHeightSettings",
+      },
+      timeLimit: {
+        value: 30,
+        min: 5,
+        max: 60,
+        step: 5,
+        label: "platformsTimeLimitSettings",
+      },
+    };
+
+    super({
+      start,
+      settings: { ...commonSimulationsSettings, ...settings },
+      getDifficulty,
+      type: "platforms",
+    });
   }
 }
 

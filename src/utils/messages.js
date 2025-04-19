@@ -63,6 +63,7 @@ function showMessage(
     startTimer.remove();
     continueTimer.remove();
     scene.input.off("pointerdown", next);
+    scene.input.setDefaultCursor("default");
 
     const targets = [messageText, backgroundText];
 

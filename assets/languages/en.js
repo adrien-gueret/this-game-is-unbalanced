@@ -32,6 +32,9 @@ window.languages.en = {
     "5. Have fun creating the perfect gameplay experience!",
   ],
 
+  editGameLabel: "Edit game",
+  selectGameLabel: "Play another game",
+
   // - Levels
   timer: (current, max) =>
     `Time: ${(max - current).toString().padStart(2, "0")}`,
@@ -42,7 +45,7 @@ window.languages.en = {
 
   gameFeedbackTooEasy: "This game is too easy! I won without any difficulty...",
   gameFeedbackTooHard:
-    "I won, but wow... That wasn't easy! Maybe there should be fewer obstacles.",
+    "I won, but wow... That wasn't easy! You should probably adjust the obstacles a bit.",
   gameFeedbackBalanced:
     "This game is well-balanced! I had just the right amount of challenge to have fun!",
 
@@ -51,7 +54,7 @@ window.languages.en = {
   platformsFailure: "Lilmonster has fallen!",
 
   platformsFeedbackBlocked:
-    "This game is impossible! I got stuck, I couldn't jump high enough...",
+    "This game is impossible! I got stuck, I couldn't jump correctly...",
   platformsFeedbackTimeout:
     "This game is unbalanced! There's just not enough time to finish it...",
   platformsFeedbackFailure:
@@ -67,6 +70,21 @@ window.languages.en = {
 
   // Feedback
   feedbackTitle: "Lilmonster's Feedback",
-  balancedGame: "THIS GAME IS WELL-BALANCED",
-  unbalancedGame: "THIS GAME IS UNBALANCED",
+  balancedGame: "WELL-BALANCED GAME",
+  unbalancedGame: "UNBALANCED GAME",
+
+  // Editor
+  editorTitle: (levelTitle) => `Game editor - ${levelTitle}`,
+  editorInstructions: "Update game parameters to balance it!",
+
+  editorPlayButton: "Test with these parameters",
+  editorResetButton: "Reset parameters",
+
+  platformsPlayerSpeedSettings: "Player speed",
+  platformsPlayerGravitySettings: "Gravity strength",
+  platformsJumpHeightSettings: "Jump height",
+  platformsTimeLimitSettings: "Timer (in seconds)",
+
+  platforms1WallHeightSettings: "Wall height",
+  platforms2WaterLengthSettings: "Water stretch length",
 };

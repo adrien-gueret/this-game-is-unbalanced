@@ -83,20 +83,6 @@ class LevelSelectScene extends Phaser.Scene {
     Object.keys(levelsByType).forEach((type) => {
       const levels = levelsByType[type];
 
-      // Titre de la catégorie - Utiliser une traduction par défaut si non définie
-      const categoryTitle = window.i18n.get(`${type}CategoryTitle`);
-
-      this.add
-        .text(width / 2, currentY, categoryTitle, {
-          fontSize: "28px",
-          fontFamily: "Arial",
-          color: "#ffffff",
-          fontStyle: "bold",
-          stroke: "#000000",
-          strokeThickness: 3,
-        })
-        .setOrigin(0.5, 0);
-
       currentY += categoryHeight;
 
       // Afficher les niveaux en grille pour ce type

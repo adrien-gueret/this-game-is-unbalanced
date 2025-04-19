@@ -32,6 +32,9 @@ window.languages.fr = {
     "5. Amusez-vous à créer l'expérience de jeu parfaite !",
   ],
 
+  editGameLabel: "Modifier le jeu",
+  selectGameLabel: "Jouer à un autre jeu",
+
   // - Levels
   timer: (current, max) =>
     `Temps : ${(max - current).toString().padStart(2, "0")}`,
@@ -43,7 +46,7 @@ window.languages.fr = {
   gameFeedbackTooEasy:
     "Ce jeu est trop facile ! J'ai gagné sans la moindre difficulté...",
   gameFeedbackTooHard:
-    "J'ai gagné, mais wow... Ce n'était pas facile ! Il faudrait sans doute un peu moins d'obstacles.",
+    "J'ai gagné, mais wow... Ce n'était pas facile ! Il faudrait sans doute revoir un peu les obstacles.",
   gameFeedbackBalanced:
     "Ce jeu est bien équilibré ! J'ai eu juste ce qu'il faut de défi pour m'amuser !",
 
@@ -52,7 +55,7 @@ window.languages.fr = {
   platformsFailure: "Potimonstre est tombé !",
 
   platformsFeedbackBlocked:
-    "Ce jeu est impossible ! Je me suis retrouvé bloqué, je ne pouvais pas sauter assez haut...",
+    "Ce jeu est impossible ! Je me suis retrouvé bloqué, je ne pouvais pas sauter correctement...",
   platformsFeedbackTimeout:
     "Ce jeu est mal équilibré ! On n'a juste pas le temps de le finir...",
   platformsFeedbackFailure:
@@ -70,4 +73,19 @@ window.languages.fr = {
   feedbackTitle: "L'avis de Potimonstre",
   balancedGame: "JEU ÉQUILIBRÉ",
   unbalancedGame: "JEU NON ÉQUILIBRÉ",
+
+  // Editor
+  editorTitle: (levelTitle) => `Édition du jeu - ${levelTitle}`,
+  editorInstructions: "Modifiez les paramètres du jeu pour l'équilibrer !",
+
+  editorPlayButton: "Tester ces paramètres",
+  editorResetButton: "Réinitialiser les paramètres",
+
+  platformsPlayerSpeedSettings: "Vitesse du joueur",
+  platformsPlayerGravitySettings: "Force de la gravité",
+  platformsJumpHeightSettings: "Hauteur de saut",
+  platformsTimeLimitSettings: "Chronomètre (en secondes)",
+
+  platforms1WallHeightSettings: "Hauteur du mur",
+  platforms2WaterLengthSettings: "Longueur de l'étendue d'eau",
 };
