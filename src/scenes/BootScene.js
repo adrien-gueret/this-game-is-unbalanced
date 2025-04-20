@@ -64,6 +64,7 @@ class BootScene extends Phaser.Scene {
       "background-platforms",
       "./assets/images/platforms/background-weird.png"
     );
+    this.load.image("background-boss", "./assets/images/boss/background.png");
     this.load.spritesheet(
       "tiles-platforms",
       "./assets/images/platforms/tiles.png",

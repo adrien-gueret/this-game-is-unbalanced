@@ -1,8 +1,7 @@
-// Example: https://phaser.io/examples/v3.85.0/physics/arcade/view/direct-control-platforms
 /**
  * PlatformSimulation - Simulation d'un niveau de plateforme
  *
- * Cette classe gère la visualisation et la simulation des niveaux de type plateforme.
+ * Cette classe gère la simulation des niveaux de type plateforme.
  */
 class PlatformSimulation {
   constructor(scene) {
@@ -302,9 +301,6 @@ class PlatformSimulation {
    * @param {string} finishReason - PLAYER_BLOCKED, TIMEOUT, FAILURE
    */
   completeSimulation(finishReason, timeLimit, difficulty) {
-    this.scene.physics.world.timeScale = 1;
-    this.scene.time.timeScale = 1;
-
     this.simulationTimer.remove();
 
     let isBalanced = false;

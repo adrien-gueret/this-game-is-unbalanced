@@ -73,7 +73,29 @@ class PlatformsLevel extends Level {
 
 class RacingLevel extends Level {
   constructor(settings, getDifficulty, start) {
-    super({ start, settings, getDifficulty, type: "racing" });
+    const commonSimulationsSettings = {
+      playerSpeed: {
+        value: 200,
+        min: 50,
+        max: 400,
+        step: 10,
+        label: "platformsPlayerSpeedSettings",
+      },
+      timeLimit: {
+        value: 15,
+        min: 5,
+        max: 20,
+        step: 1,
+        label: "platformsTimeLimitSettings",
+      },
+    };
+
+    super({
+      start,
+      settings: { ...commonSimulationsSettings, ...settings },
+      getDifficulty,
+      type: "racing",
+    });
   }
 }
 

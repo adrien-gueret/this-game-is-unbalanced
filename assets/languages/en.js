@@ -60,7 +60,7 @@ window.languages.en = {
     "This game is too difficult! How am I supposed not falling in the water?",
 
   platformsFeedbackTooFarLimit:
-    "This game is too fast! Maybe the timer is too generous, it doesn't pose any challenge!",
+    "The time management is unbalanced: maybe the timer is too generous?",
   platformsFeedbackTooNearLimit:
     "I won, but just barely...! The timer probably needs a slight adjustment.",
 

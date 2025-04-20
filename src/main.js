@@ -14,6 +14,9 @@ const config = {
       debug: false,
     },
   },
+  dom: {
+    createContainer: true,
+  },
   pixelArt: true,
   scene: [
     BootScene,

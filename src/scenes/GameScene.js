@@ -38,15 +38,19 @@ class GameScene extends Phaser.Scene {
 
     // Type de niveau (icône)
     let typeIcon;
+    let gameBackgroundImage = "";
     switch (this.level.type) {
       case "platforms":
         typeIcon = "🏃";
+        gameBackgroundImage = "background-platforms";
         break;
       case "racing":
         typeIcon = "🏎️";
+        gameBackgroundImage = "background-platforms";
         break;
       case "boss":
         typeIcon = "👾";
+        gameBackgroundImage = "background-boss";
         break;
       default:
         typeIcon = "🎮";
@@ -85,11 +89,7 @@ class GameScene extends Phaser.Scene {
 
     // Ajout d'une image de fond pour la zone de jeu
     const gameZoneBackground = this.add
-      .image(
-        width / 2,
-        height / 2 + 30,
-        "background-platforms" // Remplacez par le nom de votre asset
-      )
+      .image(width / 2, height / 2 + 30, gameBackgroundImage)
       .setDisplaySize(width - 60, height - 100);
 
     // Appliquer le masque à l'image de fond

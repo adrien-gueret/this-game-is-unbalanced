@@ -33,7 +33,7 @@ function showMessage(
     bgY - padding,
     gameWidth, // Largeur totale du container
     textHeight + padding * 2,
-    0 // Coins arrondis
+    0
   );
 
   // Ensuite créer le texte au-dessus

@@ -61,7 +61,7 @@ window.languages.fr = {
     "Ce jeu est trop difficile ! Comment suis-je censé ne pas tomber dans l'eau ?",
 
   platformsFeedbackTooFarLimit:
-    "Ce jeu est trop rapide ! Peut-être que le chronomètre est trop généreux, il ne représente aucun défi !",
+    "La gestion du temps est mal équilibrée : peut-être que le chronomètre est trop généreux ?",
   platformsFeedbackTooNearLimit:
     "J'ai gagné, mais vraiment de justesse... ! Il faudrait sans doute ajuster un petit peu le chronomètre.",
 

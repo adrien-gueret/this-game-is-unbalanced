@@ -224,61 +224,16 @@ class EditorScene extends Phaser.Scene {
   createButtons() {
     const { width, height } = this.cameras.main;
 
-    // Bouton de réinitialisation
-    const resetButton = createButton(
-      this,
-      window.i18n.get("editorResetButton"),
-      0,
-      0,
-      () => {
-        this.resetSettings();
-      },
-      { color: "#e67e22", size: "small" }
-    );
     // Bouton de test
-    const testButton = createButton(
+    createButton(
       this,
       window.i18n.get("editorPlayButton"),
-      0,
-      0,
+      width / 2,
+      height - 50,
       () => {
         this.testLevel();
       },
       { color: "#2ecc71", size: "big" }
-    );
-
-    // Calculer les positions en fonction de la largeur des textes
-    const resetButtonWidth = resetButton.width;
-    const testButtonWidth = testButton.width;
-    const spacing = 20; // Espace entre les boutons
-    const totalWidth = resetButtonWidth + testButtonWidth + spacing;
-
-    resetButton.setPosition(
-      width / 2 - totalWidth / 2 + resetButtonWidth / 2,
-      height - 50
-    );
-    testButton.setPosition(
-      width / 2 + totalWidth / 2 - testButtonWidth / 2,
-      height - 50
-    );
-  }
-
-  resetSettings() {
-    // Réinitialiser tous les paramètres à leurs valeurs d'origine
-    this.currentSettings = JSON.parse(JSON.stringify(this.originalSettings));
-
-    // Mettre à jour les widgets d'édition
-    this.sliders.forEach(
-      ({ key, knob, barX, sliderBarWidth, valueText, updateBar }) => {
-        const setting = this.currentSettings[key];
-        const ratio =
-          (setting.value - setting.min) / (setting.max - setting.min);
-        knob.x = barX + ratio * sliderBarWidth; // Repositionner le knob
-        valueText.setText(setting.value.toString()); // Mettre à jour le texte
-        if (typeof updateBar === "function") {
-          updateBar(setting.value); // Mettre à jour la barre de progression
-        }
-      }
     );
   }
 
