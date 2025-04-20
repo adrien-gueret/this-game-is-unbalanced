@@ -22,6 +22,9 @@ class BossSimulation {
   async startLevel(level) {
     const { width, height } = this.scene.cameras.main;
 
+    // Enregistrer les animations via AnimationManager
+    AnimationManager.registerAnimations(this.scene);
+
     // Initialiser le joueur et le boss
     this.setupCombatants(level);
 
@@ -53,12 +56,12 @@ class BossSimulation {
     const playerY = height * 0.72;
 
     const bossX = width * 0.73;
-    const bossY = height * 0.64;
+    const bossY = height * 0.68;
     // Créer le joueur
     this.player = {
       name: "Potimonstre",
       sprite: this.scene.add
-        .sprite(playerX, playerY, "player-platforms", 0)
+        .sprite(playerX, playerY, "player-boss", 0)
         .setScale(3),
       maxHp: 100,
       hp: 100,
@@ -71,10 +74,12 @@ class BossSimulation {
       criticalHitMultiplier: 1.5,
     };
 
+    this.player.sprite.anims.play("player-idle", true);
+
     // Créer le boss
     this.boss = {
-      name: "Gromonstre",
-      sprite: this.scene.add.sprite(bossX, bossY, "boss", 0).setScale(4),
+      name: "Potiblob",
+      sprite: this.scene.add.sprite(bossX, bossY, "slime-boss", 0).setScale(3),
       maxHp: 200,
       hp: 200,
       attack: 15,
@@ -85,6 +90,8 @@ class BossSimulation {
       enrageThreshold: 0.3, // S'enrage à 30% de vie
       isEnraged: false,
     };
+
+    this.boss.sprite.anims.play("blob-idle", true);
   }
 
   /**
@@ -95,7 +102,7 @@ class BossSimulation {
     const logBackGrounds = this.scene.add.graphics();
     logBackGrounds
       .fillStyle(0x000000, 0.7)
-      .fillRoundedRect(width * 0.05, 90, width * 0.9, height * 0.2, 8);
+      .fillRoundedRect(width * 0.05, 90, width * 0.9, height * 0.17, 8);
 
     // Texte pour le log de combat
     this.battleLogText = this.scene.add.text(
@@ -109,6 +116,41 @@ class BossSimulation {
         wordWrap: { width: width * 0.8 },
       }
     );
+
+    // Initialiser le système de messages animés
+    this.messageQueue = [];
+    this.isAnimatingMessage = false;
+    this.logTextObjects = [];
+
+    // Calcul d'un meilleur positionnement vertical pour centrer le texte dans la zone noire
+    const logAreaTop = 90;
+    const logAreaHeight = height * 0.2;
+    const lineHeight = 25;
+    const totalTextHeight = 4 * lineHeight;
+    // Décalage ajusté pour remonter d'une ligne complète
+    const verticalOffset = lineHeight + 6; // décale d'une ligne + ajustement fin
+    const startY =
+      logAreaTop +
+      (logAreaHeight - totalTextHeight) / 2 -
+      verticalOffset +
+      lineHeight / 2;
+
+    // Créer des objets texte pour chaque ligne du log (initialement vides)
+    for (let i = 0; i < 4; i++) {
+      const logLine = this.scene.add
+        .text(width * 0.1, startY + i * lineHeight, "", {
+          fontSize: "18px",
+          fontFamily: "Arial",
+          color: "#ffffff",
+          wordWrap: { width: width * 0.8 },
+        })
+        .setAlpha(0);
+
+      this.logTextObjects.push(logLine);
+    }
+
+    // Masquer le texte original puisqu'on va utiliser notre nouveau système
+    this.battleLogText.setVisible(false);
 
     // Barre de vie du joueur
     this.createHealthBar(this.player);
@@ -439,23 +481,35 @@ class BossSimulation {
       `${attacker.name} inflige ${damage} points de dégâts à ${target.name}!`
     );
 
-    // Animation de dégât si disponible
-    const hurtAnimKey = target === this.player ? "player-hurt" : "boss-hurt";
-    const idleAnimKey =
-      target === this.player
-        ? "player-idle"
-        : this.boss.isEnraged
-        ? "boss-enraged-idle"
-        : "boss-idle";
+    // --- Gestion des animations de dégâts pour le joueur et le boss ---
+    if (target === this.boss) {
+      // Affiche la frame 2 (blessé) pour le boss
+      target.sprite.setFrame(2);
 
-    if (this.scene.anims.exists(hurtAnimKey)) {
-      target.sprite.anims.play(hurtAnimKey, true);
-      this.scene.time.delayedCall(300, () => {
-        if (target.hp > 0 && this.scene.anims.exists(idleAnimKey)) {
-          target.sprite.anims.play(idleAnimKey, true);
-        }
-      });
+      // Ne revenir à l'animation idle que si le boss n'est pas vaincu
+      if (target.hp > 0) {
+        this.scene.time.delayedCall(500, () => {
+          if (target.hp > 0) {
+            // Double vérification, le boss est toujours vivant
+            target.sprite.anims.play("blob-idle", true);
+          }
+        });
+      }
+    } else if (target === this.player) {
+      // Affiche la frame 2 (blessé) pour le joueur
+      target.sprite.setFrame(2);
+
+      // Ne revenir à l'animation idle que si le joueur n'est pas vaincu
+      if (target.hp > 0) {
+        this.scene.time.delayedCall(500, () => {
+          if (target.hp > 0) {
+            // Double vérification, le joueur est toujours vivant
+            target.sprite.anims.play("player-idle", true);
+          }
+        });
+      }
     }
+    // --- Fin de la gestion des animations ---
 
     // Effet visuel de dégâts
     this.scene.tweens.add({
@@ -470,15 +524,85 @@ class BossSimulation {
    * Ajoute une entrée au log de combat
    */
   addToBattleLog(message) {
-    this.battleLog.push(message);
+    // Ajouter le message à la file d'attente
+    this.messageQueue.push(message);
 
-    // Limiter la taille du log
+    // Si aucune animation n'est en cours, démarrer l'animation
+    if (!this.isAnimatingMessage) {
+      this.processNextMessage();
+    }
+  }
+
+  /**
+   * Traiter le prochain message dans la file d'attente
+   */
+  processNextMessage() {
+    if (this.messageQueue.length === 0) {
+      this.isAnimatingMessage = false;
+      return;
+    }
+
+    this.isAnimatingMessage = true;
+    const message = this.messageQueue.shift();
+
+    // Calculer la hauteur d'une ligne
+    const lineHeight =
+      this.logTextObjects.length > 1
+        ? this.logTextObjects[1].y - this.logTextObjects[0].y
+        : 25;
+
+    // Sauvegarder les positions Y de base (pour éviter le cumul d'erreurs d'arrondi)
+    if (!this._logBaseYs) {
+      this._logBaseYs = this.logTextObjects.map((obj) => obj.y);
+    }
+
+    // 1. Préparer la nouvelle ligne tout en bas, hors de la zone
+    const lastIdx = this.logTextObjects.length - 1;
+    const lastTextObj = this.logTextObjects[lastIdx];
+    lastTextObj.setText(message);
+    lastTextObj.setAlpha(1);
+    lastTextObj.y = this._logBaseYs[lastIdx] + lineHeight;
+
+    // 2. Animer toutes les lignes vers le haut, en utilisant les positions de base
+    for (let i = 0; i < this.logTextObjects.length; i++) {
+      const textObj = this.logTextObjects[i];
+      const targetY = this._logBaseYs[i];
+      this.scene.tweens.add({
+        targets: textObj,
+        y: targetY,
+        alpha: i === 0 ? 0 : 1,
+        duration: 350,
+        ease: "Power2",
+        onComplete:
+          i === 0
+            ? () => {
+                // Après animation, effacer le texte et replacer tout en bas pour le prochain cycle
+                textObj.setText("");
+                textObj.y = this._logBaseYs[lastIdx] + lineHeight;
+                textObj.setAlpha(1);
+              }
+            : undefined,
+      });
+    }
+
+    // 3. Décaler le tableau pour que l'ordre logique corresponde à l'affichage
+    const firstObj = this.logTextObjects.shift();
+    this.logTextObjects.push(firstObj);
+
+    // 4. Mettre à jour le battleLog pour la compatibilité
+    this.battleLog.push(message);
     if (this.battleLog.length > 4) {
       this.battleLog.shift();
     }
 
-    // Mettre à jour l'affichage du log
-    this.battleLogText.setText(this.battleLog.join("\n"));
+    // 5. Attendre la fin de l'animation avant de traiter le message suivant
+    this.scene.time.delayedCall(370, () => {
+      if (this.messageQueue.length > 0) {
+        this.processNextMessage();
+      } else {
+        this.isAnimatingMessage = false;
+      }
+    });
   }
 
   /**
@@ -502,6 +626,13 @@ class BossSimulation {
       case "SUCCESS":
         message = "Victoire! Le Boss a été vaincu!";
         messageColor = "#7CFC00";
+
+        // Afficher la frame 3 du boss (défaite)
+        this.boss.sprite.anims.stop();
+        this.boss.sprite.setFrame(3);
+
+        // Jouer l'animation de victoire pour le joueur
+        this.player.sprite.anims.play("player-happy", true);
 
         // Décider si c'était équilibré basé sur le temps et la santé restante
         const healthRatio = this.player.hp / this.player.maxHp;
@@ -544,6 +675,13 @@ class BossSimulation {
         feedback =
           "Le Boss est trop puissant. Réduisez sa force ou augmentez celle du Héros.";
         monsterAnimation = "angry";
+
+        // Afficher la frame 3 du joueur (défaite)
+        this.player.sprite.anims.stop();
+        this.player.sprite.setFrame(3);
+
+        // Jouer l'animation d'idle pour le boss victorieux
+        this.boss.sprite.anims.play("blob-happy", true);
         break;
 
       case "TIMEOUT":

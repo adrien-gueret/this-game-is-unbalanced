@@ -64,7 +64,7 @@ class BootScene extends Phaser.Scene {
       "background-platforms",
       "./assets/images/platforms/background-weird.png"
     );
-    this.load.image("background-boss", "./assets/images/boss/background.png");
+
     this.load.spritesheet(
       "tiles-platforms",
       "./assets/images/platforms/tiles.png",
@@ -75,6 +75,17 @@ class BootScene extends Phaser.Scene {
       "./assets/images/platforms/monster.png",
       { frameWidth: 32, frameHeight: 32 }
     );
+
+    this.load.image("background-boss", "./assets/images/boss/background.png");
+    this.load.spritesheet("slime-boss", "./assets/images/boss/slime.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
+    this.load.spritesheet("player-boss", "./assets/images/boss/monster.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
+
     this.load.spritesheet("confettis", "./assets/images/confettis.png", {
       frameWidth: 16,
       frameHeight: 16,
