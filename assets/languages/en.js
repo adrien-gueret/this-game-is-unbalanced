@@ -78,6 +78,7 @@ window.languages.en = {
   platforms2_title: "Oh. Water!",
   platforms3_title: "Let's drop it...",
   boss4_title: "Time to duel!",
+  boss5_title: "It's critical",
 
   // Feedback
   feedbackTitle: "Lilmonster's Feedback",

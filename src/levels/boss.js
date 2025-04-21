@@ -28,4 +28,46 @@ Level.addLevels([
       value: 0,
     },
   }),
+  new BossLevel({
+    playerLife: {
+      value: 500,
+    },
+    bossLife: {
+      value: 500,
+    },
+    playerAttack: {
+      value: 50,
+    },
+    bossAttack: {
+      value: 50,
+    },
+    playerDefense: {
+      value: 10,
+      min: 0,
+      max: 80,
+      step: 5,
+      label: "bossPlayerDefenseSettings",
+    },
+    bossDefense: {
+      value: 20,
+      min: 0,
+      max: 80,
+      step: 5,
+      label: "bossSlimeDefenseSettings",
+    },
+    playerCriticalChance: {
+      value: 0,
+      min: 0,
+      max: 100,
+      step: 10,
+      label: "bossPlayerCriticalChanceSettings",
+    },
+    bossCriticalChance: {
+      value: 70,
+      min: 0,
+      max: 100,
+      step: 10,
+      label: "bossSlimeCriticalChanceSettings",
+    },
+  }),
 ]);

@@ -78,6 +78,7 @@ window.languages.fr = {
   platforms2_title: "Oh, de l'eau !",
   platforms3_title: "Laisse tomber...",
   boss4_title: "L'heure du duel !",
+  boss5_title: "C'est critique",
 
   // Feedback
   feedbackTitle: "L'avis de Potimonstre",
