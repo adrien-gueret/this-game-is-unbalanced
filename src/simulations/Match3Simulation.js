@@ -37,7 +37,7 @@ class Match3Simulation {
     // Créer le conteneur de la grille avec un positionnement ajusté
     this.gridContainer = this.scene.add.container(
       width / 2 - (this.gridSize.cols * this.tileSize) / 2,
-      height / 2 - (this.gridSize.rows * this.tileSize) / 2 + 20 // Décaler légèrement vers le bas
+      height / 2 - (this.gridSize.rows * this.tileSize) / 2 + 50
     );
 
     // Initialiser la grille
@@ -67,19 +67,25 @@ class Match3Simulation {
 
     // Afficher le score avec position ajustée
     this.scoreText = this.scene.add
-      .text(
-        width / 2,
-        80, // Augmenter la distance par rapport au bord supérieur
-        `Score: ${this.score} / ${this.targetScore}`,
-        {
-          fontSize: "28px",
-          fontFamily: "Arial",
-          color: "#ffffff",
-          stroke: "#000000",
-          strokeThickness: 4,
-        }
-      )
-      .setOrigin(0.5, 0.5);
+      .text(40, 100, `Score: ${this.score} / ${this.targetScore}`, {
+        fontSize: "28px",
+        fontFamily: "Arial",
+        color: "#ffffff",
+        stroke: "#000000",
+        strokeThickness: 4,
+      })
+      .setOrigin(0, 0.5);
+
+    // Afficher le compteur de coups dès le début
+    this.movesText = this.scene.add
+      .text(width - 40, 100, `Coups: ${this.movesCount}/${this.movesLimit}`, {
+        fontSize: "24px",
+        fontFamily: "Arial",
+        color: "#ffffff",
+        stroke: "#000000",
+        strokeThickness: 4,
+      })
+      .setOrigin(1, 0.5); // Aligné à droite
 
     level.start({
       scene: this.scene,
@@ -283,24 +289,7 @@ class Match3Simulation {
    * Démarre la simulation du niveau de match 3
    */
   startSimulation(level) {
-    const { width } = this.scene.cameras.main;
-
-    // Positionner le compteur de coups pour éviter le chevauchement avec la grille
-    const movesText = this.scene.add
-      .text(
-        width - 140, // Déplacer plus à gauche pour éviter la grille
-        40, // Placer en haut plutôt que sur le côté
-        `Coups: ${this.movesCount}/${this.movesLimit}`,
-        {
-          fontSize: "24px",
-          fontFamily: "Arial",
-          color: "#ffffff",
-          stroke: "#000000",
-          strokeThickness: 4,
-        }
-      )
-      .setOrigin(0, 0.5); // Aligné à gauche
-
+    // Utiliser le texte de coups déjà créé au lieu d'en créer un nouveau
     if (this.simulationTimer) {
       this.simulationTimer.remove();
     }
@@ -310,15 +299,22 @@ class Match3Simulation {
     this.simulationTimer = this.scene.time.addEvent({
       delay: 16.6, // ~60 fps
       callback: () => {
-        // Mise à jour du texte de coups (au lieu du timer)
-        movesText.setText(`Coups: ${this.movesCount}/${this.movesLimit}`);
+        // Mise à jour du texte de coups
+        this.movesText.setText(`Coups: ${this.movesCount}/${this.movesLimit}`);
         // Vérifier si le nombre de coups a atteint la limite
         if (this.movesCount >= this.movesLimit) {
-          this.completeSimulation(
-            "MOVES_DEPLETED",
-            this.movesLimit,
-            level.getDifficulty()
-          );
+          // Ajouter un délai pour laisser l'animation se terminer
+          if (!this.isEndingSimulation) {
+            this.isEndingSimulation = true;
+            // Attendre 1 seconde avant d'afficher le message de fin
+            this.scene.time.delayedCall(1000, () => {
+              this.completeSimulation(
+                "MOVES_DEPLETED",
+                this.movesLimit,
+                level.getDifficulty()
+              );
+            });
+          }
           return;
         }
         // Vérifier si le score a atteint la cible
@@ -343,13 +339,14 @@ class Match3Simulation {
    * Simule un coup joué par l'IA
    */
   simulateAIMove(level) {
-    if (!this.isSimulating || this.isHandMoving) return;
+    if (!this.isSimulating || this.isHandMoving || this.isEndingSimulation)
+      return;
 
     // Trouver un mouvement possible
     const move = this.findBestMove();
     if (move) {
-      // Incrémenter le compteur de coups
-      this.movesCount++;
+      // Ne pas incrémenter le compteur de coups ici
+      // L'incrémentation se fera après la résolution des correspondances
 
       // Utiliser la main pour effectuer le mouvement
       this.moveHandAndSwapTiles(
@@ -759,12 +756,12 @@ class Match3Simulation {
 
     // Pour chaque correspondance
     for (const match of matches) {
+      // Points basés sur la taille de la correspondance
+      const matchPoints = match.tiles.length * 10;
+      pointsToAdd += matchPoints;
+
       // Animer la suppression des tuiles
       for (const tile of match.tiles) {
-        // Points basés sur la taille de la correspondance
-        const matchPoints = match.tiles.length * 10;
-        pointsToAdd += matchPoints;
-
         // Animation de disparition depuis le centre
         this.scene.tweens.add({
           targets: tile,
@@ -779,6 +776,9 @@ class Match3Simulation {
         });
       }
     }
+
+    // Incrémenter le compteur de coups ici après que des correspondances ont été trouvées
+    this.movesCount++;
 
     // Mettre à jour le score
     this.updateScore(pointsToAdd);
@@ -989,6 +989,8 @@ class Match3Simulation {
       this.simulationTimer.remove();
     }
 
+    this.isEndingSimulation = false; // Réinitialiser l'état de fin
+
     // Cacher la main du joueur
     if (this.playerHand) {
       this.playerHand.setVisible(false);
@@ -1007,6 +1009,7 @@ class Match3Simulation {
       case "SUCCESS":
         message = window.i18n.get("match3Success");
         messageColor = "#7CFC00";
+        // S'assurer que le dernier déplacement est compté si le score a été atteint
         const movesRatio = Math.floor((this.movesCount / movesLimit) * 100);
         const matchRate = this.matchesMade / this.movesCount; // Taux de correspondances par coup
         switch (difficulty) {
