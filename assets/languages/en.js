@@ -49,6 +49,7 @@ window.languages.en = {
 
   platformsLevelTitle: "Platform Games",
   bossLevelTitle: "Turn-based Fight Games",
+  match3LevelTitle: "Match 3 Games",
 
   platformsSuccess: "Lilmonster has won!",
   platformsBlocked: "Lilmonster is blocked...",

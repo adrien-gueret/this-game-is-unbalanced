@@ -49,6 +49,7 @@ window.languages.fr = {
 
   platformsLevelTitle: "Jeux de plateformes",
   bossLevelTitle: "Jeux de combats au tour par tour",
+  match3LevelTitle: "Jeux de Match 3",
 
   platformsSuccess: "Potimonstre a gagné !",
   platformsBlocked: "Potimonstre est bloqué...",

@@ -136,15 +136,30 @@ class BossLevel extends Level {
   }
 }
 
-class RacingLevel extends Level {
+class Match3Level extends Level {
   constructor(settings, getDifficulty, start) {
-    const commonSimulationsSettings = {};
+    const commonSimulationsSettings = {
+      targetScore: {
+        value: 5000,
+        min: 1000,
+        max: 1000,
+        step: 500,
+        label: "match3TargetScoreSettings",
+      },
+      timeLimit: {
+        value: 30,
+        min: 10,
+        max: 60,
+        step: 2,
+        label: "match3TimeLimitSettings",
+      },
+    };
 
     super({
       start,
       settings: { ...commonSimulationsSettings, ...settings },
       getDifficulty,
-      type: "racing",
+      type: "match3",
     });
   }
 }

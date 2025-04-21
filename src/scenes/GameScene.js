@@ -44,8 +44,8 @@ class GameScene extends Phaser.Scene {
         typeIcon = "🏃";
         gameBackgroundImage = "background-platforms";
         break;
-      case "racing":
-        typeIcon = "🏎️";
+      case "match3":
+        typeIcon = "🧩";
         gameBackgroundImage = "background-platforms";
         break;
       case "boss":
@@ -115,8 +115,8 @@ class GameScene extends Phaser.Scene {
       case "platforms":
         this.simulation = new PlatformSimulation(this);
         break;
-      case "racing":
-        this.simulation = new RacingSimulation(this);
+      case "match3":
+        this.simulation = new Match3Simulation(this);
         break;
       case "boss":
         this.simulation = new BossSimulation(this);

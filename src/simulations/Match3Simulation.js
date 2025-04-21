@@ -1,0 +1,846 @@
+/**
+ * Match3Simulation - Simulation d'un niveau de match3
+ *
+ * Cette classe gère la simulation des niveaux de type match 3.
+ */
+class Match3Simulation {
+  constructor(scene) {
+    this.scene = scene;
+    this.timerValue = 0;
+    this.simulationTimer = null;
+    this.grid = [];
+    this.gridSize = { rows: 8, cols: 8 };
+    this.tileSize = 55; // Réduire la taille des tuiles pour éviter les débordements
+    this.colors = ["red", "blue", "green", "yellow", "purple", "orange"];
+    this.score = 0;
+    this.targetScore = 0;
+    this.matchesMade = 0;
+    this.isSimulating = false;
+    this.simulationSpeed = 1000; // ms entre les moves
+    this.movesCount = 0; // Nombre de coups effectués
+    this.movesLimit = 0; // Limite de coups autorisés
+  }
+
+  async startLevel(level) {
+    const { width, height } = this.scene.cameras.main;
+
+    // Supprimer complètement le fond bleu
+    // Ne pas créer de background-blue
+
+    // Créer le conteneur de la grille avec un positionnement ajusté
+    this.gridContainer = this.scene.add.container(
+      width / 2 - (this.gridSize.cols * this.tileSize) / 2,
+      height / 2 - (this.gridSize.rows * this.tileSize) / 2 + 20 // Décaler légèrement vers le bas
+    );
+
+    // Initialiser la grille
+    this.initializeGrid();
+
+    // Configurer le score cible
+    this.targetScore = level.settings.targetScore.value;
+
+    // Configurer la limite de coups (à la place de la limite de temps)
+    this.movesLimit = level.settings.movesLimit?.value || 20; // Valeur par défaut de 20 coups si non définie
+    this.movesCount = 0;
+
+    // Afficher le score avec position ajustée
+    this.scoreText = this.scene.add
+      .text(
+        width / 2,
+        80, // Augmenter la distance par rapport au bord supérieur
+        `Score: ${this.score} / ${this.targetScore}`,
+        {
+          fontSize: "28px",
+          fontFamily: "Arial",
+          color: "#ffffff",
+          stroke: "#000000",
+          strokeThickness: 4,
+        }
+      )
+      .setOrigin(0.5, 0.5);
+
+    level.start({
+      scene: this.scene,
+    });
+
+    showMessage(
+      this.scene,
+      window.i18n.get("watchInstruction"),
+      "#ffffff",
+      () => {
+        this.startSimulation(level);
+      },
+      window.i18n.get("clickToStart")
+    );
+  }
+
+  /**
+   * Initialise la grille avec des tuiles aléatoires
+   */
+  initializeGrid() {
+    this.grid = [];
+
+    // Créer une grille initiale
+    for (let row = 0; row < this.gridSize.rows; row++) {
+      this.grid[row] = [];
+      for (let col = 0; col < this.gridSize.cols; col++) {
+        // Sélectionner une couleur aléatoire
+        const colorIndex = Math.floor(Math.random() * this.colors.length);
+        const color = this.colors[colorIndex];
+        // Créer une tuile avec cette couleur
+        const tile = this.createTile(row, col, color);
+        this.grid[row][col] = tile;
+      }
+    }
+
+    // Vérifier qu'il n'y a pas de correspondances au départ
+    this.resolveInitialMatches();
+  }
+
+  /**
+   * Résout les correspondances initiales pour commencer avec une grille sans correspondances
+   */
+  resolveInitialMatches() {
+    let hasMatches = true;
+    while (hasMatches) {
+      hasMatches = false;
+      // Vérifier les correspondances horizontales et verticales
+      for (let row = 0; row < this.gridSize.rows; row++) {
+        for (let col = 0; col < this.gridSize.cols; col++) {
+          // Vérifier horizontalement
+          if (col < this.gridSize.cols - 2) {
+            if (
+              this.grid[row][col].color === this.grid[row][col + 1].color &&
+              this.grid[row][col].color === this.grid[row][col + 2].color
+            ) {
+              const newColorIndex = Math.floor(
+                Math.random() * this.colors.length
+              );
+              const newColor = this.colors[newColorIndex];
+              // S'assurer que la nouvelle couleur est différente
+              if (newColor === this.grid[row][col].color) {
+                const nextIndex = (newColorIndex + 1) % this.colors.length;
+                this.grid[row][col + 2].setColor(this.colors[nextIndex]);
+              } else {
+                this.grid[row][col + 2].setColor(newColor);
+              }
+              hasMatches = true;
+            }
+          }
+          // Vérifier verticalement
+          if (row < this.gridSize.rows - 2) {
+            if (
+              this.grid[row][col].color === this.grid[row + 1][col].color &&
+              this.grid[row][col].color === this.grid[row + 2][col].color
+            ) {
+              const newColorIndex = Math.floor(
+                Math.random() * this.colors.length
+              );
+              const newColor = this.colors[newColorIndex];
+              // S'assurer que la nouvelle couleur est différente
+              if (newColor === this.grid[row][col].color) {
+                const nextIndex = (newColorIndex + 1) % this.colors.length;
+                this.grid[row + 2][col].setColor(this.colors[nextIndex]);
+              } else {
+                this.grid[row + 2][col].setColor(newColor);
+              }
+              hasMatches = true;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Crée une tuile à une position spécifique avec une couleur donnée
+   */
+  createTile(row, col, color) {
+    const x = col * this.tileSize + this.tileSize / 2;
+    const y = row * this.tileSize + this.tileSize / 2;
+    const tile = this.scene.add.graphics();
+    // Dessiner la tuile avec la couleur spécifiée avec marge légèrement réduite
+    tile.fillStyle(this.getColorValue(color), 1);
+    tile.fillRoundedRect(0, 0, this.tileSize - 12, this.tileSize - 12, 8); // Augmenter la marge
+    // Ajouter un effet de brillance
+    tile.fillStyle(0xffffff, 0.3);
+    tile.fillRoundedRect(5, 5, (this.tileSize - 12) / 2, 10, 5);
+    // Ajouter une bordure plus contrastée pour mieux voir les tuiles sans fond
+    tile.lineStyle(3, 0x000000, 0.8);
+    tile.strokeRoundedRect(0, 0, this.tileSize - 12, this.tileSize - 12, 8);
+    const container = this.scene.add.container(x, y, [tile]);
+    container.setSize(this.tileSize - 12, this.tileSize - 12);
+    // Ajouter au conteneur de la grille
+    this.gridContainer.add(container);
+    // Propriétés additionnelles
+    container.row = row;
+    container.col = col;
+    container.color = color;
+    // Méthode pour changer la couleur de la tuile
+    container.setColor = (newColor) => {
+      container.color = newColor;
+      // Mettre à jour le visuel
+      tile.clear();
+      tile.fillStyle(this.getColorValue(newColor), 1);
+      tile.fillRoundedRect(0, 0, this.tileSize - 12, this.tileSize - 12, 8); // Utiliser la même marge
+      // Re-dessiner l'effet de brillance
+      tile.fillStyle(0xffffff, 0.3);
+      tile.fillRoundedRect(5, 5, (this.tileSize - 12) / 2, 10, 5);
+      // Re-dessiner la bordure avec les mêmes paramètres améliorés
+      tile.lineStyle(3, 0x000000, 0.8);
+      tile.strokeRoundedRect(0, 0, this.tileSize - 12, this.tileSize - 12, 8);
+    };
+    return container;
+  }
+
+  /**
+   * Convertit une couleur nommée en valeur hexadécimale
+   */
+  getColorValue(color) {
+    const colorValues = {
+      red: 0xff0000,
+      blue: 0x0000ff,
+      green: 0x00ff00,
+      yellow: 0xffff00,
+      purple: 0x800080,
+      orange: 0xffa500,
+    };
+    return colorValues[color] || 0xffffff;
+  }
+
+  /**
+   * Démarre la simulation du niveau de match 3
+   */
+  startSimulation(level) {
+    const { width } = this.scene.cameras.main;
+
+    // Positionner le compteur de coups pour éviter le chevauchement avec la grille
+    const movesText = this.scene.add
+      .text(
+        width - 140, // Déplacer plus à gauche pour éviter la grille
+        40, // Placer en haut plutôt que sur le côté
+        `Coups: ${this.movesCount}/${this.movesLimit}`,
+        {
+          fontSize: "24px",
+          fontFamily: "Arial",
+          color: "#ffffff",
+          stroke: "#000000",
+          strokeThickness: 4,
+        }
+      )
+      .setOrigin(0, 0.5); // Aligné à gauche
+
+    if (this.simulationTimer) {
+      this.simulationTimer.remove();
+    }
+
+    this.isSimulating = true;
+    this.simulationSpeed = 1000;
+    this.simulationTimer = this.scene.time.addEvent({
+      delay: 16.6, // ~60 fps
+      callback: () => {
+        // Mise à jour du texte de coups (au lieu du timer)
+        movesText.setText(`Coups: ${this.movesCount}/${this.movesLimit}`);
+        // Vérifier si le nombre de coups a atteint la limite
+        if (this.movesCount >= this.movesLimit) {
+          this.completeSimulation(
+            "MOVES_DEPLETED",
+            this.movesLimit,
+            level.getDifficulty()
+          );
+          return;
+        }
+        // Vérifier si le score a atteint la cible
+        if (this.score >= this.targetScore) {
+          this.completeSimulation(
+            "SUCCESS",
+            this.movesLimit,
+            level.getDifficulty()
+          );
+          return;
+        }
+      },
+      callbackScope: this,
+      loop: true,
+    });
+
+    // Démarrer la simulation d'IA
+    this.simulateAIMove(level);
+  }
+
+  /**
+   * Simule un coup joué par l'IA
+   */
+  simulateAIMove(level) {
+    if (!this.isSimulating) return;
+
+    // Trouver un mouvement possible
+    const move = this.findBestMove();
+    if (move) {
+      // Incrémenter le compteur de coups
+      this.movesCount++;
+      // Effectuer le mouvement
+      this.swapTiles(move.row1, move.col1, move.row2, move.col2);
+      // Attendre un moment avant de résoudre les correspondances
+      this.scene.time.delayedCall(300, () => {
+        // Vérifier et résoudre les correspondances
+        const matches = this.checkMatches();
+        if (matches.length > 0) {
+          this.resolveMatches(matches, level);
+        } else {
+          // Si pas de correspondance, échanger à nouveau les tuiles
+          this.swapTiles(move.row1, move.col1, move.row2, move.col2);
+          // Décrémenter le compteur de coups car le mouvement n'était pas valide
+          this.movesCount--;
+          // Continuer la simulation
+          this.scene.time.delayedCall(this.simulationSpeed, () => {
+            this.simulateAIMove(level);
+          });
+        }
+      });
+    } else {
+      // Si aucun mouvement trouvé, mélanger la grille
+      this.shuffleGrid();
+      // Continuer la simulation
+      this.scene.time.delayedCall(this.simulationSpeed, () => {
+        this.simulateAIMove(level);
+      });
+    }
+  }
+
+  /**
+   * Trouve le meilleur mouvement possible
+   */
+  findBestMove() {
+    const possibleMoves = [];
+
+    // Vérifier tous les échanges horizontaux possibles
+    for (let row = 0; row < this.gridSize.rows; row++) {
+      for (let col = 0; col < this.gridSize.cols - 1; col++) {
+        // Échanger temporairement
+        const temp = this.grid[row][col].color;
+        this.grid[row][col].color = this.grid[row][col + 1].color;
+        this.grid[row][col + 1].color = temp;
+        // Vérifier s'il y a une correspondance après l'échange
+        if (this.hasMatch(row, col) || this.hasMatch(row, col + 1)) {
+          possibleMoves.push({
+            row1: row,
+            col1: col,
+            row2: row,
+            col2: col + 1,
+            score: this.evaluateMove(row, col, row, col + 1),
+          });
+        }
+        // Rétablir l'état d'origine
+        this.grid[row][col + 1].color = this.grid[row][col].color;
+        this.grid[row][col].color = temp;
+      }
+    }
+
+    // Vérifier tous les échanges verticaux possibles
+    for (let row = 0; row < this.gridSize.rows - 1; row++) {
+      for (let col = 0; col < this.gridSize.cols; col++) {
+        // Échanger temporairement
+        const temp = this.grid[row][col].color;
+        this.grid[row][col].color = this.grid[row + 1][col].color;
+        this.grid[row + 1][col].color = temp;
+        // Vérifier s'il y a une correspondance après l'échange
+        if (this.hasMatch(row, col) || this.hasMatch(row + 1, col)) {
+          possibleMoves.push({
+            row1: row,
+            col1: col,
+            row2: row + 1,
+            col2: col,
+            score: this.evaluateMove(row, col, row + 1, col),
+          });
+        }
+        // Rétablir l'état d'origine
+        this.grid[row + 1][col].color = this.grid[row][col].color;
+        this.grid[row][col].color = temp;
+      }
+    }
+
+    // Trier les mouvements par score
+    possibleMoves.sort((a, b) => b.score - a.score);
+
+    // Retourner le meilleur mouvement ou null si aucun mouvement possible
+    return possibleMoves.length > 0 ? possibleMoves[0] : null;
+  }
+
+  /**
+   * Évalue la qualité d'un mouvement
+   */
+  evaluateMove(row1, col1, row2, col2) {
+    // Échanger temporairement
+    const temp = this.grid[row1][col1].color;
+    this.grid[row1][col1].color = this.grid[row2][col2].color;
+    this.grid[row2][col2].color = temp;
+    // Calculer les correspondances
+    const matches = this.checkMatches();
+    // Rétablir l'état d'origine
+    this.grid[row2][col2].color = this.grid[row1][col1].color;
+    this.grid[row1][col1].color = temp;
+    // Attribuer un score basé sur le nombre de tuiles dans les correspondances
+    let score = 0;
+    for (const match of matches) {
+      score += match.tiles.length;
+    }
+    return score;
+  }
+
+  /**
+   * Vérifie s'il y a une correspondance à partir d'une position
+   */
+  hasMatch(row, col) {
+    const color = this.grid[row][col].color;
+    // Vérifier horizontalement
+    let count = 1;
+    // Vérifier à gauche
+    for (let c = col - 1; c >= 0 && this.grid[row][c].color === color; c--) {
+      count++;
+    }
+    // Vérifier à droite
+    for (
+      let c = col + 1;
+      c < this.gridSize.cols && this.grid[row][c].color === color;
+      c++
+    ) {
+      count++;
+    }
+    if (count >= 3) return true;
+    // Vérifier verticalement
+    count = 1;
+    // Vérifier en haut
+    for (let r = row - 1; r >= 0 && this.grid[r][col].color === color; r--) {
+      count++;
+    }
+    // Vérifier en bas
+    for (
+      let r = row + 1;
+      r < this.gridSize.rows && this.grid[r][col].color === color;
+      r++
+    ) {
+      count++;
+    }
+    if (count >= 3) return true;
+    return false;
+  }
+
+  /**
+   * Échange deux tuiles sur la grille
+   */
+  swapTiles(row1, col1, row2, col2) {
+    const tile1 = this.grid[row1][col1];
+    const tile2 = this.grid[row2][col2];
+    // Stocker les positions initiales
+    const x1 = tile1.x;
+    const y1 = tile1.y;
+    const x2 = tile2.x;
+    const y2 = tile2.y;
+    // Animer l'échange
+    this.scene.tweens.add({
+      targets: tile1,
+      x: x2,
+      y: y2,
+      duration: 200,
+      ease: "Cubic.easeOut",
+    });
+    this.scene.tweens.add({
+      targets: tile2,
+      x: x1,
+      y: y1,
+      duration: 200,
+      ease: "Cubic.easeOut",
+    });
+    // Mettre à jour la grille
+    this.grid[row1][col1] = tile2;
+    this.grid[row2][col2] = tile1;
+    // Mettre à jour les propriétés des tuiles
+    tile1.row = row2;
+    tile1.col = col2;
+    tile2.row = row1;
+    tile2.col = col1;
+  }
+
+  /**
+   * Vérifie toutes les correspondances sur la grille
+   */
+  checkMatches() {
+    const matches = [];
+
+    // Vérifier les correspondances horizontales
+    for (let row = 0; row < this.gridSize.rows; row++) {
+      let col = 0;
+      while (col < this.gridSize.cols - 2) {
+        const color = this.grid[row][col].color;
+        let matchLength = 1;
+        // Compter les tuiles consécutives de même couleur
+        while (
+          col + matchLength < this.gridSize.cols &&
+          this.grid[row][col + matchLength].color === color
+        ) {
+          matchLength++;
+        }
+        // Si correspondance de 3 ou plus
+        if (matchLength >= 3) {
+          const tiles = [];
+          for (let i = 0; i < matchLength; i++) {
+            tiles.push(this.grid[row][col + i]);
+          }
+          matches.push({ tiles, orientation: "horizontal" });
+          col += matchLength;
+        } else {
+          col++;
+        }
+      }
+    }
+
+    // Vérifier les correspondances verticales
+    for (let col = 0; col < this.gridSize.cols; col++) {
+      let row = 0;
+      while (row < this.gridSize.rows - 2) {
+        const color = this.grid[row][col].color;
+        let matchLength = 1;
+        // Compter les tuiles consécutives de même couleur
+        while (
+          row + matchLength < this.gridSize.rows &&
+          this.grid[row + matchLength][col].color === color
+        ) {
+          matchLength++;
+        }
+        // Si correspondance de 3 ou plus
+        if (matchLength >= 3) {
+          const tiles = [];
+          for (let i = 0; i < matchLength; i++) {
+            tiles.push(this.grid[row + i][col]);
+          }
+          matches.push({ tiles, orientation: "vertical" });
+          row += matchLength;
+        } else {
+          row++;
+        }
+      }
+    }
+
+    return matches;
+  }
+
+  /**
+   * Résout les correspondances trouvées
+   */
+  resolveMatches(matches, level) {
+    if (!this.isSimulating) return;
+
+    // Mettre à jour le nombre de correspondances
+    this.matchesMade += matches.length;
+
+    // Points à ajouter
+    let pointsToAdd = 0;
+
+    // Pour chaque correspondance
+    for (const match of matches) {
+      // Animer la suppression des tuiles
+      for (const tile of match.tiles) {
+        // Points basés sur la taille de la correspondance
+        const matchPoints = match.tiles.length * 10;
+        pointsToAdd += matchPoints;
+        // Animation de disparition
+        this.scene.tweens.add({
+          targets: tile,
+          scale: 0,
+          alpha: 0,
+          duration: 200,
+          onComplete: () => {
+            // Supprimer le conteneur de la tuile
+            tile.removeAll(true);
+            tile.destroy();
+          },
+        });
+      }
+    }
+
+    // Mettre à jour le score
+    this.updateScore(pointsToAdd);
+
+    // Attendre la fin des animations
+    this.scene.time.delayedCall(250, () => {
+      // Faire tomber les tuiles
+      this.dropTiles(matches);
+      // Créer de nouvelles tuiles
+      this.scene.time.delayedCall(500, () => {
+        this.fillEmptySpaces();
+        // Vérifier s'il y a de nouvelles correspondances
+        this.scene.time.delayedCall(300, () => {
+          const newMatches = this.checkMatches();
+          if (newMatches.length > 0) {
+            // Résoudre les nouvelles correspondances
+            this.resolveMatches(newMatches, level);
+          } else {
+            // Continuer la simulation
+            this.scene.time.delayedCall(this.simulationSpeed / 2, () => {
+              this.simulateAIMove(level);
+            });
+          }
+        });
+      });
+    });
+  }
+
+  /**
+   * Fait tomber les tuiles après la suppression de correspondances
+   */
+  dropTiles(matches) {
+    // Marquer les tuiles à supprimer
+    const tilesToRemove = new Set();
+    for (const match of matches) {
+      for (const tile of match.tiles) {
+        tilesToRemove.add(`${tile.row},${tile.col}`);
+      }
+    }
+
+    // Pour chaque colonne
+    for (let col = 0; col < this.gridSize.cols; col++) {
+      let emptySpaces = 0;
+      // Parcourir la colonne de bas en haut
+      for (let row = this.gridSize.rows - 1; row >= 0; row--) {
+        if (tilesToRemove.has(`${row},${col}`)) {
+          // Incrémenter le compteur d'espaces vides
+          emptySpaces++;
+          // Marquer l'emplacement comme null
+          this.grid[row][col] = null;
+        } else if (emptySpaces > 0 && this.grid[row][col]) {
+          // Déplacer la tuile vers le bas
+          const tile = this.grid[row][col];
+          const newRow = row + emptySpaces;
+          // Animer le déplacement
+          this.scene.tweens.add({
+            targets: tile,
+            y: newRow * this.tileSize + this.tileSize / 2,
+            duration: 300,
+            ease: "Bounce.easeOut",
+          });
+          // Mettre à jour la position de la tuile
+          tile.row = newRow;
+          // Mettre à jour la grille
+          this.grid[newRow][col] = tile;
+          this.grid[row][col] = null;
+        }
+      }
+    }
+  }
+
+  /**
+   * Remplit les espaces vides avec de nouvelles tuiles
+   */
+  fillEmptySpaces() {
+    for (let col = 0; col < this.gridSize.cols; col++) {
+      let emptySpaces = 0;
+      // Compter les espaces vides dans la colonne
+      for (let row = 0; row < this.gridSize.rows; row++) {
+        if (this.grid[row][col] === null) {
+          emptySpaces++;
+        }
+      }
+      // Si pas d'espaces vides, passer à la colonne suivante
+      if (emptySpaces === 0) continue;
+      // Créer de nouvelles tuiles pour les espaces vides
+      for (let i = 0; i < emptySpaces; i++) {
+        const row = i;
+        const startY = -this.tileSize * (emptySpaces - i);
+        // Sélectionner une couleur aléatoire
+        const colorIndex = Math.floor(Math.random() * this.colors.length);
+        const color = this.colors[colorIndex];
+        // Créer une tuile
+        const tile = this.createTile(row, col, color);
+        tile.y = startY + this.tileSize / 2;
+        // Animer l'entrée de la tuile
+        this.scene.tweens.add({
+          targets: tile,
+          y: row * this.tileSize + this.tileSize / 2,
+          duration: 500,
+          ease: "Bounce.easeOut",
+        });
+        // Mettre à jour la grille
+        this.grid[row][col] = tile;
+      }
+    }
+  }
+
+  /**
+   * Mélange la grille s'il n'y a plus de mouvements possibles
+   */
+  shuffleGrid() {
+    // Animation de mélange
+    this.scene.tweens.add({
+      targets: this.gridContainer,
+      alpha: 0.5,
+      scale: 0.9,
+      duration: 300,
+      yoyo: true,
+      onComplete: () => {
+        // Mélanger les couleurs des tuiles existantes
+        const colors = [];
+        // Collecter toutes les couleurs
+        for (let row = 0; row < this.gridSize.rows; row++) {
+          for (let col = 0; col < this.gridSize.cols; col++) {
+            colors.push(this.grid[row][col].color);
+          }
+        }
+        // Mélanger les couleurs
+        for (let i = colors.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [colors[i], colors[j]] = [colors[j], colors[i]];
+        }
+        // Réattribuer les couleurs
+        let colorIndex = 0;
+        for (let row = 0; row < this.gridSize.rows; row++) {
+          for (let col = 0; col < this.gridSize.cols; col++) {
+            this.grid[row][col].setColor(colors[colorIndex]);
+            colorIndex++;
+          }
+        }
+        // S'assurer qu'il n'y a pas de correspondances initiales
+        this.resolveInitialMatches();
+      },
+    });
+  }
+
+  /**
+   * Met à jour le score avec animation
+   */
+  updateScore(points) {
+    const oldScore = this.score;
+    this.score += points;
+    // Animation d'incrémentation du score
+    const duration = 500;
+    const steps = 20;
+    const increment = points / steps;
+    const stepDuration = duration / steps;
+    for (let i = 1; i <= steps; i++) {
+      this.scene.time.delayedCall(i * stepDuration, () => {
+        const currentScore = Math.min(oldScore + i * increment, this.score);
+        this.scoreText.setText(
+          `Score: ${Math.floor(currentScore)} / ${this.targetScore}`
+          //window.i18n.get("score")(Math.floor(currentScore), this.targetScore)
+        );
+      });
+    }
+    // Animation de "popping" pour le texte de score
+    this.scene.tweens.add({
+      targets: this.scoreText,
+      scale: 1.2,
+      duration: 100,
+      yoyo: true,
+    });
+    // Afficher les points gagnés
+    const { width, height } = this.scene.cameras.main;
+    const pointsText = this.scene.add
+      .text(width / 2, height / 3, `+${points}`, {
+        fontSize: "36px",
+        fontFamily: "Arial",
+        color: "#ffff00",
+        stroke: "#000000",
+        strokeThickness: 4,
+      })
+      .setOrigin(0.5, 0.5);
+    // Animer le texte des points
+    this.scene.tweens.add({
+      targets: pointsText,
+      y: pointsText.y - 50,
+      alpha: 0,
+      scale: 1.5,
+      duration: 700,
+      onComplete: () => pointsText.destroy(),
+    });
+  }
+
+  /**
+   * Termine la simulation
+   */
+  completeSimulation(finishReason, movesLimit, difficulty) {
+    if (this.simulationTimer) {
+      this.simulationTimer.remove();
+    }
+
+    this.isSimulating = false;
+    let isBalanced = false;
+    let feedback = "";
+    let monsterAnimation = undefined;
+    let monsterStaticFrame = undefined;
+    // Variable pour stocker le message à afficher
+    let message = "";
+    let messageColor = "#ffffff";
+
+    switch (finishReason) {
+      case "SUCCESS":
+        message = window.i18n.get("match3Success");
+        messageColor = "#7CFC00";
+        const movesRatio = Math.floor((this.movesCount / movesLimit) * 100);
+        const matchRate = this.matchesMade / this.movesCount; // Taux de correspondances par coup
+        switch (difficulty) {
+          case "easy":
+            feedback = window.i18n.get("match3FeedbackTooEasy");
+            monsterAnimation = "oopsy";
+            break;
+          case "hard":
+            feedback = window.i18n.get("match3FeedbackTooHard");
+            monsterStaticFrame = 6;
+            break;
+          case "medium":
+            if (movesRatio <= 40) {
+              feedback = window.i18n.get("match3FeedbackTooFast");
+              monsterAnimation = "oopsy";
+            } else if (movesRatio >= 80) {
+              feedback = window.i18n.get("match3FeedbackTooSlow");
+              monsterStaticFrame = 6;
+            } else {
+              feedback = window.i18n.get("gameFeedbackBalanced");
+              monsterAnimation = "happy";
+              isBalanced = true;
+            }
+            break;
+        }
+        break;
+      case "MOVES_DEPLETED":
+        message =
+          window.i18n.get("movesDepletedMessage") ||
+          "Plus de coups disponibles !";
+        messageColor = "#FF6347";
+        feedback =
+          window.i18n.get("match3FeedbackMovesOut") ||
+          "Vous avez épuisé tous vos coups disponibles.";
+        monsterAnimation = "sad";
+        break;
+    }
+
+    // Animation finale
+    if (finishReason === "SUCCESS") {
+      // Afficher des confettis pour une victoire
+      const confetti = this.scene.add
+        .image(
+          this.scene.cameras.main.width / 2,
+          this.scene.cameras.main.height / 2,
+          "confettis"
+        )
+        .setAlpha(0)
+        .setScale(0.5);
+      this.scene.tweens.add({
+        targets: confetti,
+        alpha: 0.8,
+        scale: 0.8,
+        duration: 1000,
+        ease: "Sine.easeOut",
+      });
+    }
+
+    showMessage(this.scene, message, messageColor, () => {
+      // Emit an event to notify the scene that the simulation is complete
+      this.scene.events.emit("simulationComplete", {
+        feedback,
+        isBalanced,
+        monsterAnimation,
+        monsterStaticFrame,
+      });
+    });
+  }
+}

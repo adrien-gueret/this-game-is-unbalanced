@@ -50,8 +50,8 @@ class EditorScene extends Phaser.Scene {
       case "platforms":
         typeIcon = "🏃";
         break;
-      case "racing":
-        typeIcon = "🏎️";
+      case "match3":
+        typeIcon = "🧩";
         break;
       case "boss":
         typeIcon = "👾";
