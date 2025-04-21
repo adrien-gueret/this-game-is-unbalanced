@@ -10,6 +10,9 @@ class BossSimulation {
     this.isAnimatingMessage = false;
     this.logBackGrounds = null;
     this.logTextObjects = [];
+    this.timerValue = 0;
+    this.timer = null;
+    this.isSimulationEnd = false;
   }
 
   async startLevel(level) {
@@ -29,6 +32,37 @@ class BossSimulation {
       window.i18n.get("watchInstruction"),
       "#ffffff",
       () => {
+        if (this.timer) {
+          this.timer.remove();
+        }
+
+        const timeLimit = 20;
+
+        const timerText = this.scene.add
+          .text(width - 50, 110, window.i18n.get("timer")(0, timeLimit), {
+            fontSize: "24px",
+            fontFamily: "Arial",
+            color: "#ffffff",
+            stroke: "#000000",
+            strokeThickness: 4,
+          })
+          .setOrigin(1, 0.5);
+
+        this.timer = this.scene.time.addEvent({
+          delay: 16.6, // ~60 fps
+          callback: () => {
+            this.timerValue += 0.016;
+            timerText.setText(
+              window.i18n.get("timer")(Math.floor(this.timerValue), timeLimit)
+            );
+            if (this.timerValue >= timeLimit) {
+              this.completeSimulation("TIMEOUT", { player, ennemy });
+            }
+          },
+          callbackScope: this,
+          loop: true,
+        });
+
         this.logBackGrounds.setAlpha(1);
         this.processTurn({ level, player, ennemy, isPlayerTurn: true });
       },
@@ -47,7 +81,7 @@ class BossSimulation {
 
     // Créer le joueur
     const player = {
-      name: "Potimonstre",
+      name: window.i18n.get("playerName"),
       sprite: this.scene.add
         .sprite(playerX, playerY, "player-boss", 0)
         .setScale(3),
@@ -60,7 +94,7 @@ class BossSimulation {
 
     // Créer l'ennemi
     const ennemy = {
-      name: "Potiblob",
+      name: window.i18n.get("slimeName"),
       sprite: this.scene.add.sprite(bossX, bossY, "slime-boss", 0).setScale(3),
       life: level.settings.bossLife.value,
       maxLife: level.settings.bossLife.value,
@@ -251,6 +285,10 @@ class BossSimulation {
    * Gère la logique d'un tour de combat
    */
   async processTurn({ level, player, ennemy, isPlayerTurn = true }) {
+    if (this.isSimulationEnd) {
+      return;
+    }
+
     await this.performAttack({
       player,
       ennemy,
@@ -262,7 +300,6 @@ class BossSimulation {
       this.completeSimulation("DEFEAT", {
         player,
         ennemy,
-        level,
       });
       return;
     }
@@ -271,7 +308,6 @@ class BossSimulation {
       this.completeSimulation("SUCCESS", {
         player,
         ennemy,
-        level,
       });
       return;
     }
@@ -341,6 +377,9 @@ class BossSimulation {
    * Inflige des dégâts à une cible
    */
   inflictDamage(attacker, target, damage, isCritical) {
+    if (this.isSimulationEnd) {
+      return;
+    }
     // Appliquer les dégâts
     target.life = Math.max(0, target.life - damage);
 
@@ -361,11 +400,11 @@ class BossSimulation {
     // Affiche la frame 2 (blessé)
     target.sprite.setFrame(2);
 
-    // Ne revenir à l'animation idle que si la cible n'est pas vaincue
-    if (target.life > 0) {
+    // Ne revenir à l'animation idle que si la cible n'est pas vaincue et que la simulation n'est pas terminée
+    if (target.life > 0 && !this.isSimulationEnd) {
       this.scene.time.delayedCall(500, () => {
-        if (target.life > 0) {
-          // Double vérification, la cible est toujours vivante
+        if (target.life > 0 && !this.isSimulationEnd) {
+          // Double vérification, la cible est toujours vivante et la simulation n'est pas terminée
           target.sprite.anims.play(idleAnimation, true);
         }
       });
@@ -467,7 +506,10 @@ class BossSimulation {
   /**
    * Termine la simulation
    */
-  completeSimulation(finishReason, { player, ennemy, level }) {
+  completeSimulation(finishReason, { player, ennemy }) {
+    this.timer.remove();
+    this.isSimulationEnd = true;
+
     let isBalanced = false;
     let feedback = "";
     let monsterAnimation = undefined;
@@ -517,6 +559,16 @@ class BossSimulation {
 
         // Jouer l'animation d'idle pour le boss victorieux
         ennemy.sprite.anims.play("blob-happy", true);
+        break;
+
+      case "TIMEOUT":
+        message = window.i18n.get("timeout");
+        messageColor = "#FF6347";
+        feedback = window.i18n.get("bossFeedbackTimeout");
+        monsterAnimation = "angry";
+
+        player.sprite.anims.play("player-oopsy", true);
+        ennemy.sprite.anims.play("blob-oopsy", true);
         break;
     }
 

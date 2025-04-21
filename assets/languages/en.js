@@ -41,6 +41,8 @@ window.languages.en = {
   timeout: "Time out!",
   clickToStart: "Click to start",
   clickToContinue: "Click to continue",
+  playerName: "Lilmonster",
+  slimeName: "Lilslime",
 
   gameFeedbackBalanced:
     "This game is well-balanced! I had just the right amount of challenge to have fun!",
@@ -73,6 +75,8 @@ window.languages.en = {
     "This game is too easy! I won with almost all my life left at the end of the fight!",
   bossFeedbackAlmostTooHard:
     "The fight is a bit too difficult, I barely won and feel like it was only due to luck...",
+  bossFeedbackTimeout:
+    "This game is unbalanced, the fight is way too long... I have better things to do!",
 
   platforms1_title: "My first game",
   platforms2_title: "Oh. Water!",

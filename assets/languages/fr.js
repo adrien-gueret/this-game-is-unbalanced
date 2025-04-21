@@ -41,6 +41,8 @@ window.languages.fr = {
   timeout: "Temps écoulé...",
   clickToStart: "Cliquez pour commencer",
   clickToContinue: "Cliquez pour continuer",
+  playerName: "Potimonstre",
+  slimeName: "Potiblob",
 
   gameFeedbackBalanced:
     "Ce jeu est bien équilibré ! J'ai eu juste ce qu'il faut de défi pour m'amuser !",
@@ -73,6 +75,8 @@ window.languages.fr = {
     "Ce jeu est trop facile ! J'ai gagné en ayant presque toute ma vie à la fin du combat !",
   bossFeedbackAlmostTooHard:
     "Le combat est un peu trop difficile, j'ai gagné de justesse et j'ai l'impression que c'est uniquement par chance...",
+  bossFeedbackTimeout:
+    "Ce jeu est mal équilibré, le combat est beaucoup trop long... J'ai autre chose à faire !",
 
   platforms1_title: "Mon premier jeu",
   platforms2_title: "Oh, de l'eau !",
