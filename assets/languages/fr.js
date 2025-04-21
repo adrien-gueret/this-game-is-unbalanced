@@ -55,7 +55,7 @@ window.languages.fr = {
   platformsFailure: "Potimonstre est tombé !",
 
   platformsFeedbackTooEasy:
-    "Ce jeu est trop facile ! J'ai gagné sans la moindre difficulté...",
+    "Ce jeu est trop facile ! J'ai gagné sans la moindre difficulté... Il faudrait ajouter des obstacles.",
   platformsFeedbackTooHard:
     "J'ai gagné, mais wow... Ce n'était pas facile ! Il faudrait sans doute revoir un peu les obstacles.",
   platformsFeedbackBlocked:

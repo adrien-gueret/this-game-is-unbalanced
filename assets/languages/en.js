@@ -55,7 +55,7 @@ window.languages.en = {
   platformsFailure: "Lilmonster has fallen!",
 
   platformsFeedbackTooEasy:
-    "This game is too easy! I won without any difficulty...",
+    "This game is too easy! I won without any difficulty... You should probably add some obstacles.",
   platformsFeedbackTooHard:
     "I won, but wow... That wasn't easy! You should probably adjust the obstacles a bit.",
   platformsFeedbackBlocked:
