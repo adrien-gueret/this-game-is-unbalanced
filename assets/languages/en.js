@@ -4,7 +4,7 @@ window.languages.en = {
   // Titres généraux
   mainTitle: "This game is unbalanced!",
   subtitle: "The game where YOU balance the game!",
-  levelSelectTitle: "Level Selection",
+  levelSelectTitle: "Game Selection",
   tutorialTitle: "How to Play",
 
   // Boot
@@ -47,8 +47,8 @@ window.languages.en = {
   gameFeedbackBalanced:
     "This game is well-balanced! I had just the right amount of challenge to have fun!",
 
-  platformsLevelTitle: "Plateforms",
-  bossLevelTitle: "RPG fight",
+  platformsLevelTitle: "Platform Games",
+  bossLevelTitle: "Turn-based Fight Games",
 
   platformsSuccess: "Lilmonster has won!",
   platformsBlocked: "Lilmonster is blocked...",

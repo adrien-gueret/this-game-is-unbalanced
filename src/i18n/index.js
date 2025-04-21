@@ -26,9 +26,9 @@ class I18n {
       return translation;
     }
 
-    /*console.warn(
+    console.warn(
       `Traduction non trouvée pour la clé "${key}" dans la langue "${this.currentLanguage}"`
-    );*/
+    );
     return key;
   }
 

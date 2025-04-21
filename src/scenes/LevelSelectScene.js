@@ -54,7 +54,6 @@ class LevelSelectScene extends Phaser.Scene {
   }
 
   displayLevels() {
-    const { width } = this.cameras.main;
     const padding = 20;
     const startY = 150;
 
@@ -79,6 +78,19 @@ class LevelSelectScene extends Phaser.Scene {
     Object.keys(levelsByType).forEach((type) => {
       const levels = levelsByType[type];
 
+      // Ajouter un titre de catégorie
+      const categoryTitleKey = `${type}LevelTitle`;
+      this.add
+        .text(padding, currentY - 20, window.i18n.get(categoryTitleKey), {
+          fontSize: "24px",
+          fontFamily: "Arial",
+          color: "#ffffff",
+          fontStyle: "bold",
+          stroke: "#000000",
+          strokeThickness: 3,
+        })
+        .setOrigin(0, 0.5);
+
       currentY += categoryHeight;
 
       // Afficher les niveaux en grille pour ce type
@@ -99,21 +111,21 @@ class LevelSelectScene extends Phaser.Scene {
           // Titre du niveau
           const levelTitle = level.getTitle();
 
+          // Numéro du niveau
           this.add
-            .text(xPosition, rowY - 15, levelTitle, {
+            .text(xPosition, rowY - 15, `#${i + j + 1}`, {
+              fontSize: "16px",
+              fontFamily: "Arial",
+              color: "#ffffff",
+            })
+            .setOrigin(0.5);
+
+          this.add
+            .text(xPosition, rowY + 15, levelTitle, {
               fontSize: "18px",
               fontFamily: "Arial",
               color: "#ffffff",
               align: "center",
-            })
-            .setOrigin(0.5);
-
-          // Numéro du niveau
-          this.add
-            .text(xPosition, rowY + 15, `#${level.id}`, {
-              fontSize: "16px",
-              fontFamily: "Arial",
-              color: "#ffffff",
             })
             .setOrigin(0.5);
 

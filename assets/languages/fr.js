@@ -4,7 +4,7 @@ window.languages.fr = {
   // Titres généraux
   mainTitle: "This game is unbalanced!",
   subtitle: "Le jeu où TU équilibres le jeu!",
-  levelSelectTitle: "Sélection des niveaux",
+  levelSelectTitle: "Sélection du jeu",
   tutorialTitle: "Comment jouer",
 
   // Boot
@@ -47,8 +47,8 @@ window.languages.fr = {
   gameFeedbackBalanced:
     "Ce jeu est bien équilibré ! J'ai eu juste ce qu'il faut de défi pour m'amuser !",
 
-  platformsLevelTitle: "Plateformes",
-  bossLevelTitle: "Combat RPG",
+  platformsLevelTitle: "Jeux de plateformes",
+  bossLevelTitle: "Jeux de combats au tour par tour",
 
   platformsSuccess: "Potimonstre a gagné !",
   platformsBlocked: "Potimonstre est bloqué...",
