@@ -55,6 +55,11 @@ class FeedbackScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
+    // Si le niveau est équilibré, le marquer comme complété pour débloquer le suivant
+    if (this.isBalanced) {
+      LevelSelectScene.markLevelAsCompleted(this.level);
+    }
+
     // Bulle de dialogue
     const { height: bubbleHeight, bubble } = this.createSpeechBubble(
       300,

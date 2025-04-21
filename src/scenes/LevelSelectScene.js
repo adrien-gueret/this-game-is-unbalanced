@@ -46,11 +46,89 @@ class LevelSelectScene extends Phaser.Scene {
       }
     );
 
+    // Initialiser les niveaux complétés s'ils n'existent pas déjà
+    if (!localStorage.getItem("tgiu__completedLevels")) {
+      // Initialiser le stockage avec seulement les premiers niveaux de chaque type déverrouillés
+      const initialCompletedLevels = {};
+      const levelTypes = new Set(Level.levels.map((level) => level.type));
+
+      levelTypes.forEach((type) => {
+        initialCompletedLevels[type] = [];
+      });
+
+      localStorage.setItem(
+        "tgiu__completedLevels",
+        JSON.stringify(initialCompletedLevels)
+      );
+    }
+
     // Affichage des niveaux
     this.displayLevels();
 
     // Animation d'entrée
     this.cameras.main.fadeIn(500);
+  }
+
+  // Vérifier si un niveau est déverrouillé
+  isLevelUnlocked(type, levelIndex) {
+    try {
+      const completedLevels =
+        JSON.parse(localStorage.getItem("tgiu__completedLevels")) || {};
+
+      // Si c'est le premier niveau du type, il est toujours déverrouillé
+      if (levelIndex === 0) return true;
+
+      // Sinon, vérifier si le niveau précédent a été complété
+      return (
+        completedLevels[type] && completedLevels[type].includes(levelIndex - 1)
+      );
+    } catch (e) {
+      console.error(e);
+      return levelIndex === 0; // En cas d'erreur, déverrouiller uniquement le premier niveau
+    }
+  }
+
+  // Vérifier si un niveau est complété
+  isLevelCompleted(type, levelIndex) {
+    try {
+      const completedLevels =
+        JSON.parse(localStorage.getItem("tgiu__completedLevels")) || {};
+
+      return (
+        completedLevels[type] && completedLevels[type].includes(levelIndex)
+      );
+    } catch (e) {
+      console.error(e);
+      return false; // En cas d'erreur, considérer le niveau comme non complété
+    }
+  }
+
+  // Marquer un niveau comme complété
+  static markLevelAsCompleted(level) {
+    try {
+      const levelIndex = Level.levels
+        .filter((l) => l.type === level.type)
+        .findIndex((l) => l.id === level.id);
+
+      if (levelIndex === -1) return;
+
+      const completedLevels =
+        JSON.parse(localStorage.getItem("tgiu__completedLevels")) || {};
+
+      if (!completedLevels[level.type]) {
+        completedLevels[level.type] = [];
+      }
+
+      if (!completedLevels[level.type].includes(levelIndex)) {
+        completedLevels[level.type].push(levelIndex);
+        localStorage.setItem(
+          "tgiu__completedLevels",
+          JSON.stringify(completedLevels)
+        );
+      }
+    } catch (e) {
+      console.error("Erreur lors du marquage du niveau comme complété:", e);
+    }
   }
 
   displayLevels() {
@@ -103,9 +181,29 @@ class LevelSelectScene extends Phaser.Scene {
           const xPosition =
             padding + j * (levelWidth + gapBetweenLevels) + levelWidth / 2;
 
-          // Fond du bouton de niveau
+          // Vérifier si le niveau est déverrouillé et complété
+          const levelIndex = i + j;
+          const isUnlocked = this.isLevelUnlocked(type, levelIndex);
+          const isCompleted = this.isLevelCompleted(type, levelIndex);
+
+          // Couleurs différentes selon l'état du niveau
+          let backgroundColor;
+          if (!isUnlocked) {
+            backgroundColor = 0x95a5a6; // Gris pour verrouillé
+          } else if (isCompleted) {
+            backgroundColor = 0x27ae60; // Vert pour complété
+          } else {
+            backgroundColor = 0x3498db; // Bleu pour déverrouillé mais non complété
+          }
+
           const background = this.add
-            .rectangle(xPosition, rowY, levelWidth, levelHeight, 0x3498db)
+            .rectangle(
+              xPosition,
+              rowY,
+              levelWidth,
+              levelHeight,
+              backgroundColor
+            )
             .setStrokeStyle(2, 0xffffff);
 
           // Titre du niveau
@@ -120,8 +218,10 @@ class LevelSelectScene extends Phaser.Scene {
             })
             .setOrigin(0.5);
 
+          const displayText = isUnlocked ? levelTitle : "🔒";
+
           this.add
-            .text(xPosition, rowY + 15, levelTitle, {
+            .text(xPosition, rowY + 15, displayText, {
               fontSize: "18px",
               fontFamily: "Arial",
               color: "#ffffff",
@@ -129,17 +229,24 @@ class LevelSelectScene extends Phaser.Scene {
             })
             .setOrigin(0.5);
 
-          // Rendre le bouton interactif
-          background
-            .setInteractive({ useHandCursor: true })
-            .on("pointerover", () => background.setFillStyle(0x2980b9))
-            .on("pointerout", () => background.setFillStyle(0x3498db))
-            .on("pointerdown", () => {
-              this.cameras.main.fade(500, 0, 0, 0);
-              this.time.delayedCall(500, () => {
-                this.scene.start("GameScene", { level });
+          // Rendre le bouton interactif seulement si le niveau est déverrouillé
+          if (isUnlocked) {
+            background
+              .setInteractive({ useHandCursor: true })
+              .on("pointerover", () => {
+                const hoverColor = isCompleted ? 0x219653 : 0x2980b9; // Vert foncé ou bleu foncé au survol
+                background.setFillStyle(hoverColor);
+              })
+              .on("pointerout", () => {
+                background.setFillStyle(backgroundColor);
+              })
+              .on("pointerdown", () => {
+                this.cameras.main.fade(500, 0, 0, 0);
+                this.time.delayedCall(500, () => {
+                  this.scene.start("GameScene", { level });
+                });
               });
-            });
+          }
         }
 
         currentY += levelHeight + padding;

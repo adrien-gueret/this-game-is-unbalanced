@@ -41,7 +41,7 @@ class I18n {
     const nextIndex = (currentIndex + 1) % this.availableLanguages.length;
     this.currentLanguage = this.availableLanguages[nextIndex];
     // Enregistrer la préférence dans localStorage pour la persistance
-    localStorage.setItem("preferredLanguage", this.currentLanguage);
+    localStorage.setItem("tgiu__preferredLanguage", this.currentLanguage);
     return this.currentLanguage;
   }
 
@@ -49,7 +49,7 @@ class I18n {
    * Charge la langue préférée du joueur depuis le stockage local
    */
   loadPreferredLanguage() {
-    const savedLanguage = localStorage.getItem("preferredLanguage");
+    const savedLanguage = localStorage.getItem("tgiu__preferredLanguage");
     if (savedLanguage && this.availableLanguages.includes(savedLanguage)) {
       this.currentLanguage = savedLanguage;
     }
