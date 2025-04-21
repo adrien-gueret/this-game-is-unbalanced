@@ -19,6 +19,21 @@ class Match3Simulation {
     this.simulationSpeed = 1000; // ms entre les moves
     this.movesCount = 0; // Nombre de coups effectués
     this.movesLimit = 0; // Limite de coups autorisés
+    this.comboMultiplier = 1; // Multiplicateur de combo initial
+    this.isCombo = false; // Indique si un combo est en cours
+
+    // Mappage des couleurs aux lignes de la spritesheet
+    this.colorToFrame = {
+      yellow: 0, // 1ère ligne (index 0)
+      green: 5, // 2ème ligne (index 5)
+      red: 10, // 3ème ligne (index 10)
+      blue: 15, // 4ème ligne (index 15)
+      purple: 20, // 5ème ligne (index 20)
+      orange: 25, // 6ème ligne (index 25)
+      // "marron": 30, // 7ème ligne (index 30) - non utilisée pour le moment
+      // "blanc": 35,  // 8ème ligne (index 35) - non utilisée pour le moment
+      // "noir": 40    // 9ème ligne (index 40) - non utilisée pour le moment
+    };
 
     // Propriétés pour la main du joueur
     this.playerHand = null;
@@ -30,9 +45,6 @@ class Match3Simulation {
 
   async startLevel(level) {
     const { width, height } = this.scene.cameras.main;
-
-    // Supprimer complètement le fond bleu
-    // Ne pas créer de background-blue
 
     // Créer le conteneur de la grille avec un positionnement ajusté
     this.gridContainer = this.scene.add.container(
@@ -186,42 +198,23 @@ class Match3Simulation {
   createTile(row, col, color) {
     const x = col * this.tileSize + this.tileSize / 2;
     const y = row * this.tileSize + this.tileSize / 2;
-    const tile = this.scene.add.graphics();
 
-    // Dessiner la tuile avec la couleur spécifiée avec marge légèrement réduite
-    tile.fillStyle(this.getColorValue(color), 1);
+    // Utiliser la spritesheet "tiles-match3" avec la frame correspondant à la couleur
+    // La frame 1 de chaque couleur (+0 car index de la première frame = 0)
+    const frameIndex = this.colorToFrame[color] + 0;
 
-    // Placer le dessin de la tuile pour qu'il soit centré
-    // Décaler le rectangle pour que son point central soit à (0,0)
+    // Créer le sprite
+    const sprite = this.scene.add.sprite(0, 0, "tiles-match3", frameIndex);
+
+    // Ajuster la taille du sprite pour correspondre à la taille de tuile désirée
+    const scale = (this.tileSize - 12) / 32; // 32px = taille originale du sprite
+    sprite.setScale(scale);
+
+    // Créer un conteneur pour le sprite
+    const container = this.scene.add.container(x, y, [sprite]);
     const tileWidth = this.tileSize - 12;
     const tileHeight = this.tileSize - 12;
-    tile.fillRoundedRect(
-      -tileWidth / 2,
-      -tileHeight / 2,
-      tileWidth,
-      tileHeight,
-      8
-    );
-
-    // Ajouter un effet de brillance, également centré
-    tile.fillStyle(0xffffff, 0.3);
-    tile.fillRoundedRect(-tileWidth / 2, -tileHeight / 2, tileWidth / 2, 10, 5);
-
-    // Ajouter une bordure plus contrastée pour mieux voir les tuiles sans fond
-    tile.lineStyle(3, 0x000000, 0.8);
-    tile.strokeRoundedRect(
-      -tileWidth / 2,
-      -tileHeight / 2,
-      tileWidth,
-      tileHeight,
-      8
-    );
-
-    const container = this.scene.add.container(x, y, [tile]);
     container.setSize(tileWidth, tileHeight);
-
-    // Supprimer cette ligne car setOrigin n'existe pas pour les conteneurs
-    // container.setOrigin(0.5, 0.5);
 
     // Ajouter au conteneur de la grille
     this.gridContainer.add(container);
@@ -230,42 +223,17 @@ class Match3Simulation {
     container.row = row;
     container.col = col;
     container.color = color;
+    container.sprite = sprite; // Référence au sprite pour pouvoir changer la frame
 
     // Méthode pour changer la couleur de la tuile
     container.setColor = (newColor) => {
       container.color = newColor;
-
-      // Mettre à jour le visuel
-      tile.clear();
-      tile.fillStyle(this.getColorValue(newColor), 1);
-      tile.fillRoundedRect(
-        -tileWidth / 2,
-        -tileHeight / 2,
-        tileWidth,
-        tileHeight,
-        8
-      );
-
-      // Re-dessiner l'effet de brillance
-      tile.fillStyle(0xffffff, 0.3);
-      tile.fillRoundedRect(
-        -tileWidth / 2,
-        -tileHeight / 2,
-        tileWidth / 2,
-        10,
-        5
-      );
-
-      // Re-dessiner la bordure avec les mêmes paramètres améliorés
-      tile.lineStyle(3, 0x000000, 0.8);
-      tile.strokeRoundedRect(
-        -tileWidth / 2,
-        -tileHeight / 2,
-        tileWidth,
-        tileHeight,
-        8
-      );
+      // Mettre à jour le sprite avec la nouvelle couleur
+      const newFrameIndex = this.colorToFrame[newColor] + 0;
+      sprite.setFrame(newFrameIndex);
     };
+
+    this.scene.applyGameMask(container);
 
     return container;
   }
@@ -654,6 +622,13 @@ class Match3Simulation {
     const y1 = tile1.y;
     const x2 = tile2.x;
     const y2 = tile2.y;
+
+    // Changer la frame des tuiles pour l'animation de déplacement (frame 4)
+    const frame1 = this.colorToFrame[tile1.color] + 3; // +3 pour obtenir la frame 4 (index 3)
+    const frame2 = this.colorToFrame[tile2.color] + 3;
+    tile1.sprite.setFrame(frame1);
+    tile2.sprite.setFrame(frame2);
+
     // Animer l'échange
     this.scene.tweens.add({
       targets: tile1,
@@ -661,14 +636,26 @@ class Match3Simulation {
       y: y2,
       duration: 200,
       ease: "Cubic.easeOut",
+      onComplete: () => {
+        // Revenir à la frame normale (frame 1) après le déplacement
+        const normalFrame1 = this.colorToFrame[tile1.color] + 0;
+        tile1.sprite.setFrame(normalFrame1);
+      },
     });
+
     this.scene.tweens.add({
       targets: tile2,
       x: x1,
       y: y1,
       duration: 200,
       ease: "Cubic.easeOut",
+      onComplete: () => {
+        // Revenir à la frame normale (frame 1) après le déplacement
+        const normalFrame2 = this.colorToFrame[tile2.color] + 0;
+        tile2.sprite.setFrame(normalFrame2);
+      },
     });
+
     // Mettre à jour la grille
     this.grid[row1][col1] = tile2;
     this.grid[row2][col2] = tile1;
@@ -754,14 +741,29 @@ class Match3Simulation {
     // Points à ajouter
     let pointsToAdd = 0;
 
+    // Si c'est un combo (résolution de correspondances en chaîne), augmenter le multiplicateur
+    if (this.isCombo) {
+      this.comboMultiplier += 1; // Augmenter le multiplicateur de 0.5 à chaque combo
+    } else {
+      this.comboMultiplier = 1; // Réinitialiser le multiplicateur s'il ne s'agit pas d'un combo
+      // Incrémenter le compteur de coups ici après que des correspondances ont été trouvées
+      this.movesCount++;
+    }
+
     // Pour chaque correspondance
     for (const match of matches) {
-      // Points basés sur la taille de la correspondance
-      const matchPoints = match.tiles.length * 10;
+      // Points basés sur la taille de la correspondance avec multiplicateur de combo
+      const matchPoints = Math.floor(
+        match.tiles.length * 10 * this.comboMultiplier
+      );
       pointsToAdd += matchPoints;
 
       // Animer la suppression des tuiles
       for (const tile of match.tiles) {
+        // Utiliser la frame 5 (index 4) pour l'animation de disparition
+        const disappearFrame = this.colorToFrame[tile.color] + 4;
+        tile.sprite.setFrame(disappearFrame);
+
         // Animation de disparition depuis le centre
         this.scene.tweens.add({
           targets: tile,
@@ -776,9 +778,6 @@ class Match3Simulation {
         });
       }
     }
-
-    // Incrémenter le compteur de coups ici après que des correspondances ont été trouvées
-    this.movesCount++;
 
     // Mettre à jour le score
     this.updateScore(pointsToAdd);
@@ -795,9 +794,15 @@ class Match3Simulation {
         this.scene.time.delayedCall(300, () => {
           const newMatches = this.checkMatches();
           if (newMatches.length > 0) {
+            // Marquer comme combo pour la prochaine résolution
+            this.isCombo = true;
             // Résoudre les nouvelles correspondances
             this.resolveMatches(newMatches, level);
           } else {
+            // Fin du combo
+            this.isCombo = false;
+            this.comboMultiplier = 1;
+
             // Revenir à la frame 0 pour l'état inactif
             this.playerHand.setFrame(0);
 
@@ -839,12 +844,22 @@ class Match3Simulation {
           // Déplacer la tuile vers le bas
           const tile = this.grid[row][col];
           const newRow = row + emptySpaces;
+
+          // Changer la frame pour l'animation de déplacement (frame 4)
+          const moveFrame = this.colorToFrame[tile.color] + 3;
+          tile.sprite.setFrame(moveFrame);
+
           // Animer le déplacement
           this.scene.tweens.add({
             targets: tile,
             y: newRow * this.tileSize + this.tileSize / 2,
             duration: 300,
             ease: "Bounce.easeOut",
+            onComplete: () => {
+              // Revenir à la frame normale après le déplacement
+              const normalFrame = this.colorToFrame[tile.color] + 0;
+              tile.sprite.setFrame(normalFrame);
+            },
           });
           // Mettre à jour la position de la tuile
           tile.row = newRow;
@@ -880,12 +895,22 @@ class Match3Simulation {
         // Créer une tuile
         const tile = this.createTile(row, col, color);
         tile.y = startY + this.tileSize / 2;
+
+        // Définir la frame d'animation de mouvement (frame 4)
+        const moveFrame = this.colorToFrame[color] + 3;
+        tile.sprite.setFrame(moveFrame);
+
         // Animer l'entrée de la tuile
         this.scene.tweens.add({
           targets: tile,
           y: row * this.tileSize + this.tileSize / 2,
           duration: 500,
           ease: "Bounce.easeOut",
+          onComplete: () => {
+            // Revenir à la frame normale après le déplacement
+            const normalFrame = this.colorToFrame[color] + 0;
+            tile.sprite.setFrame(normalFrame);
+          },
         });
         // Mettre à jour la grille
         this.grid[row][col] = tile;
@@ -952,16 +977,12 @@ class Match3Simulation {
         );
       });
     }
-    // Animation de "popping" pour le texte de score
-    this.scene.tweens.add({
-      targets: this.scoreText,
-      scale: 1.2,
-      duration: 100,
-      yoyo: true,
-    });
+
     // Afficher les points gagnés
     const { width, height } = this.scene.cameras.main;
-    const pointsText = this.scene.add
+    let pointsText;
+
+    pointsText = this.scene.add
       .text(width / 2, height / 3, `+${points}`, {
         fontSize: "36px",
         fontFamily: "Arial",
@@ -970,6 +991,7 @@ class Match3Simulation {
         strokeThickness: 4,
       })
       .setOrigin(0.5, 0.5);
+
     // Animer le texte des points
     this.scene.tweens.add({
       targets: pointsText,
