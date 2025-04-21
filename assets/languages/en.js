@@ -42,9 +42,6 @@ window.languages.en = {
   clickToStart: "Click to start",
   clickToContinue: "Click to continue",
 
-  gameFeedbackTooEasy: "This game is too easy! I won without any difficulty...",
-  gameFeedbackTooHard:
-    "I won, but wow... That wasn't easy! You should probably adjust the obstacles a bit.",
   gameFeedbackBalanced:
     "This game is well-balanced! I had just the right amount of challenge to have fun!",
 
@@ -52,17 +49,26 @@ window.languages.en = {
   platformsBlocked: "Lilmonster is blocked...",
   platformsFailure: "Lilmonster has fallen!",
 
+  platformsFeedbackTooEasy:
+    "This game is too easy! I won without any difficulty...",
+  platformsFeedbackTooHard:
+    "I won, but wow... That wasn't easy! You should probably adjust the obstacles a bit.",
   platformsFeedbackBlocked:
     "This game is impossible! I got stuck, I couldn't jump correctly...",
   platformsFeedbackTimeout:
     "This game is unbalanced! There's just not enough time to finish it...",
   platformsFeedbackFailure:
     "This game is too difficult! How am I supposed not falling in the water?",
-
   platformsFeedbackTooFarLimit:
     "The time management is unbalanced: maybe the timer is too generous?",
   platformsFeedbackTooNearLimit:
     "I won, but just barely...! The timer probably needs a slight adjustment.",
+
+  bossSuccess: "Lilmonster has won the fight!",
+  bossFailure: "Lilmonster is KO...",
+
+  bossFeedbackDefeat:
+    "This fight is too difficult! I lost even though I gave it all my best...",
 
   platforms1_title: "My first game",
   platforms2_title: "Oh. Water!",
@@ -97,4 +103,14 @@ window.languages.en = {
   bossSlimeAttackSettings: "Enemy attack",
   bossSlimeDefenseSettings: "Enemy defense",
   bossSlimeCriticalChanceSettings: "Enemy critical chance",
+
+  bossInflictDamageLog: (attackerName, targetName, damage) =>
+    `${attackerName} deals ${damage} damage${
+      damage > 1 ? "s" : ""
+    } to ${targetName}!`,
+
+  bossInflictCriticalDamageLog: (attackerName, targetName, damage) =>
+    `${attackerName} deals a critical hit! ${targetName} loses ${damage} life point${
+      damage > 1 ? "s" : ""
+    }!`,
 };

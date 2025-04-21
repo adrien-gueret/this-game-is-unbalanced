@@ -16,7 +16,7 @@ class Level {
     this.id = null;
     this.type = type;
     this.settings = settings;
-    this.getDifficulty = getDifficulty.bind(this);
+    this.getDifficulty = getDifficulty ? getDifficulty.bind(this) : null;
     this.start = start ? start.bind(this) : null;
   }
 
@@ -73,7 +73,7 @@ class PlatformsLevel extends Level {
 }
 
 class BossLevel extends Level {
-  constructor(settings, getDifficulty) {
+  constructor(settings) {
     const commonSimulationsSettings = {
       playerLife: {
         value: 200,
@@ -135,7 +135,6 @@ class BossLevel extends Level {
 
     super({
       settings: { ...commonSimulationsSettings, ...settings },
-      getDifficulty,
       type: "boss",
     });
   }

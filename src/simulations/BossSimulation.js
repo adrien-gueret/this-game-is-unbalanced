@@ -312,7 +312,6 @@ class BossSimulation {
 
     if (isCritical) {
       damage *= 2; // Dégâts doublés pour un coup critique
-      this.addToBattleLog(`${attacker.name} porte un coup critique !`);
     }
 
     return new Promise((resolve) => {
@@ -331,7 +330,7 @@ class BossSimulation {
         yoyoEase: "Cubic.easeIn", // Retour plus lent pour un mouvement naturel
         onComplete: () => {
           // Appliquer les dégâts après l'animation
-          this.inflictDamage(attacker, target, damage);
+          this.inflictDamage(attacker, target, damage, isCritical);
           resolve();
         },
       });
@@ -341,7 +340,7 @@ class BossSimulation {
   /**
    * Inflige des dégâts à une cible
    */
-  inflictDamage(attacker, target, damage) {
+  inflictDamage(attacker, target, damage, isCritical) {
     // Appliquer les dégâts
     target.life = Math.max(0, target.life - damage);
 
@@ -350,7 +349,10 @@ class BossSimulation {
 
     // Ajouter l'action au log de combat
     this.addToBattleLog(
-      `${attacker.name} inflige ${damage} points de dégâts à ${target.name}!`
+      window.i18n.get(
+        isCritical ? "bossInflictCriticalDamageLog" : "bossInflictDamageLog"
+      )(attacker.name, target.name, damage),
+      isCritical
     );
 
     const idleAnimation =
@@ -381,9 +383,9 @@ class BossSimulation {
   /**
    * Ajoute une entrée au log de combat
    */
-  addToBattleLog(message) {
+  addToBattleLog(message, isCritical) {
     // Ajouter le message à la file d'attente
-    this.messageQueue.push(message);
+    this.messageQueue.push({ message, isCritical });
 
     // Si aucune animation n'est en cours, démarrer l'animation
     if (!this.isAnimatingMessage) {
@@ -401,7 +403,7 @@ class BossSimulation {
     }
 
     this.isAnimatingMessage = true;
-    const message = this.messageQueue.shift();
+    const { message, isCritical } = this.messageQueue.shift();
 
     // Calculer la hauteur d'une ligne
     const lineHeight =
@@ -421,6 +423,9 @@ class BossSimulation {
     lastTextObj.setAlpha(1);
     lastTextObj.y = this._logBaseYs[lastIdx] + lineHeight;
 
+    // Définir la couleur en fonction de si c'est un coup critique
+    lastTextObj.setColor(isCritical ? "#ff0000" : "#ffffff");
+
     // 2. Animer toutes les lignes vers le haut, en utilisant les positions de base
     for (let i = 0; i < this.logTextObjects.length; i++) {
       const textObj = this.logTextObjects[i];
@@ -438,6 +443,8 @@ class BossSimulation {
                 textObj.setText("");
                 textObj.y = this._logBaseYs[lastIdx] + lineHeight;
                 textObj.setAlpha(1);
+                // Réinitialiser la couleur à blanc
+                textObj.setColor("#ffffff");
               }
             : undefined,
       });
@@ -472,7 +479,7 @@ class BossSimulation {
 
     switch (finishReason) {
       case "SUCCESS":
-        message = "Victoire! Le Boss a été vaincu!";
+        message = window.i18n.get("bossSuccess");
         messageColor = "#7CFC00";
 
         // Afficher la frame 3 du boss (défaite)
@@ -485,44 +492,24 @@ class BossSimulation {
         // Décider si c'était équilibré basé sur le temps et la santé restante
         const healthRatio = player.life / player.maxLife;
 
-        switch (level.getDifficulty()) {
-          case "easy":
-            feedback =
-              "Ce combat était trop facile. Le joueur a à peine été touché.";
-            monsterAnimation = "oopsy";
-            break;
-
-          case "hard":
-            feedback =
-              "Ce combat était trop difficile. Le joueur a eu beaucoup de chance de survivre.";
-            monsterStaticFrame = 6;
-            break;
-
-          case "medium":
-            if (healthRatio > 0.7) {
-              feedback =
-                "Le joueur a gagné trop facilement, rendez le Boss plus puissant.";
-              monsterAnimation = "oopsy";
-            } else if (healthRatio < 0.2) {
-              feedback =
-                "C'était une victoire de justesse, le Boss est presque trop fort.";
-              monsterStaticFrame = 6;
-            } else {
-              feedback =
-                "Combat parfaitement équilibré! Un défi intéressant mais juste.";
-              monsterAnimation = "happy";
-              isBalanced = true;
-            }
-            break;
+        if (healthRatio > 0.7) {
+          feedback = window.i18n.get("bossFeedbackTooEasy");
+          monsterAnimation = "speaking";
+        } else if (healthRatio < 0.2) {
+          feedback = window.i18n.get("bossFeedbackAlmostTooHard");
+          monsterAnimation = "oopsy";
+        } else {
+          feedback = window.i18n.get("gameFeedbackBalanced");
+          monsterAnimation = "happy";
+          isBalanced = true;
         }
         break;
 
       case "DEFEAT":
-        message = "Défaite! Le Héros a été vaincu!";
+        message = window.i18n.get("bossFailure");
         messageColor = "#FF6347";
-        feedback =
-          "Le Boss est trop puissant. Réduisez sa force ou augmentez celle du Héros.";
-        monsterAnimation = "angry";
+        feedback = window.i18n.get("bossFeedbackDefeat");
+        monsterAnimation = "sad";
 
         // Afficher la frame 3 du joueur (défaite)
         player.sprite.anims.stop();

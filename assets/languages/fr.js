@@ -42,10 +42,6 @@ window.languages.fr = {
   clickToStart: "Cliquez pour commencer",
   clickToContinue: "Cliquez pour continuer",
 
-  gameFeedbackTooEasy:
-    "Ce jeu est trop facile ! J'ai gagné sans la moindre difficulté...",
-  gameFeedbackTooHard:
-    "J'ai gagné, mais wow... Ce n'était pas facile ! Il faudrait sans doute revoir un peu les obstacles.",
   gameFeedbackBalanced:
     "Ce jeu est bien équilibré ! J'ai eu juste ce qu'il faut de défi pour m'amuser !",
 
@@ -53,17 +49,30 @@ window.languages.fr = {
   platformsBlocked: "Potimonstre est bloqué...",
   platformsFailure: "Potimonstre est tombé !",
 
+  platformsFeedbackTooEasy:
+    "Ce jeu est trop facile ! J'ai gagné sans la moindre difficulté...",
+  platformsFeedbackTooHard:
+    "J'ai gagné, mais wow... Ce n'était pas facile ! Il faudrait sans doute revoir un peu les obstacles.",
   platformsFeedbackBlocked:
     "Ce jeu est impossible ! Je me suis retrouvé bloqué, je ne pouvais pas sauter correctement...",
   platformsFeedbackTimeout:
     "Ce jeu est mal équilibré ! On n'a juste pas le temps de le finir...",
   platformsFeedbackFailure:
     "Ce jeu est trop difficile ! Comment suis-je censé ne pas tomber dans l'eau ?",
-
   platformsFeedbackTooFarLimit:
     "La gestion du temps est mal équilibrée : peut-être que le chronomètre est trop généreux ?",
   platformsFeedbackTooNearLimit:
     "J'ai gagné, mais vraiment de justesse... ! Il faudrait sans doute ajuster un petit peu le chronomètre.",
+
+  bossSuccess: "Potimonstre a gagné le combat !",
+  bossFailure: "Potimonstre est KO...",
+
+  bossFeedbackDefeat:
+    "Ce jeu est trop difficile ! J'ai perdu alors que j'ai donné le meilleur de moi-même...",
+  bossFeedbackTooEasy:
+    "Ce jeu est trop facile ! J'ai gagné en ayant presque toute ma vie à la fin du combat !",
+  bossFeedbackAlmostTooHard:
+    "Le combat est un peu trop difficile, j'ai gagné de justesse et j'ai l'impression que c'est uniquement par chance...",
 
   platforms1_title: "Mon premier jeu",
   platforms2_title: "Oh, de l'eau !",
@@ -98,4 +107,14 @@ window.languages.fr = {
   bossSlimeAttackSettings: "Attaque de l'ennemi",
   bossSlimeDefenseSettings: "Défense de l'ennemi",
   bossSlimeCriticalChanceSettings: "Chance de critique de l'ennemi",
+
+  bossInflictDamageLog: (attackerName, targetName, damage) =>
+    `${attackerName} inflige ${damage} point${
+      damage > 1 ? "s" : ""
+    } de dégât à ${targetName} !`,
+
+  bossInflictCriticalDamageLog: (attackerName, targetName, damage) =>
+    `${attackerName} inflige un coup critique ! ${targetName} perd ${damage} point${
+      damage > 1 ? "s" : ""
+    } de vie !`,
 };

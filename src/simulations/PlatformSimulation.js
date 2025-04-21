@@ -321,12 +321,12 @@ class PlatformSimulation {
 
         switch (difficulty) {
           case "easy":
-            feedback = window.i18n.get("gameFeedbackTooEasy");
+            feedback = window.i18n.get("platformsFeedbackTooEasy");
             monsterAnimation = "oopsy";
             break;
 
           case "hard":
-            feedback = window.i18n.get("gameFeedbackTooHard");
+            feedback = window.i18n.get("platformsFeedbackTooHard");
             monsterStaticFrame = 6;
             break;
 
