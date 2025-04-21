@@ -225,12 +225,23 @@ class Match3Simulation {
     container.color = color;
     container.sprite = sprite; // Référence au sprite pour pouvoir changer la frame
 
+    // Configurer l'animation "idle"
+    this.setupIdleAnimation(container);
+
     // Méthode pour changer la couleur de la tuile
     container.setColor = (newColor) => {
       container.color = newColor;
       // Mettre à jour le sprite avec la nouvelle couleur
       const newFrameIndex = this.colorToFrame[newColor] + 0;
       sprite.setFrame(newFrameIndex);
+
+      // Arrêter l'animation en cours si elle existe
+      if (container.idleTimer) {
+        container.idleTimer.remove();
+      }
+
+      // Configurer la nouvelle animation idle
+      this.setupIdleAnimation(container);
     };
 
     this.scene.applyGameMask(container);
@@ -239,18 +250,59 @@ class Match3Simulation {
   }
 
   /**
-   * Convertit une couleur nommée en valeur hexadécimale
+   * Configure l'animation "idle" pour une tuile
    */
-  getColorValue(color) {
-    const colorValues = {
-      red: 0xff0000,
-      blue: 0x0000ff,
-      green: 0x00ff00,
-      yellow: 0xffff00,
-      purple: 0x800080,
-      orange: 0xffa500,
-    };
-    return colorValues[color] || 0xffffff;
+  setupIdleAnimation(tile) {
+    // Variables pour stocker l'état d'animation
+    tile.idleState = 0; // 0: Frame 1, 1: Frame 2, 2: Frame 1, 3: Frame 3
+
+    // Créer un timer pour l'animation
+    tile.idleTimer = this.scene.time.addEvent({
+      delay: this.getDelayForIdleState(tile.idleState),
+      callback: () => {
+        // Passer à l'état suivant
+        tile.idleState = (tile.idleState + 1) % 4;
+
+        // Mapping des états aux indices de frame
+        const frameOffsets = [0, 1, 0, 2]; // Frame 1, 2, 1, 3
+        const frameIndex =
+          this.colorToFrame[tile.color] + frameOffsets[tile.idleState];
+
+        // Changer la frame
+        tile.sprite.setFrame(frameIndex);
+
+        // Mettre à jour le délai pour le prochain changement
+        tile.idleTimer.delay = this.getDelayForIdleState(tile.idleState);
+        // Réinitialiser le timer
+        tile.idleTimer.reset({
+          delay: tile.idleTimer.delay,
+          callback: tile.idleTimer.callback,
+          callbackScope: tile.idleTimer.callbackScope,
+          repeat: tile.idleTimer.repeat,
+        });
+      },
+      callbackScope: this,
+      loop: true,
+    });
+  }
+
+  /**
+   * Renvoie le délai approprié pour chaque état de l'animation idle
+   */
+  getDelayForIdleState(state) {
+    // Les états 1 et 3 (transitions aux frames 2 et 3) sont plus rapides
+    switch (state) {
+      case 0: // Frame 1 vers Frame 2
+        return 2000 + Math.random() * 2000; // 2-4 secondes pour la frame principale
+      case 1: // Frame 2 vers Frame 1
+        return 500 + Math.random() * 1000; // 2-4 secondes pour la frame principale
+      case 2: // Frame 1 vers Frame 3
+        return 2000 + Math.random() * 2000; // 2-4 secondes pour la frame principale
+      case 3: // Frame 3 vers Frame 1
+        return 500 + Math.random() * 1000; // 2-4 secondes pour la frame principale
+      default:
+        return 2000;
+    }
   }
 
   /**
@@ -261,7 +313,6 @@ class Match3Simulation {
     if (this.simulationTimer) {
       this.simulationTimer.remove();
     }
-
     this.isSimulating = true;
     this.simulationSpeed = 1000;
     this.simulationTimer = this.scene.time.addEvent({
@@ -315,7 +366,6 @@ class Match3Simulation {
     if (move) {
       // Ne pas incrémenter le compteur de coups ici
       // L'incrémentation se fera après la résolution des correspondances
-
       // Utiliser la main pour effectuer le mouvement
       this.moveHandAndSwapTiles(
         move.row1,
@@ -354,7 +404,7 @@ class Match3Simulation {
     // Au lieu d'être directement sur la tuile
     const handOffset = {
       x: this.tileSize / 2, // Décalage horizontal (vers la droite)
-      y: this.tileSize / 2, // Décalage vertical (vers le bas)
+      y: this.tileSize / 2 - 8, // Décalage vertical (vers le bas)
     };
 
     // Calculer la distance entre la dernière position de la main et la première tuile (avec offset)
@@ -438,7 +488,6 @@ class Match3Simulation {
                 this.scene.time.delayedCall(300, () => {
                   // Vérifier et résoudre les correspondances
                   const matches = this.checkMatches();
-
                   if (matches.length > 0) {
                     this.resolveMatches(matches, level);
                   } else {
@@ -623,6 +672,10 @@ class Match3Simulation {
     const x2 = tile2.x;
     const y2 = tile2.y;
 
+    // Arrêter les animations d'idle
+    if (tile1.idleTimer) tile1.idleTimer.paused = true;
+    if (tile2.idleTimer) tile2.idleTimer.paused = true;
+
     // Changer la frame des tuiles pour l'animation de déplacement (frame 4)
     const frame1 = this.colorToFrame[tile1.color] + 3; // +3 pour obtenir la frame 4 (index 3)
     const frame2 = this.colorToFrame[tile2.color] + 3;
@@ -640,6 +693,11 @@ class Match3Simulation {
         // Revenir à la frame normale (frame 1) après le déplacement
         const normalFrame1 = this.colorToFrame[tile1.color] + 0;
         tile1.sprite.setFrame(normalFrame1);
+        // Réactiver l'animation d'idle
+        if (tile1.idleTimer) {
+          tile1.idleState = 0;
+          tile1.idleTimer.paused = false;
+        }
       },
     });
 
@@ -653,6 +711,11 @@ class Match3Simulation {
         // Revenir à la frame normale (frame 1) après le déplacement
         const normalFrame2 = this.colorToFrame[tile2.color] + 0;
         tile2.sprite.setFrame(normalFrame2);
+        // Réactiver l'animation d'idle
+        if (tile2.idleTimer) {
+          tile2.idleState = 0;
+          tile2.idleTimer.paused = false;
+        }
       },
     });
 
@@ -760,6 +823,12 @@ class Match3Simulation {
 
       // Animer la suppression des tuiles
       for (const tile of match.tiles) {
+        // Arrêter l'animation d'idle
+        if (tile.idleTimer) {
+          tile.idleTimer.remove();
+          tile.idleTimer = null;
+        }
+
         // Utiliser la frame 5 (index 4) pour l'animation de disparition
         const disappearFrame = this.colorToFrame[tile.color] + 4;
         tile.sprite.setFrame(disappearFrame);
@@ -769,7 +838,7 @@ class Match3Simulation {
           targets: tile,
           scale: 0,
           alpha: 0,
-          duration: 200,
+          duration: 400,
           onComplete: () => {
             // Supprimer le conteneur de la tuile
             tile.removeAll(true);
@@ -789,7 +858,6 @@ class Match3Simulation {
       // Créer de nouvelles tuiles
       this.scene.time.delayedCall(500, () => {
         this.fillEmptySpaces();
-
         // Vérifier s'il y a de nouvelles correspondances
         this.scene.time.delayedCall(300, () => {
           const newMatches = this.checkMatches();
@@ -845,6 +913,9 @@ class Match3Simulation {
           const tile = this.grid[row][col];
           const newRow = row + emptySpaces;
 
+          // Arrêter l'animation d'idle
+          if (tile.idleTimer) tile.idleTimer.paused = true;
+
           // Changer la frame pour l'animation de déplacement (frame 4)
           const moveFrame = this.colorToFrame[tile.color] + 3;
           tile.sprite.setFrame(moveFrame);
@@ -859,6 +930,11 @@ class Match3Simulation {
               // Revenir à la frame normale après le déplacement
               const normalFrame = this.colorToFrame[tile.color] + 0;
               tile.sprite.setFrame(normalFrame);
+              // Réactiver l'animation d'idle
+              if (tile.idleTimer) {
+                tile.idleState = 0;
+                tile.idleTimer.paused = false;
+              }
             },
           });
           // Mettre à jour la position de la tuile
@@ -900,6 +976,9 @@ class Match3Simulation {
         const moveFrame = this.colorToFrame[color] + 3;
         tile.sprite.setFrame(moveFrame);
 
+        // Pauser l'animation d'idle si elle existe
+        if (tile.idleTimer) tile.idleTimer.paused = true;
+
         // Animer l'entrée de la tuile
         this.scene.tweens.add({
           targets: tile,
@@ -910,6 +989,11 @@ class Match3Simulation {
             // Revenir à la frame normale après le déplacement
             const normalFrame = this.colorToFrame[color] + 0;
             tile.sprite.setFrame(normalFrame);
+            // Réactiver l'animation d'idle
+            if (tile.idleTimer) {
+              tile.idleState = 0;
+              tile.idleTimer.paused = false;
+            }
           },
         });
         // Mettre à jour la grille
@@ -981,7 +1065,6 @@ class Match3Simulation {
     // Afficher les points gagnés
     const { width, height } = this.scene.cameras.main;
     let pointsText;
-
     pointsText = this.scene.add
       .text(width / 2, height / 3, `+${points}`, {
         fontSize: "36px",
