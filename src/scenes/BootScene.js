@@ -89,6 +89,14 @@ class BootScene extends Phaser.Scene {
       frameWidth: 16,
       frameHeight: 16,
     });
+    this.load.spritesheet(
+      "player-match3",
+      "./assets/images/match3/monster.png",
+      {
+        frameWidth: 32,
+        frameHeight: 32,
+      }
+    );
 
     this.load.spritesheet("confettis", "./assets/images/confettis.png", {
       frameWidth: 16,

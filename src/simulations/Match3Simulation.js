@@ -19,6 +19,13 @@ class Match3Simulation {
     this.simulationSpeed = 1000; // ms entre les moves
     this.movesCount = 0; // Nombre de coups effectués
     this.movesLimit = 0; // Limite de coups autorisés
+
+    // Propriétés pour la main du joueur
+    this.playerHand = null;
+    this.handSpeed = 400; // Vitesse de déplacement de la main en pixels par seconde
+    this.handSize = 32; // Taille ajustée à la taille du sprite (32px)
+    this.isHandMoving = false;
+    this.lastHandPosition = { x: 0, y: 0 }; // Propriété pour stocker la dernière position
   }
 
   async startLevel(level) {
@@ -42,6 +49,21 @@ class Match3Simulation {
     // Configurer la limite de coups (à la place de la limite de temps)
     this.movesLimit = level.settings.movesLimit?.value || 20; // Valeur par défaut de 20 coups si non définie
     this.movesCount = 0;
+
+    // Créer la main du joueur en utilisant la spritesheet "player-match3"
+    this.playerHand = this.scene.add.sprite(0, 0, "player-match3", 0);
+    this.playerHand.setScale(2); // Scale x2 pour une meilleure visibilité
+    this.playerHand.setOrigin(0.5, 0.5); // Centre l'image
+
+    // Positionner la main en dehors de la grille au départ
+    this.playerHand.x = width / 2;
+    this.playerHand.y = height - 50;
+
+    // Initialiser la dernière position connue
+    this.lastHandPosition = {
+      x: this.playerHand.x,
+      y: this.playerHand.y,
+    };
 
     // Afficher le score avec position ajustée
     this.scoreText = this.scene.add
@@ -159,37 +181,86 @@ class Match3Simulation {
     const x = col * this.tileSize + this.tileSize / 2;
     const y = row * this.tileSize + this.tileSize / 2;
     const tile = this.scene.add.graphics();
+
     // Dessiner la tuile avec la couleur spécifiée avec marge légèrement réduite
     tile.fillStyle(this.getColorValue(color), 1);
-    tile.fillRoundedRect(0, 0, this.tileSize - 12, this.tileSize - 12, 8); // Augmenter la marge
-    // Ajouter un effet de brillance
+
+    // Placer le dessin de la tuile pour qu'il soit centré
+    // Décaler le rectangle pour que son point central soit à (0,0)
+    const tileWidth = this.tileSize - 12;
+    const tileHeight = this.tileSize - 12;
+    tile.fillRoundedRect(
+      -tileWidth / 2,
+      -tileHeight / 2,
+      tileWidth,
+      tileHeight,
+      8
+    );
+
+    // Ajouter un effet de brillance, également centré
     tile.fillStyle(0xffffff, 0.3);
-    tile.fillRoundedRect(5, 5, (this.tileSize - 12) / 2, 10, 5);
+    tile.fillRoundedRect(-tileWidth / 2, -tileHeight / 2, tileWidth / 2, 10, 5);
+
     // Ajouter une bordure plus contrastée pour mieux voir les tuiles sans fond
     tile.lineStyle(3, 0x000000, 0.8);
-    tile.strokeRoundedRect(0, 0, this.tileSize - 12, this.tileSize - 12, 8);
+    tile.strokeRoundedRect(
+      -tileWidth / 2,
+      -tileHeight / 2,
+      tileWidth,
+      tileHeight,
+      8
+    );
+
     const container = this.scene.add.container(x, y, [tile]);
-    container.setSize(this.tileSize - 12, this.tileSize - 12);
+    container.setSize(tileWidth, tileHeight);
+
+    // Supprimer cette ligne car setOrigin n'existe pas pour les conteneurs
+    // container.setOrigin(0.5, 0.5);
+
     // Ajouter au conteneur de la grille
     this.gridContainer.add(container);
+
     // Propriétés additionnelles
     container.row = row;
     container.col = col;
     container.color = color;
+
     // Méthode pour changer la couleur de la tuile
     container.setColor = (newColor) => {
       container.color = newColor;
+
       // Mettre à jour le visuel
       tile.clear();
       tile.fillStyle(this.getColorValue(newColor), 1);
-      tile.fillRoundedRect(0, 0, this.tileSize - 12, this.tileSize - 12, 8); // Utiliser la même marge
+      tile.fillRoundedRect(
+        -tileWidth / 2,
+        -tileHeight / 2,
+        tileWidth,
+        tileHeight,
+        8
+      );
+
       // Re-dessiner l'effet de brillance
       tile.fillStyle(0xffffff, 0.3);
-      tile.fillRoundedRect(5, 5, (this.tileSize - 12) / 2, 10, 5);
+      tile.fillRoundedRect(
+        -tileWidth / 2,
+        -tileHeight / 2,
+        tileWidth / 2,
+        10,
+        5
+      );
+
       // Re-dessiner la bordure avec les mêmes paramètres améliorés
       tile.lineStyle(3, 0x000000, 0.8);
-      tile.strokeRoundedRect(0, 0, this.tileSize - 12, this.tileSize - 12, 8);
+      tile.strokeRoundedRect(
+        -tileWidth / 2,
+        -tileHeight / 2,
+        tileWidth,
+        tileHeight,
+        8
+      );
     };
+
     return container;
   }
 
@@ -272,38 +343,187 @@ class Match3Simulation {
    * Simule un coup joué par l'IA
    */
   simulateAIMove(level) {
-    if (!this.isSimulating) return;
+    if (!this.isSimulating || this.isHandMoving) return;
 
     // Trouver un mouvement possible
     const move = this.findBestMove();
     if (move) {
       // Incrémenter le compteur de coups
       this.movesCount++;
-      // Effectuer le mouvement
-      this.swapTiles(move.row1, move.col1, move.row2, move.col2);
-      // Attendre un moment avant de résoudre les correspondances
-      this.scene.time.delayedCall(300, () => {
-        // Vérifier et résoudre les correspondances
-        const matches = this.checkMatches();
-        if (matches.length > 0) {
-          this.resolveMatches(matches, level);
-        } else {
-          // Si pas de correspondance, échanger à nouveau les tuiles
-          this.swapTiles(move.row1, move.col1, move.row2, move.col2);
-          // Décrémenter le compteur de coups car le mouvement n'était pas valide
-          this.movesCount--;
-          // Continuer la simulation
-          this.scene.time.delayedCall(this.simulationSpeed, () => {
-            this.simulateAIMove(level);
-          });
-        }
-      });
+
+      // Utiliser la main pour effectuer le mouvement
+      this.moveHandAndSwapTiles(
+        move.row1,
+        move.col1,
+        move.row2,
+        move.col2,
+        level
+      );
     } else {
       // Si aucun mouvement trouvé, mélanger la grille
       this.shuffleGrid();
       // Continuer la simulation
       this.scene.time.delayedCall(this.simulationSpeed, () => {
         this.simulateAIMove(level);
+      });
+    }
+  }
+
+  /**
+   * Déplace la main du joueur et effectue l'échange de tuiles
+   */
+  moveHandAndSwapTiles(row1, col1, row2, col2, level) {
+    this.isHandMoving = true;
+
+    // Calculer les positions des tuiles à échanger
+    const tile1 = this.grid[row1][col1];
+    const tile2 = this.grid[row2][col2];
+
+    // Position globale de la première tuile
+    const tile1Position = {
+      x: this.gridContainer.x + col1 * this.tileSize + this.tileSize / 2,
+      y: this.gridContainer.y + row1 * this.tileSize + this.tileSize / 2,
+    };
+
+    // Ajouter un décalage pour que la main "tienne" la tuile depuis son centre
+    // Au lieu d'être directement sur la tuile
+    const handOffset = {
+      x: this.tileSize / 2, // Décalage horizontal (vers la droite)
+      y: this.tileSize / 2, // Décalage vertical (vers le bas)
+    };
+
+    // Calculer la distance entre la dernière position de la main et la première tuile (avec offset)
+    const distanceToTile1 = Phaser.Math.Distance.Between(
+      this.lastHandPosition.x,
+      this.lastHandPosition.y,
+      tile1Position.x + handOffset.x,
+      tile1Position.y + handOffset.y
+    );
+
+    // Calculer le temps de déplacement en fonction de la distance et de la vitesse
+    const timeToTile1 = (distanceToTile1 / this.handSpeed) * 1000;
+
+    // Utiliser la frame 0 (main inactive) pendant le déplacement
+    this.playerHand.setFrame(0);
+
+    // Déplacer la main vers la première tuile (avec offset)
+    this.scene.tweens.add({
+      targets: this.playerHand,
+      x: tile1Position.x + handOffset.x,
+      y: tile1Position.y + handOffset.y,
+      duration: timeToTile1,
+      onComplete: () => {
+        // Mettre à jour la dernière position connue de la main
+        this.lastHandPosition.x = tile1Position.x + handOffset.x;
+        this.lastHandPosition.y = tile1Position.y + handOffset.y;
+
+        // Changer l'aspect de la main lorsqu'elle sélectionne la tuile (frame 1)
+        this.playerHand.setFrame(1);
+
+        // Marquer la première tuile comme "sélectionnée" (changement visuel)
+        this.highlightTile(tile1);
+
+        // Ajouter un petit délai pour voir l'effet de la main qui "attrape" la tuile
+        this.scene.time.delayedCall(200, () => {
+          // Position globale de la deuxième tuile
+          const tile2Position = {
+            x: this.gridContainer.x + col2 * this.tileSize + this.tileSize / 2,
+            y: this.gridContainer.y + row2 * this.tileSize + this.tileSize / 2,
+          };
+
+          // Calculer la distance entre la main et la deuxième tuile (avec offset)
+          const distanceToTile2 = Phaser.Math.Distance.Between(
+            this.playerHand.x,
+            this.playerHand.y,
+            tile2Position.x + handOffset.x,
+            tile2Position.y + handOffset.y
+          );
+
+          // Calculer le temps de déplacement vers la deuxième tuile
+          const timeToTile2 = (distanceToTile2 / this.handSpeed) * 1000;
+
+          // Déplacer la main vers la deuxième tuile (avec offset)
+          this.scene.tweens.add({
+            targets: this.playerHand,
+            x: tile2Position.x + handOffset.x,
+            y: tile2Position.y + handOffset.y,
+            duration: timeToTile2,
+            onComplete: () => {
+              // Mettre à jour la dernière position connue de la main
+              this.lastHandPosition.x = tile2Position.x + handOffset.x;
+              this.lastHandPosition.y = tile2Position.y + handOffset.y;
+
+              // Marquer la deuxième tuile comme "sélectionnée"
+              this.highlightTile(tile2);
+
+              // Effectuer l'échange des tuiles
+              this.swapTiles(row1, col1, row2, col2);
+
+              // Revenir à la frame 0 après avoir effectué le mouvement
+              this.scene.time.delayedCall(100, () => {
+                this.playerHand.setFrame(0);
+              });
+
+              // Enlever les surlignages
+              this.scene.time.delayedCall(200, () => {
+                this.unhighlightTile(tile1);
+                this.unhighlightTile(tile2);
+
+                // Attendre un moment avant de résoudre les correspondances
+                this.scene.time.delayedCall(300, () => {
+                  // Vérifier et résoudre les correspondances
+                  const matches = this.checkMatches();
+
+                  if (matches.length > 0) {
+                    this.resolveMatches(matches, level);
+                  } else {
+                    // Si pas de correspondance, échanger à nouveau les tuiles
+                    this.swapTiles(row1, col1, row2, col2);
+
+                    // Décrémenter le compteur de coups car le mouvement n'était pas valide
+                    this.movesCount--;
+
+                    // Ne pas ramener la main à sa position initiale, juste la laisser où elle est
+                    this.isHandMoving = false;
+                    this.scene.time.delayedCall(
+                      this.simulationSpeed / 2,
+                      () => {
+                        this.simulateAIMove(level);
+                      }
+                    );
+                  }
+                });
+              });
+            },
+          });
+        });
+      },
+    });
+  }
+
+  /**
+   * Surligne une tuile pour indiquer qu'elle est sélectionnée
+   */
+  highlightTile(tile) {
+    // Stocker la scale originale
+    tile.originalScale = tile.scale;
+    // Agrandir légèrement la tuile
+    this.scene.tweens.add({
+      targets: tile,
+      scale: tile.originalScale * 1.1,
+      duration: 100,
+    });
+  }
+
+  /**
+   * Enlève le surlignage d'une tuile
+   */
+  unhighlightTile(tile) {
+    if (tile.originalScale) {
+      this.scene.tweens.add({
+        targets: tile,
+        scale: tile.originalScale,
+        duration: 100,
       });
     }
   }
@@ -544,7 +764,8 @@ class Match3Simulation {
         // Points basés sur la taille de la correspondance
         const matchPoints = match.tiles.length * 10;
         pointsToAdd += matchPoints;
-        // Animation de disparition
+
+        // Animation de disparition depuis le centre
         this.scene.tweens.add({
           targets: tile,
           scale: 0,
@@ -569,6 +790,7 @@ class Match3Simulation {
       // Créer de nouvelles tuiles
       this.scene.time.delayedCall(500, () => {
         this.fillEmptySpaces();
+
         // Vérifier s'il y a de nouvelles correspondances
         this.scene.time.delayedCall(300, () => {
           const newMatches = this.checkMatches();
@@ -576,7 +798,12 @@ class Match3Simulation {
             // Résoudre les nouvelles correspondances
             this.resolveMatches(newMatches, level);
           } else {
-            // Continuer la simulation
+            // Revenir à la frame 0 pour l'état inactif
+            this.playerHand.setFrame(0);
+
+            // Ne pas ramener la main à sa position initiale
+            // Garder la main où elle est et continuer la simulation
+            this.isHandMoving = false;
             this.scene.time.delayedCall(this.simulationSpeed / 2, () => {
               this.simulateAIMove(level);
             });
@@ -760,6 +987,11 @@ class Match3Simulation {
   completeSimulation(finishReason, movesLimit, difficulty) {
     if (this.simulationTimer) {
       this.simulationTimer.remove();
+    }
+
+    // Cacher la main du joueur
+    if (this.playerHand) {
+      this.playerHand.setVisible(false);
     }
 
     this.isSimulating = false;
