@@ -23,10 +23,6 @@ class Level {
   getTitle() {
     return window.i18n.get(`${this.type}${this.id}_title`);
   }
-
-  getDescription() {
-    return window.i18n.get(`${this.type}${this.id}.description`);
-  }
 }
 
 class PlatformsLevel extends Level {

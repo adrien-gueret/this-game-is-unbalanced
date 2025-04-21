@@ -492,10 +492,10 @@ class BossSimulation {
         // Décider si c'était équilibré basé sur le temps et la santé restante
         const healthRatio = player.life / player.maxLife;
 
-        if (healthRatio > 0.7) {
+        if (healthRatio > 0.6) {
           feedback = window.i18n.get("bossFeedbackTooEasy");
           monsterAnimation = "speaking";
-        } else if (healthRatio < 0.2) {
+        } else if (healthRatio < 0.3) {
           feedback = window.i18n.get("bossFeedbackAlmostTooHard");
           monsterAnimation = "oopsy";
         } else {

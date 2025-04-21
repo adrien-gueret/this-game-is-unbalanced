@@ -69,10 +69,15 @@ window.languages.en = {
 
   bossFeedbackDefeat:
     "This fight is too difficult! I lost even though I gave it all my best...",
+  bossFeedbackTooEasy:
+    "This game is too easy! I won with almost all my life left at the end of the fight!",
+  bossFeedbackAlmostTooHard:
+    "The fight is a bit too difficult, I barely won and feel like it was only due to luck...",
 
   platforms1_title: "My first game",
   platforms2_title: "Oh. Water!",
   platforms3_title: "Let's drop it...",
+  boss4_title: "Time to duel!",
 
   // Feedback
   feedbackTitle: "Lilmonster's Feedback",
