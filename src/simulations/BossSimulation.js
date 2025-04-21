@@ -430,15 +430,54 @@ class BossSimulation {
       "#00ff00"
     );
 
-    // Animation de soin (par exemple, un flash vert)
-    this.scene.tweens.add({
-      targets: player.sprite,
-      tint: 0x00ff00,
-      duration: 200,
-      yoyo: true,
-      onComplete: () => {
-        player.sprite.clearTint();
+    // Animation de soin sans effet de tint qui peut causer des problèmes visuels
+    // Utiliser un simple flash et des cercles verts au lieu de particules
+    let flashCount = 0;
+    const maxFlashes = 4;
+    const flashTimer = this.scene.time.addEvent({
+      delay: 100,
+      callback: () => {
+        player.sprite.setAlpha(flashCount % 2 === 0 ? 1 : 0.7);
+
+        // Si c'est un flash "on", ajouter des cercles de guérison qui montent
+        if (flashCount % 2 === 0) {
+          // Créer des cercles verts qui partent du bas du joueur vers le haut
+          for (let i = 0; i < 7; i++) {
+            // Augmenter le nombre de cercles
+            // Position de départ: au bas du joueur avec une plus large variation horizontale
+            const xOffset = (Math.random() - 0.5) * 80; // Élargir la distribution horizontale
+            const startX = player.sprite.x + xOffset;
+            const startY = player.sprite.y + player.sprite.displayHeight / 2;
+
+            const circle = this.scene.add.circle(
+              startX,
+              startY,
+              4 + Math.random() * 3, // Taille légèrement variable
+              0x00ff00,
+              0.7
+            );
+
+            // Animer chaque cercle pour qu'il monte et disparaisse plus lentement
+            this.scene.tweens.add({
+              targets: circle,
+              y: startY - 70 - Math.random() * 50, // Monter de 70-120 pixels
+              alpha: 0,
+              scale: 2.5,
+              duration: 900 + Math.random() * 300, // Entre 900-1200ms pour une montée plus lente
+              ease: "Cubic.easeOut",
+              onComplete: () => circle.destroy(),
+            });
+          }
+        }
+
+        flashCount++;
+        if (flashCount >= maxFlashes) {
+          flashTimer.remove();
+          player.sprite.setAlpha(1);
+        }
       },
+      callbackScope: this,
+      loop: true,
     });
 
     return new Promise((resolve) => {
