@@ -79,8 +79,8 @@ class EditorScene extends Phaser.Scene {
   }
 
   createParametersPanel() {
-    const { width, height } = this.cameras.main;
-    let startY = height / 2 - 100;
+    const { width } = this.cameras.main;
+    let startY = 100;
     const sliderBarWidth = 300;
     let index = 0;
 
@@ -92,6 +92,9 @@ class EditorScene extends Phaser.Scene {
     const gap = 24;
 
     for (const [key, setting] of Object.entries(this.currentSettings)) {
+      if (!setting.label) {
+        continue;
+      }
       const y = startY + index * 60;
 
       // Position du label (aligné à droite)
@@ -103,6 +106,8 @@ class EditorScene extends Phaser.Scene {
           wordWrap: { width: labelWidth, useAdvancedWrap: true },
           align: "right",
           fontFamily: "Arial",
+          stroke: "#000000",
+          strokeThickness: 2,
         })
         .setOrigin(1, 0.5);
 
@@ -146,6 +151,8 @@ class EditorScene extends Phaser.Scene {
           fontSize: "22px",
           color: "#ffffff",
           fontFamily: "Arial",
+          stroke: "#000000",
+          strokeThickness: 2,
         })
         .setOrigin(0, 0.5);
 

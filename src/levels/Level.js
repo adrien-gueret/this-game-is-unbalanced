@@ -17,7 +17,7 @@ class Level {
     this.type = type;
     this.settings = settings;
     this.getDifficulty = getDifficulty.bind(this);
-    this.start = start.bind(this);
+    this.start = start ? start.bind(this) : null;
   }
 
   getTitle() {
@@ -59,6 +59,7 @@ class PlatformsLevel extends Level {
         max: 20,
         step: 1,
         label: "platformsTimeLimitSettings",
+        unitLabel: "platformsTimeLimitSettingsUnit",
       },
     };
 
@@ -71,24 +72,78 @@ class PlatformsLevel extends Level {
   }
 }
 
-class RacingLevel extends Level {
-  constructor(settings, getDifficulty, start) {
+class BossLevel extends Level {
+  constructor(settings, getDifficulty) {
     const commonSimulationsSettings = {
-      playerSpeed: {
+      playerLife: {
         value: 200,
         min: 50,
-        max: 400,
-        step: 10,
-        label: "platformsPlayerSpeedSettings",
+        max: 500,
+        step: 20,
+        label: "bossPlayerLifeSettings",
       },
-      timeLimit: {
-        value: 15,
+      playerAttack: {
+        value: 50,
         min: 5,
-        max: 20,
-        step: 1,
-        label: "platformsTimeLimitSettings",
+        max: 100,
+        step: 5,
+        label: "bossPlayerAttackSettings",
+      },
+      playerDefense: {
+        value: 20,
+        min: 0,
+        max: 80,
+        step: 5,
+        label: "bossPlayerDefenseSettings",
+      },
+      playerCriticalChance: {
+        value: 10,
+        min: 0,
+        max: 100,
+        step: 10,
+        label: "bossPlayerCriticalChanceSettings",
+      },
+      bossLife: {
+        value: 200,
+        min: 50,
+        max: 500,
+        step: 20,
+        label: "bossSlimeLifeSettings",
+      },
+      bossAttack: {
+        value: 50,
+        min: 5,
+        max: 100,
+        step: 5,
+        label: "bossSlimeAttackSettings",
+      },
+      bossDefense: {
+        value: 40,
+        min: 0,
+        max: 80,
+        step: 5,
+        label: "bossSlimeDefenseSettings",
+      },
+      bossCriticalChance: {
+        value: 10,
+        min: 0,
+        max: 100,
+        step: 10,
+        label: "bossSlimeCriticalChanceSettings",
       },
     };
+
+    super({
+      settings: { ...commonSimulationsSettings, ...settings },
+      getDifficulty,
+      type: "boss",
+    });
+  }
+}
+
+class RacingLevel extends Level {
+  constructor(settings, getDifficulty, start) {
+    const commonSimulationsSettings = {};
 
     super({
       start,
@@ -96,11 +151,5 @@ class RacingLevel extends Level {
       getDifficulty,
       type: "racing",
     });
-  }
-}
-
-class BossLevel extends Level {
-  constructor(settings, getDifficulty, start) {
-    super({ start, settings, getDifficulty, type: "boss" });
   }
 }

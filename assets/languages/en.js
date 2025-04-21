@@ -83,9 +83,18 @@ window.languages.en = {
   platformsPlayerSpeedSettings: "Player speed",
   platformsPlayerGravitySettings: "Gravity strength",
   platformsJumpHeightSettings: "Jump height",
-  platformsTimeLimitSettings: "Timer (in seconds)",
+  platformsTimeLimitSettings: "Timer",
 
   platforms1WallHeightSettings: "Wall height",
   platforms2WaterLengthSettings: "Water stretch length",
   platforms3PlatformLengthSettings: "Platform width",
+
+  bossPlayerLifeSettings: "Player life",
+  bossPlayerAttackSettings: "Player attack",
+  bossPlayerDefenseSettings: "Player defense",
+  bossPlayerCriticalChanceSettings: "Player critical chance",
+  bossSlimeLifeSettings: "Enemy life",
+  bossSlimeAttackSettings: "Enemy attack",
+  bossSlimeDefenseSettings: "Enemy defense",
+  bossSlimeCriticalChanceSettings: "Enemy critical chance",
 };

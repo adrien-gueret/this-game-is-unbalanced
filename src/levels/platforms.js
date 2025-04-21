@@ -227,6 +227,7 @@ Level.addLevels([
         max: 20,
         step: 2,
         label: "platformsTimeLimitSettings",
+        unitLabel: "platformsTimeLimitSettingsUnit",
       },
       platformLength: {
         value: 7,

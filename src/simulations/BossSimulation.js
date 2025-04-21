@@ -6,17 +6,10 @@
 class BossSimulation {
   constructor(scene) {
     this.scene = scene;
-    this.timerValue = 0;
-    this.simulationTimer = null;
-    this.player = null;
-    this.boss = null;
-    this.isPlayerTurn = true;
-    this.turnCount = 0;
-    this.actionDelay = 1000; // Délai entre les actions en ms
-    this.battleLog = [];
-    this.battleLogText = null;
-    this.playerHealthBar = null;
-    this.bossHealthBar = null;
+    this.messageQueue = [];
+    this.isAnimatingMessage = false;
+    this.logBackGrounds = null;
+    this.logTextObjects = [];
   }
 
   async startLevel(level) {
@@ -26,30 +19,24 @@ class BossSimulation {
     AnimationManager.registerAnimations(this.scene);
 
     // Initialiser le joueur et le boss
-    this.setupCombatants(level);
+    const { player, ennemy } = this.setupFighters(level);
 
     // Afficher l'interface de combat
-    this.createBattleUI(width, height);
-
-    level.start({
-      scene: this.scene,
-    });
+    this.createBattleUI({ width, height, player, ennemy });
 
     showMessage(
       this.scene,
-      "Observe le combat au tour par tour!",
+      window.i18n.get("watchInstruction"),
       "#ffffff",
       () => {
-        this.startSimulation(level);
+        this.logBackGrounds.setAlpha(1);
+        this.processTurn({ level, player, ennemy, isPlayerTurn: true });
       },
-      "Cliquer pour commencer"
+      window.i18n.get("clickToStart")
     );
   }
 
-  /**
-   * Configure le joueur et le boss avec leurs statistiques
-   */
-  setupCombatants(level) {
+  setupFighters(level) {
     const { width, height } = this.scene.cameras.main;
 
     const playerX = width * 0.29;
@@ -57,85 +44,56 @@ class BossSimulation {
 
     const bossX = width * 0.73;
     const bossY = height * 0.68;
+
     // Créer le joueur
-    this.player = {
+    const player = {
       name: "Potimonstre",
       sprite: this.scene.add
         .sprite(playerX, playerY, "player-boss", 0)
         .setScale(3),
-      maxHp: 100,
-      hp: 100,
-      attack: 20,
-      defense: 10,
-      speed: 15,
-      specialAttackChance: 0.3,
-      specialAttackPower: 2,
-      criticalHitChance: 0.1,
-      criticalHitMultiplier: 1.5,
+      life: level.settings.playerLife.value,
+      maxLife: level.settings.playerLife.value,
+      type: "player",
     };
 
-    this.player.sprite.anims.play("player-idle", true);
+    player.sprite.anims.play("player-idle", true);
 
-    // Créer le boss
-    this.boss = {
+    // Créer l'ennemi
+    const ennemy = {
       name: "Potiblob",
       sprite: this.scene.add.sprite(bossX, bossY, "slime-boss", 0).setScale(3),
-      maxHp: 200,
-      hp: 200,
-      attack: 15,
-      defense: 8,
-      speed: 10,
-      specialAttackChance: 0.25,
-      specialAttackPower: 2.2,
-      enrageThreshold: 0.3, // S'enrage à 30% de vie
-      isEnraged: false,
+      life: level.settings.bossLife.value,
+      maxLife: level.settings.bossLife.value,
+      type: "ennemy",
     };
 
-    this.boss.sprite.anims.play("blob-idle", true);
+    ennemy.sprite.anims.play("blob-idle", true);
+
+    return { player, ennemy };
   }
 
-  /**
-   * Crée l'interface utilisateur du combat
-   */
-  createBattleUI(width, height) {
+  createBattleUI({ width, height, player, ennemy }) {
     // Fond semi-transparent pour le log de combat
     const logBackGrounds = this.scene.add.graphics();
     logBackGrounds
       .fillStyle(0x000000, 0.7)
       .fillRoundedRect(width * 0.05, 90, width * 0.9, height * 0.17, 8);
 
-    // Texte pour le log de combat
-    this.battleLogText = this.scene.add.text(
-      width * 0.1,
-      height * 0.18,
-      "Le combat commence!",
-      {
-        fontSize: "18px",
-        fontFamily: "Arial",
-        color: "#ffffff",
-        wordWrap: { width: width * 0.8 },
-      }
-    );
+    logBackGrounds.setAlpha(0);
 
-    // Initialiser le système de messages animés
-    this.messageQueue = [];
-    this.isAnimatingMessage = false;
-    this.logTextObjects = [];
+    this.logBackGrounds = logBackGrounds;
 
-    // Calcul d'un meilleur positionnement vertical pour centrer le texte dans la zone noire
     const logAreaTop = 90;
     const logAreaHeight = height * 0.2;
     const lineHeight = 25;
     const totalTextHeight = 4 * lineHeight;
-    // Décalage ajusté pour remonter d'une ligne complète
-    const verticalOffset = lineHeight + 6; // décale d'une ligne + ajustement fin
+    const verticalOffset = lineHeight + 6;
     const startY =
       logAreaTop +
       (logAreaHeight - totalTextHeight) / 2 -
       verticalOffset +
       lineHeight / 2;
 
-    // Créer des objets texte pour chaque ligne du log (initialement vides)
     for (let i = 0; i < 4; i++) {
       const logLine = this.scene.add
         .text(width * 0.1, startY + i * lineHeight, "", {
@@ -149,14 +107,11 @@ class BossSimulation {
       this.logTextObjects.push(logLine);
     }
 
-    // Masquer le texte original puisqu'on va utiliser notre nouveau système
-    this.battleLogText.setVisible(false);
-
     // Barre de vie du joueur
-    this.createHealthBar(this.player);
+    this.createHealthBar(player);
 
     // Barre de vie du boss
-    this.createHealthBar(this.boss);
+    this.createHealthBar(ennemy);
   }
 
   /**
@@ -194,7 +149,7 @@ class BossSimulation {
     const updateHealthBar = () => {
       healthBar.clear();
 
-      const ratio = character.hp / character.maxHp;
+      const ratio = character.life / character.maxLife;
       const currentWidth = barWidth * ratio;
 
       // Définir les couleurs en fonction du pourcentage de vie
@@ -234,15 +189,20 @@ class BossSimulation {
 
     // Texte du nom et HP avec un style amélioré
     const healthText = this.scene.add
-      .text(x, y, `${character.name} - ${character.hp}/${character.maxHp}`, {
-        fontSize: "16px",
-        fontFamily: "Arial, sans-serif",
-        fontWeight: "bold",
-        color: "#ffffff",
-        stroke: "#000000",
-        strokeThickness: 4,
-        align: "center",
-      })
+      .text(
+        x,
+        y,
+        `${character.name} - ${character.life}/${character.maxLife}`,
+        {
+          fontSize: "16px",
+          fontFamily: "Arial, sans-serif",
+          fontWeight: "bold",
+          color: "#ffffff",
+          stroke: "#000000",
+          strokeThickness: 4,
+          align: "center",
+        }
+      )
       .setOrigin(0.5, 0.5);
     healthBarGroup.add(healthText);
 
@@ -251,10 +211,10 @@ class BossSimulation {
       group: healthBarGroup,
       bar: healthBar,
       text: healthText,
-      currentValue: character.hp,
+      currentValue: character.life,
       update: () => {
         // Animation lors d'une perte de points de vie
-        if (character.hp < character.healthBar.currentValue) {
+        if (character.life < character.healthBar.currentValue) {
           // Flash rouge sur le personnage
           this.scene.tweens.add({
             targets: character.sprite,
@@ -268,7 +228,7 @@ class BossSimulation {
         // Mise à jour progressive de la barre
         this.scene.tweens.add({
           targets: character.healthBar,
-          currentValue: character.hp,
+          currentValue: character.life,
           duration: 300,
           ease: "Power2",
           onUpdate: () => {
@@ -277,7 +237,7 @@ class BossSimulation {
             healthText.setText(
               `${character.name} - ${Math.ceil(
                 character.healthBar.currentValue
-              )}/${character.maxHp}`
+              )}/${character.maxLife}`
             );
           },
         });
@@ -288,182 +248,74 @@ class BossSimulation {
   }
 
   /**
-   * Démarre la simulation du combat de boss
-   */
-  startSimulation(level) {
-    const { height, width } = this.scene.cameras.main;
-
-    // Définir une limite de temps par défaut si non spécifiée
-
-    if (this.simulationTimer) {
-      this.simulationTimer.remove();
-    }
-
-    // Minuteur de la simulation
-    this.simulationTimer = this.scene.time.addEvent({
-      delay: 16.6, // ~60 fps
-      callback: () => {
-        // TODO
-      },
-      callbackScope: this,
-      loop: true,
-    });
-
-    // Démarrer le premier tour
-    this.processTurn();
-  }
-
-  /**
    * Gère la logique d'un tour de combat
    */
-  processTurn() {
-    this.turnCount++;
+  processTurn({ level, player, ennemy, isPlayerTurn = true }) {
+    this.performAttack({
+      player,
+      ennemy,
+      isPlayerTurn,
+      level,
+    });
 
-    if (this.isPlayerTurn) {
-      this.playerTurn();
-    } else {
-      this.bossTurn();
+    if (player.life <= 0) {
+      this.completeSimulation("DEFEAT", {
+        player,
+        ennemy,
+        level,
+      });
+      return;
     }
 
-    // Vérifier les conditions de fin de combat
-    if (this.player.hp <= 0) {
-      this.completeSimulation("DEFEAT", null, "medium");
-      return;
-    } else if (this.boss.hp <= 0) {
-      this.completeSimulation("SUCCESS", null, "medium");
+    if (ennemy.life <= 0) {
+      this.completeSimulation("SUCCESS", {
+        player,
+        ennemy,
+        level,
+      });
       return;
     }
 
-    // Passer au tour suivant après un délai
-    this.isPlayerTurn = !this.isPlayerTurn;
-    this.scene.time.delayedCall(this.actionDelay, () => {
-      this.processTurn();
+    this.scene.time.delayedCall(1000, () => {
+      this.processTurn({ level, player, ennemy, isPlayerTurn: !isPlayerTurn });
     });
   }
 
   /**
-   * Gère le tour du joueur
+   * Effectue une attaque
    */
-  playerTurn() {
-    // Vérifier si une attaque spéciale doit être utilisée
-    const useSpecial = Math.random() < this.player.specialAttackChance;
+  performAttack({ player, ennemy, isPlayerTurn, level }) {
+    const attacker = isPlayerTurn ? player : ennemy;
+    const target = isPlayerTurn ? ennemy : player;
 
-    if (useSpecial) {
-      this.performSpecialAttack(this.player, this.boss);
-    } else {
-      this.performBasicAttack(this.player, this.boss);
-    }
-  }
-
-  /**
-   * Gère le tour du boss
-   */
-  bossTurn() {
-    // Vérifier si le boss doit s'enrager
-    if (
-      !this.boss.isEnraged &&
-      this.boss.hp / this.boss.maxHp <= this.boss.enrageThreshold
-    ) {
-      this.boss.isEnraged = true;
-      this.boss.attack *= 1.5;
-      this.addToBattleLog("Le Boss s'enrage! Sa puissance augmente!");
-
-      // Animation d'enrage si disponible
-      if (this.scene.anims.exists("boss-enrage")) {
-        this.boss.sprite.anims.play("boss-enrage", true);
-        this.scene.time.delayedCall(500, () => {
-          if (this.scene.anims.exists("boss-enraged-idle")) {
-            this.boss.sprite.anims.play("boss-enraged-idle", true);
-          }
-        });
-      }
-      return;
-    }
-
-    // Choix de l'attaque
-    const useSpecial =
-      Math.random() <
-      (this.boss.isEnraged
-        ? this.boss.specialAttackChance * 1.5
-        : this.boss.specialAttackChance);
-
-    if (useSpecial) {
-      this.performSpecialAttack(this.boss, this.player);
-    } else {
-      this.performBasicAttack(this.boss, this.player);
-    }
-  }
-
-  /**
-   * Effectue une attaque de base
-   */
-  performBasicAttack(attacker, target) {
     // Vérifier si coup critique
-    const isCritical =
-      attacker === this.player && Math.random() < attacker.criticalHitChance;
+    const criticalChance =
+      attacker.type === "player"
+        ? level.settings.playerCriticalChance.value / 100
+        : level.settings.bossCriticalChance.value / 100;
+
+    const isCritical = Math.random() < criticalChance;
+
+    const attack =
+      attacker.type === "player"
+        ? level.settings.playerAttack.value
+        : level.settings.bossAttack.value;
+
+    const defense =
+      target.type === "player"
+        ? level.settings.playerDefense.value
+        : level.settings.bossDefense.value;
 
     // Calculer les dégâts
-    let damage = attacker.attack - target.defense / 2;
+    let damage = attack - (attack * defense) / 100;
     damage = Math.max(1, Math.floor(damage)); // Minimum 1 dégât
 
     if (isCritical) {
-      damage = Math.floor(damage * attacker.criticalHitMultiplier);
-      this.addToBattleLog(`${attacker.name} porte un coup critique!`);
+      damage *= 2; // Dégâts doublés pour un coup critique
+      this.addToBattleLog(`${attacker.name} porte un coup critique !`);
     }
 
     this.inflictDamage(attacker, target, damage);
-
-    // Animation d'attaque si disponible
-    const animKey = attacker === this.player ? "player-attack" : "boss-attack";
-    const idleAnimKey = attacker === this.player ? "player-idle" : "boss-idle";
-
-    if (this.scene.anims.exists(animKey)) {
-      attacker.sprite.anims.play(animKey, true);
-      this.scene.time.delayedCall(500, () => {
-        if (this.scene.anims.exists(idleAnimKey)) {
-          attacker.sprite.anims.play(idleAnimKey, true);
-        }
-      });
-    }
-  }
-
-  /**
-   * Effectue une attaque spéciale
-   */
-  performSpecialAttack(attacker, target) {
-    // Calculer les dégâts
-    let damage =
-      attacker.attack * attacker.specialAttackPower - target.defense / 3;
-    damage = Math.max(5, Math.floor(damage)); // Minimum 5 dégâts
-
-    if (attacker === this.player) {
-      this.addToBattleLog(
-        `${attacker.name} utilise une attaque spéciale puissante!`
-      );
-    } else {
-      this.addToBattleLog(`${attacker.name} lance une attaque dévastatrice!`);
-    }
-
-    this.inflictDamage(attacker, target, damage);
-
-    // Animation d'attaque spéciale si disponible
-    const specialAnimKey =
-      attacker === this.player ? "player-special" : "boss-special";
-    const idleAnimKey =
-      attacker === this.player
-        ? "player-idle"
-        : this.boss.isEnraged
-        ? "boss-enraged-idle"
-        : "boss-idle";
-
-    if (this.scene.anims.exists(specialAnimKey)) {
-      attacker.sprite.anims.play(specialAnimKey, true);
-      this.scene.time.delayedCall(800, () => {
-        if (this.scene.anims.exists(idleAnimKey)) {
-          attacker.sprite.anims.play(idleAnimKey, true);
-        }
-      });
-    }
   }
 
   /**
@@ -471,7 +323,7 @@ class BossSimulation {
    */
   inflictDamage(attacker, target, damage) {
     // Appliquer les dégâts
-    target.hp = Math.max(0, target.hp - damage);
+    target.life = Math.max(0, target.life - damage);
 
     // Mettre à jour la barre de vie
     target.healthBar.update();
@@ -481,35 +333,21 @@ class BossSimulation {
       `${attacker.name} inflige ${damage} points de dégâts à ${target.name}!`
     );
 
-    // --- Gestion des animations de dégâts pour le joueur et le boss ---
-    if (target === this.boss) {
-      // Affiche la frame 2 (blessé) pour le boss
-      target.sprite.setFrame(2);
+    const idleAnimation =
+      target.type === "player" ? "player-idle" : "blob-idle";
 
-      // Ne revenir à l'animation idle que si le boss n'est pas vaincu
-      if (target.hp > 0) {
-        this.scene.time.delayedCall(500, () => {
-          if (target.hp > 0) {
-            // Double vérification, le boss est toujours vivant
-            target.sprite.anims.play("blob-idle", true);
-          }
-        });
-      }
-    } else if (target === this.player) {
-      // Affiche la frame 2 (blessé) pour le joueur
-      target.sprite.setFrame(2);
+    // Affiche la frame 2 (blessé)
+    target.sprite.setFrame(2);
 
-      // Ne revenir à l'animation idle que si le joueur n'est pas vaincu
-      if (target.hp > 0) {
-        this.scene.time.delayedCall(500, () => {
-          if (target.hp > 0) {
-            // Double vérification, le joueur est toujours vivant
-            target.sprite.anims.play("player-idle", true);
-          }
-        });
-      }
+    // Ne revenir à l'animation idle que si la cible n'est pas vaincue
+    if (target.life > 0) {
+      this.scene.time.delayedCall(500, () => {
+        if (target.life > 0) {
+          // Double vérification, la cible est toujours vivante
+          target.sprite.anims.play(idleAnimation, true);
+        }
+      });
     }
-    // --- Fin de la gestion des animations ---
 
     // Effet visuel de dégâts
     this.scene.tweens.add({
@@ -589,12 +427,6 @@ class BossSimulation {
     const firstObj = this.logTextObjects.shift();
     this.logTextObjects.push(firstObj);
 
-    // 4. Mettre à jour le battleLog pour la compatibilité
-    this.battleLog.push(message);
-    if (this.battleLog.length > 4) {
-      this.battleLog.shift();
-    }
-
     // 5. Attendre la fin de l'animation avant de traiter le message suivant
     this.scene.time.delayedCall(370, () => {
       if (this.messageQueue.length > 0) {
@@ -608,11 +440,7 @@ class BossSimulation {
   /**
    * Termine la simulation
    */
-  completeSimulation(finishReason, timeLimit, difficulty = "medium") {
-    if (this.simulationTimer) {
-      this.simulationTimer.remove();
-    }
-
+  completeSimulation(finishReason, { player, ennemy, level }) {
     let isBalanced = false;
     let feedback = "";
     let monsterAnimation = undefined;
@@ -628,16 +456,16 @@ class BossSimulation {
         messageColor = "#7CFC00";
 
         // Afficher la frame 3 du boss (défaite)
-        this.boss.sprite.anims.stop();
-        this.boss.sprite.setFrame(3);
+        ennemy.sprite.anims.stop();
+        ennemy.sprite.setFrame(3);
 
         // Jouer l'animation de victoire pour le joueur
-        this.player.sprite.anims.play("player-happy", true);
+        player.sprite.anims.play("player-happy", true);
 
         // Décider si c'était équilibré basé sur le temps et la santé restante
-        const healthRatio = this.player.hp / this.player.maxHp;
+        const healthRatio = player.life / player.maxLife;
 
-        switch (difficulty) {
+        switch (level.getDifficulty()) {
           case "easy":
             feedback =
               "Ce combat était trop facile. Le joueur a à peine été touché.";
@@ -677,19 +505,11 @@ class BossSimulation {
         monsterAnimation = "angry";
 
         // Afficher la frame 3 du joueur (défaite)
-        this.player.sprite.anims.stop();
-        this.player.sprite.setFrame(3);
+        player.sprite.anims.stop();
+        player.sprite.setFrame(3);
 
         // Jouer l'animation d'idle pour le boss victorieux
-        this.boss.sprite.anims.play("blob-happy", true);
-        break;
-
-      case "TIMEOUT":
-        message = "Temps écoulé! Le combat s'éternise...";
-        messageColor = "#FFA500";
-        feedback =
-          "Le combat est trop long. Augmentez les dégâts pour que ça se termine plus vite.";
-        monsterAnimation = "sad";
+        ennemy.sprite.anims.play("blob-happy", true);
         break;
     }
 

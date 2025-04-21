@@ -84,9 +84,18 @@ window.languages.fr = {
   platformsPlayerSpeedSettings: "Vitesse du joueur",
   platformsPlayerGravitySettings: "Force de la gravité",
   platformsJumpHeightSettings: "Hauteur de saut",
-  platformsTimeLimitSettings: "Chronomètre (en secondes)",
+  platformsTimeLimitSettings: "Chronomètre",
 
   platforms1WallHeightSettings: "Hauteur du mur",
   platforms2WaterLengthSettings: "Longueur de l'étendue d'eau",
   platforms3PlatformLengthSettings: "Largeur de la plateforme",
+
+  bossPlayerLifeSettings: "Vie du joueur",
+  bossPlayerAttackSettings: "Attaque du joueur",
+  bossPlayerDefenseSettings: "Défense du joueur ",
+  bossPlayerCriticalChanceSettings: "Chance de critique du joueur",
+  bossSlimeLifeSettings: "Vie de l'ennemi",
+  bossSlimeAttackSettings: "Attaque de l'ennemi",
+  bossSlimeDefenseSettings: "Défense de l'ennemi",
+  bossSlimeCriticalChanceSettings: "Chance de critique de l'ennemi",
 };
