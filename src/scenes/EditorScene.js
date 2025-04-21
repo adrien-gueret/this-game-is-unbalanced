@@ -79,17 +79,21 @@ class EditorScene extends Phaser.Scene {
   }
 
   createParametersPanel() {
-    const { width } = this.cameras.main;
-    let startY = 100;
+    const { width, height } = this.cameras.main;
     const sliderBarWidth = 300;
-    let index = 0;
-
-    // Zone centrale pour aligner tous les widgets
     const centerX = width / 2;
-    // Largeur réservée pour le label
     const labelWidth = 220;
-    // Décalage horizontal entre label et slider
     const gap = 24;
+
+    // Calculer dynamiquement le nombre de sliders
+    const sliderCount = Object.values(this.currentSettings).filter(
+      (setting) => setting.label
+    ).length;
+
+    // Calculer la position de départ et l'espacement vertical
+    const totalHeight = sliderCount * 60; // 60 est la hauteur approximative d'un slider
+    const startY = (height - totalHeight) / 2; // Centrer verticalement
+    let index = 0;
 
     for (const [key, setting] of Object.entries(this.currentSettings)) {
       if (!setting.label) {
