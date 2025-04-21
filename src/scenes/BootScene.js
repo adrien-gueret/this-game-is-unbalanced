@@ -85,6 +85,10 @@ class BootScene extends Phaser.Scene {
       frameWidth: 32,
       frameHeight: 32,
     });
+    this.load.spritesheet("potions-boss", "./assets/images/boss/potions.png", {
+      frameWidth: 16,
+      frameHeight: 16,
+    });
 
     this.load.spritesheet("confettis", "./assets/images/confettis.png", {
       frameWidth: 16,

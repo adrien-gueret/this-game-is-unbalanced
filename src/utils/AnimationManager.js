@@ -84,6 +84,16 @@ class AnimationManager {
     });
 
     scene.anims.create({
+      key: "boss-potion",
+      frames: scene.anims.generateFrameNumbers("potions-boss", {
+        start: 0,
+        end: 1,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+
+    scene.anims.create({
       key: "blob-idle",
       frames: scene.anims.generateFrameNumbers("slime-boss", {
         start: 0,

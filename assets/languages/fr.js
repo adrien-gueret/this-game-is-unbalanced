@@ -47,6 +47,9 @@ window.languages.fr = {
   gameFeedbackBalanced:
     "Ce jeu est bien équilibré ! J'ai eu juste ce qu'il faut de défi pour m'amuser !",
 
+  platformsLevelTitle: "Plateformes",
+  bossLevelTitle: "Combat RPG",
+
   platformsSuccess: "Potimonstre a gagné !",
   platformsBlocked: "Potimonstre est bloqué...",
   platformsFailure: "Potimonstre est tombé !",
@@ -83,6 +86,7 @@ window.languages.fr = {
   platforms3_title: "Laisse tomber...",
   boss4_title: "L'heure du duel !",
   boss5_title: "C'est critique",
+  boss6_title: "Besoin de soins",
 
   // Feedback
   feedbackTitle: "L'avis de Potimonstre",
@@ -113,6 +117,8 @@ window.languages.fr = {
   bossSlimeAttackSettings: "Attaque de l'ennemi",
   bossSlimeDefenseSettings: "Défense de l'ennemi",
   bossSlimeCriticalChanceSettings: "Chance de critique de l'ennemi",
+  bossPotitionQuantitySettings: "Quantité de potions",
+  bossPotitionEfficiencySettings: "Vie récupérée par potion",
 
   bossInflictDamageLog: (attackerName, targetName, damage) =>
     `${attackerName} inflige ${damage} point${
@@ -122,5 +128,10 @@ window.languages.fr = {
   bossInflictCriticalDamageLog: (attackerName, targetName, damage) =>
     `${attackerName} inflige un coup critique ! ${targetName} perd ${damage} point${
       damage > 1 ? "s" : ""
+    } de vie !`,
+
+  bossDrinkPotionLog: (targetName, heal) =>
+    `${targetName} boit une potion et regagne ${heal} point${
+      heal > 1 ? "s" : ""
     } de vie !`,
 };

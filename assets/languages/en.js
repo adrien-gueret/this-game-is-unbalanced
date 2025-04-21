@@ -47,6 +47,9 @@ window.languages.en = {
   gameFeedbackBalanced:
     "This game is well-balanced! I had just the right amount of challenge to have fun!",
 
+  platformsLevelTitle: "Plateforms",
+  bossLevelTitle: "RPG fight",
+
   platformsSuccess: "Lilmonster has won!",
   platformsBlocked: "Lilmonster is blocked...",
   platformsFailure: "Lilmonster has fallen!",
@@ -83,6 +86,7 @@ window.languages.en = {
   platforms3_title: "Let's drop it...",
   boss4_title: "Time to duel!",
   boss5_title: "It's critical",
+  boss6_title: "I need healing",
 
   // Feedback
   feedbackTitle: "Lilmonster's Feedback",
@@ -113,6 +117,8 @@ window.languages.en = {
   bossSlimeAttackSettings: "Enemy attack",
   bossSlimeDefenseSettings: "Enemy defense",
   bossSlimeCriticalChanceSettings: "Enemy critical chance",
+  bossPotitionQuantitySettings: "Potion quantity",
+  bossPotitionEfficiencySettings: "Health restored per potion",
 
   bossInflictDamageLog: (attackerName, targetName, damage) =>
     `${attackerName} deals ${damage} damage${
@@ -122,5 +128,10 @@ window.languages.en = {
   bossInflictCriticalDamageLog: (attackerName, targetName, damage) =>
     `${attackerName} deals a critical hit! ${targetName} loses ${damage} life point${
       damage > 1 ? "s" : ""
+    }!`,
+
+  bossDrinkPotionLog: (targetName, heal) =>
+    `${targetName} drinks a potion and recovers ${heal} life point${
+      heal > 1 ? "s" : ""
     }!`,
 };

@@ -32,36 +32,36 @@ class BossSimulation {
       window.i18n.get("watchInstruction"),
       "#ffffff",
       () => {
-        if (this.timer) {
-          this.timer.remove();
+        if (level.settings.hasTimer?.value) {
+          this.timer?.remove();
+
+          const timeLimit = 20;
+
+          const timerText = this.scene.add
+            .text(width - 50, 110, window.i18n.get("timer")(0, timeLimit), {
+              fontSize: "24px",
+              fontFamily: "Arial",
+              color: "#ffffff",
+              stroke: "#000000",
+              strokeThickness: 4,
+            })
+            .setOrigin(1, 0.5);
+
+          this.timer = this.scene.time.addEvent({
+            delay: 16.6, // ~60 fps
+            callback: () => {
+              this.timerValue += 0.016;
+              timerText.setText(
+                window.i18n.get("timer")(Math.floor(this.timerValue), timeLimit)
+              );
+              if (this.timerValue >= timeLimit) {
+                this.completeSimulation("TIMEOUT", { player, ennemy });
+              }
+            },
+            callbackScope: this,
+            loop: true,
+          });
         }
-
-        const timeLimit = 20;
-
-        const timerText = this.scene.add
-          .text(width - 50, 110, window.i18n.get("timer")(0, timeLimit), {
-            fontSize: "24px",
-            fontFamily: "Arial",
-            color: "#ffffff",
-            stroke: "#000000",
-            strokeThickness: 4,
-          })
-          .setOrigin(1, 0.5);
-
-        this.timer = this.scene.time.addEvent({
-          delay: 16.6, // ~60 fps
-          callback: () => {
-            this.timerValue += 0.016;
-            timerText.setText(
-              window.i18n.get("timer")(Math.floor(this.timerValue), timeLimit)
-            );
-            if (this.timerValue >= timeLimit) {
-              this.completeSimulation("TIMEOUT", { player, ennemy });
-            }
-          },
-          callbackScope: this,
-          loop: true,
-        });
 
         this.logBackGrounds.setAlpha(1);
         this.processTurn({ level, player, ennemy, isPlayerTurn: true });
@@ -88,9 +88,29 @@ class BossSimulation {
       life: level.settings.playerLife.value,
       maxLife: level.settings.playerLife.value,
       type: "player",
+      potions: [],
     };
 
     player.sprite.anims.play("player-idle", true);
+
+    // Afficher les potions si la propriété potionQuantity existe
+    if (level.settings.potionQuantity) {
+      const potionCount = level.settings.potionQuantity.value;
+      const radius = 40; // Rayon du cercle pour les potions
+      const angleStep = (2 * Math.PI) / potionCount; // Angle entre chaque potion
+
+      for (let i = 0; i < potionCount; i++) {
+        const angle = i * angleStep - Math.PI / 2; // Départ en haut du cercle
+        const potionX = playerX + radius * Math.cos(angle);
+        const potionY = playerY - 60 + radius * Math.sin(angle); // Décalage vertical pour placer au-dessus du joueur
+
+        const potion = this.scene.add
+          .sprite(potionX, potionY, "potions-boss")
+          .setScale(1.5);
+        potion.anims.play("boss-potion", true);
+        player.potions.push(potion);
+      }
+    }
 
     // Créer l'ennemi
     const ennemy = {
@@ -146,6 +166,50 @@ class BossSimulation {
 
     // Barre de vie du boss
     this.createHealthBar(ennemy);
+
+    // Créer une zone d'inventaire pour les potions
+    if (player.potions.length > 0) {
+      const slotSize = 40;
+      const slotSpacing = 10;
+      const slotsPerRow = 5; // Une seule ligne avec exactement 5 emplacements
+      const inventoryWidth =
+        slotsPerRow * slotSize + (slotsPerRow - 1) * slotSpacing;
+      const inventoryX = player.sprite.x - inventoryWidth / 2; // Centré au-dessus du joueur
+      const inventoryY = player.sprite.y - player.sprite.displayHeight - 80;
+
+      // Fond de l'inventaire
+      const inventoryBackground = this.scene.add.graphics();
+
+      // Ajouter les emplacements visibles
+      const startX = inventoryX;
+      const startY = inventoryY + slotSpacing;
+
+      for (let i = 0; i < slotsPerRow; i++) {
+        const slotX = startX + i * (slotSize + slotSpacing);
+        const slotY = startY;
+
+        // Dessiner un emplacement
+        inventoryBackground
+          .lineStyle(1, 0xaaaaaa)
+          .strokeRect(slotX, slotY, slotSize, slotSize)
+          .fillStyle(0xffffff, 0.7)
+          .fillRect(slotX, slotY, slotSize, slotSize); // Fond blanc/gris;
+      }
+
+      // Ajouter les potions dans les emplacements
+      player.potions.forEach((potion, index) => {
+        if (index >= slotsPerRow) return; // Ne pas dépasser le nombre maximum de slots
+        const potionX =
+          startX + index * (slotSize + slotSpacing) + slotSize / 2;
+        const potionY = startY + slotSize / 2;
+
+        // Afficher la potion dans l'emplacement
+        potion
+          .setPosition(potionX, potionY)
+          .setScale(2) // Ajuster la taille
+          .setDepth(1); // Ajuster la position
+      });
+    }
   }
 
   /**
@@ -289,12 +353,20 @@ class BossSimulation {
       return;
     }
 
-    await this.performAttack({
-      player,
-      ennemy,
-      isPlayerTurn,
-      level,
-    });
+    if (
+      isPlayerTurn &&
+      player.life / player.maxLife <= 0.6 &&
+      player.potions.length > 0
+    ) {
+      await this.drinkPotion(player, level.settings.potionEfficiency.value);
+    } else {
+      await this.performAttack({
+        player,
+        ennemy,
+        isPlayerTurn,
+        level,
+      });
+    }
 
     if (player.life <= 0) {
       this.completeSimulation("DEFEAT", {
@@ -314,6 +386,63 @@ class BossSimulation {
 
     this.scene.time.delayedCall(1000, () => {
       this.processTurn({ level, player, ennemy, isPlayerTurn: !isPlayerTurn });
+    });
+  }
+
+  async drinkPotion(player, potionEfficiency) {
+    if (player.potions.length === 0) return;
+
+    // Retirer une potion de l'inventaire
+    const potion = player.potions.pop();
+
+    // Créer une copie visuelle de la potion pour l'animation
+    const animatedPotion = this.scene.add
+      .sprite(potion.x, potion.y, "potions-boss")
+      .setScale(2);
+    potion.destroy(); // Supprimer visuellement la potion de l'inventaire
+
+    // Animer la potion vers le joueur
+    await new Promise((resolve) => {
+      this.scene.tweens.add({
+        targets: animatedPotion,
+        x: player.sprite.x,
+        y: player.sprite.y - player.sprite.displayHeight / 2,
+        scale: 1,
+        duration: 500,
+        ease: "Back.easeIn",
+        onComplete: () => {
+          animatedPotion.destroy(); // Supprimer la potion animée après l'animation
+          resolve();
+        },
+      });
+    });
+
+    // Soigner le joueur
+    const healAmount = Math.min(potionEfficiency, player.maxLife - player.life);
+    player.life += healAmount;
+
+    // Mettre à jour la barre de vie
+    player.healthBar.update();
+
+    // Ajouter une entrée au log de combat
+    this.addToBattleLog(
+      window.i18n.get("bossDrinkPotionLog")(player.name, healAmount),
+      "#00ff00"
+    );
+
+    // Animation de soin (par exemple, un flash vert)
+    this.scene.tweens.add({
+      targets: player.sprite,
+      tint: 0x00ff00,
+      duration: 200,
+      yoyo: true,
+      onComplete: () => {
+        player.sprite.clearTint();
+      },
+    });
+
+    return new Promise((resolve) => {
+      this.scene.time.delayedCall(500, resolve); // Attendre un court délai avant de continuer
     });
   }
 
@@ -391,7 +520,7 @@ class BossSimulation {
       window.i18n.get(
         isCritical ? "bossInflictCriticalDamageLog" : "bossInflictDamageLog"
       )(attacker.name, target.name, damage),
-      isCritical
+      isCritical ? "#ff0000" : "#ffffff"
     );
 
     const idleAnimation =
@@ -422,9 +551,9 @@ class BossSimulation {
   /**
    * Ajoute une entrée au log de combat
    */
-  addToBattleLog(message, isCritical) {
+  addToBattleLog(message, color = "#ffffff") {
     // Ajouter le message à la file d'attente
-    this.messageQueue.push({ message, isCritical });
+    this.messageQueue.push({ message, color });
 
     // Si aucune animation n'est en cours, démarrer l'animation
     if (!this.isAnimatingMessage) {
@@ -442,7 +571,7 @@ class BossSimulation {
     }
 
     this.isAnimatingMessage = true;
-    const { message, isCritical } = this.messageQueue.shift();
+    const { message, color = "#ffffff" } = this.messageQueue.shift();
 
     // Calculer la hauteur d'une ligne
     const lineHeight =
@@ -461,9 +590,7 @@ class BossSimulation {
     lastTextObj.setText(message);
     lastTextObj.setAlpha(1);
     lastTextObj.y = this._logBaseYs[lastIdx] + lineHeight;
-
-    // Définir la couleur en fonction de si c'est un coup critique
-    lastTextObj.setColor(isCritical ? "#ff0000" : "#ffffff");
+    lastTextObj.setColor(color);
 
     // 2. Animer toutes les lignes vers le haut, en utilisant les positions de base
     for (let i = 0; i < this.logTextObjects.length; i++) {
@@ -507,7 +634,7 @@ class BossSimulation {
    * Termine la simulation
    */
   completeSimulation(finishReason, { player, ennemy }) {
-    this.timer.remove();
+    this.timer?.remove();
     this.isSimulationEnd = true;
 
     let isBalanced = false;
