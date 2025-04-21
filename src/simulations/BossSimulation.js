@@ -250,8 +250,8 @@ class BossSimulation {
   /**
    * Gère la logique d'un tour de combat
    */
-  processTurn({ level, player, ennemy, isPlayerTurn = true }) {
-    this.performAttack({
+  async processTurn({ level, player, ennemy, isPlayerTurn = true }) {
+    await this.performAttack({
       player,
       ennemy,
       isPlayerTurn,
@@ -315,7 +315,27 @@ class BossSimulation {
       this.addToBattleLog(`${attacker.name} porte un coup critique !`);
     }
 
-    this.inflictDamage(attacker, target, damage);
+    return new Promise((resolve) => {
+      const moveDistance = 30; // Pixels à se déplacer
+
+      // Animer l'attaquant qui se déplace pour attaquer
+      this.scene.tweens.add({
+        targets: attacker.sprite,
+        x:
+          attacker.sprite.x +
+          moveDistance * (attacker.type === "player" ? 1 : -1),
+        duration: 100,
+        ease: "Cubic.easeOut", // Mouvement rapide vers l'avant
+        yoyo: true, // Retour à la position originale
+        hold: 50, // Pause brève en position d'attaque
+        yoyoEase: "Cubic.easeIn", // Retour plus lent pour un mouvement naturel
+        onComplete: () => {
+          // Appliquer les dégâts après l'animation
+          this.inflictDamage(attacker, target, damage);
+          resolve();
+        },
+      });
+    });
   }
 
   /**
