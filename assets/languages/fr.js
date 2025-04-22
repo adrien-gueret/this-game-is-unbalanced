@@ -135,4 +135,6 @@ window.languages.fr = {
     `${targetName} boit une potion et regagne ${heal} point${
       heal > 1 ? "s" : ""
     } de vie !`,
+
+  match3Blocked: "Jeu bloqué ! Mélangé de la grille...",
 };

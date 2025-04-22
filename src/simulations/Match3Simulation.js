@@ -387,11 +387,47 @@ class Match3Simulation {
         level
       );
     } else {
-      // Si aucun mouvement trouvé, mélanger la grille
-      this.shuffleGrid();
-      // Continuer la simulation
-      this.scene.time.delayedCall(this.simulationSpeed, () => {
-        this.simulateAIMove(level);
+      // Si aucun mouvement trouvé, afficher un message avant de mélanger la grille
+      const { width, height } = this.scene.cameras.main;
+      const messageText = this.scene.add
+        .text(width / 2, height / 2, window.i18n.get("match3Blocked"), {
+          fontSize: "28px",
+          fontFamily: "Arial",
+          color: "#ffffff",
+          stroke: "#000000",
+          strokeThickness: 4,
+          backgroundColor: "#00000080",
+          padding: { x: 20, y: 10 },
+        })
+        .setOrigin(0.5)
+        .setDepth(1000);
+
+      // Ajouter un effet de pulsation au texte
+      this.scene.tweens.add({
+        targets: messageText,
+        scale: 1.1,
+        duration: 500,
+        yoyo: true,
+        repeat: 1,
+      });
+
+      // Attendre 1 seconde avant de mélanger et faire disparaître le message
+      this.scene.time.delayedCall(1000, () => {
+        // Faire disparaître le message avec animation
+        this.scene.tweens.add({
+          targets: messageText,
+          alpha: 0,
+          duration: 300,
+          onComplete: () => messageText.destroy(),
+        });
+
+        // Mélanger la grille
+        this.shuffleGrid();
+
+        // Continuer la simulation après un délai
+        this.scene.time.delayedCall(this.simulationSpeed, () => {
+          this.simulateAIMove(level);
+        });
       });
     }
   }
@@ -668,7 +704,7 @@ class Match3Simulation {
       return {
         score,
         matches: allMatches,
-        swap: { row1: r1, col1: c1, row2: r2, col2: c2 },
+        swap: { row1: r1, col1: c1, row2: r2, c2: c2 },
       };
     };
 
@@ -872,6 +908,11 @@ class Match3Simulation {
       this.movesCount++;
     }
 
+    // Calculer la position moyenne des tuiles qui vont disparaître pour l'affichage du score
+    let avgX = 0;
+    let avgY = 0;
+    let tileCount = 0;
+
     // Pour chaque correspondance
     for (const match of matches) {
       // Points basés sur la taille de la correspondance avec multiplicateur de combo
@@ -880,8 +921,18 @@ class Match3Simulation {
       );
       pointsToAdd += matchPoints;
 
-      // Animer la suppression des tuiles
+      // Calculer la position pour l'affichage du score
       for (const tile of match.tiles) {
+        // Ajouter la position globale de cette tuile à la moyenne
+        const tileX =
+          this.gridContainer.x + tile.col * TILE_SIZE + TILE_SIZE / 2;
+        const tileY =
+          this.gridContainer.y + tile.row * TILE_SIZE + TILE_SIZE / 2;
+        avgX += tileX;
+        avgY += tileY;
+        tileCount++;
+
+        // Animer la suppression des tuiles
         // Arrêter l'animation d'idle
         if (tile.idleTimer) {
           tile.idleTimer.remove();
@@ -907,8 +958,19 @@ class Match3Simulation {
       }
     }
 
-    // Mettre à jour le score
-    this.updateScore(pointsToAdd);
+    // Calculer la position moyenne
+    if (tileCount > 0) {
+      avgX /= tileCount;
+      avgY /= tileCount;
+    } else {
+      // Position par défaut au centre de l'écran (cas peu probable)
+      const { width, height } = this.scene.cameras.main;
+      avgX = width / 2;
+      avgY = height / 3;
+    }
+
+    // Mettre à jour le score et afficher les points aux coordonnées calculées
+    this.updateScore(pointsToAdd, avgX, avgY);
 
     // Attendre la fin des animations
     this.scene.time.delayedCall(250, () => {
@@ -942,6 +1004,50 @@ class Match3Simulation {
           }
         });
       });
+    });
+  }
+
+  /**
+   * Met à jour le score avec animation
+   */
+  updateScore(points, x, y) {
+    const oldScore = this.score;
+    this.score += points;
+    // Animation d'incrémentation du score
+    const duration = 500;
+    const steps = 20;
+    const increment = points / steps;
+    const stepDuration = duration / steps;
+    for (let i = 1; i <= steps; i++) {
+      this.scene.time.delayedCall(i * stepDuration, () => {
+        const currentScore = Math.min(oldScore + i * increment, this.score);
+        this.scoreText.setText(
+          `Score: ${Math.floor(currentScore)} / ${this.targetScore}`
+          //window.i18n.get("score")(Math.floor(currentScore), this.targetScore)
+        );
+      });
+    }
+
+    // Créer le texte de points à la position fournie
+    const pointsText = this.scene.add
+      .text(x, y, `+${points}`, {
+        fontSize: "36px",
+        fontFamily: "Arial",
+        color: "#ffff00",
+        stroke: "#000000",
+        strokeThickness: 4,
+      })
+      .setOrigin(0.5, 0.5)
+      .setDepth(1000); // S'assurer que le texte est au-dessus des tuiles
+
+    // Animer le texte des points
+    this.scene.tweens.add({
+      targets: pointsText,
+      y: y - 50,
+      alpha: 0,
+      scale: 1.5,
+      duration: 700,
+      onComplete: () => pointsText.destroy(),
     });
   }
 
@@ -1175,51 +1281,6 @@ class Match3Simulation {
       this.scene.time.delayedCall(800, () => {
         this.resolveInitialMatches();
       });
-    });
-  }
-
-  /**
-   * Met à jour le score avec animation
-   */
-  updateScore(points) {
-    const oldScore = this.score;
-    this.score += points;
-    // Animation d'incrémentation du score
-    const duration = 500;
-    const steps = 20;
-    const increment = points / steps;
-    const stepDuration = duration / steps;
-    for (let i = 1; i <= steps; i++) {
-      this.scene.time.delayedCall(i * stepDuration, () => {
-        const currentScore = Math.min(oldScore + i * increment, this.score);
-        this.scoreText.setText(
-          `Score: ${Math.floor(currentScore)} / ${this.targetScore}`
-          //window.i18n.get("score")(Math.floor(currentScore), this.targetScore)
-        );
-      });
-    }
-
-    // Afficher les points gagnés
-    const { width, height } = this.scene.cameras.main;
-    let pointsText;
-    pointsText = this.scene.add
-      .text(width / 2, height / 3, `+${points}`, {
-        fontSize: "36px",
-        fontFamily: "Arial",
-        color: "#ffff00",
-        stroke: "#000000",
-        strokeThickness: 4,
-      })
-      .setOrigin(0.5, 0.5);
-
-    // Animer le texte des points
-    this.scene.tweens.add({
-      targets: pointsText,
-      y: pointsText.y - 50,
-      alpha: 0,
-      scale: 1.5,
-      duration: 700,
-      onComplete: () => pointsText.destroy(),
     });
   }
 

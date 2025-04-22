@@ -135,4 +135,6 @@ window.languages.en = {
     `${targetName} drinks a potion and recovers ${heal} life point${
       heal > 1 ? "s" : ""
     }!`,
+
+  match3Blocked: "Game blocked! Shuffling the grid...",
 };
