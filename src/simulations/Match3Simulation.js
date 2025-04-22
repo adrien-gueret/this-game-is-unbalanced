@@ -548,53 +548,155 @@ class Match3Simulation {
   findBestMove() {
     const possibleMoves = [];
 
-    // Vérifier tous les échanges horizontaux possibles
+    // Créer une grille simulée pour tester les mouvements
+    const createSimulatedGrid = () => {
+      const simGrid = [];
+      for (let r = 0; r < this.gridSize.rows; r++) {
+        simGrid[r] = [];
+        for (let c = 0; c < this.gridSize.cols; c++) {
+          simGrid[r][c] = { color: this.grid[r][c].color, row: r, col: c };
+        }
+      }
+      return simGrid;
+    };
+
+    // Évaluer un échange et trouver les correspondances potentielles
+    const evaluateSwap = (grid, r1, c1, r2, c2) => {
+      // Échanger les couleurs dans la grille simulée
+      const temp = grid[r1][c1].color;
+      grid[r1][c1].color = grid[r2][c2].color;
+      grid[r2][c2].color = temp;
+
+      // Vérifier les correspondances horizontales
+      const horizontalMatches = [];
+      for (let row = 0; row < this.gridSize.rows; row++) {
+        let col = 0;
+        while (col < this.gridSize.cols - 2) {
+          const color = grid[row][col].color;
+          let matchLength = 1;
+
+          while (
+            col + matchLength < this.gridSize.cols &&
+            grid[row][col + matchLength].color === color
+          ) {
+            matchLength++;
+          }
+
+          if (matchLength >= 3) {
+            horizontalMatches.push({
+              row,
+              col,
+              length: matchLength,
+              tiles: Array.from({ length: matchLength }, (_, i) => ({
+                row,
+                col: col + i,
+              })),
+            });
+            col += matchLength;
+          } else {
+            col++;
+          }
+        }
+      }
+
+      // Vérifier les correspondances verticales
+      const verticalMatches = [];
+      for (let col = 0; col < this.gridSize.cols; col++) {
+        let row = 0;
+        while (row < this.gridSize.rows - 2) {
+          const color = grid[row][col].color;
+          let matchLength = 1;
+
+          while (
+            row + matchLength < this.gridSize.rows &&
+            grid[row + matchLength][col].color === color
+          ) {
+            matchLength++;
+          }
+
+          if (matchLength >= 3) {
+            verticalMatches.push({
+              row,
+              col,
+              length: matchLength,
+              tiles: Array.from({ length: matchLength }, (_, i) => ({
+                row: row + i,
+                col,
+              })),
+            });
+            row += matchLength;
+          } else {
+            row++;
+          }
+        }
+      }
+
+      // Calculer le score total en donnant un bonus aux correspondances plus longues
+      let score = 0;
+      const allMatches = [...horizontalMatches, ...verticalMatches];
+
+      for (const match of allMatches) {
+        // Bonus exponentiel pour les correspondances de plus de 3 tuiles
+        if (match.length > 3) {
+          score += match.length * match.length; // carré du nombre de tuiles
+        } else {
+          score += match.length;
+        }
+      }
+
+      // Bonus supplémentaire pour les mouvements qui créent plusieurs correspondances
+      if (allMatches.length > 1) {
+        score *= 1.5; // 50% de bonus pour les combos immédiats
+      }
+
+      return {
+        score,
+        matches: allMatches,
+        swap: { row1: r1, col1: c1, row2: r2, col2: c2 },
+      };
+    };
+
+    // Tester tous les échanges horizontaux possibles
     for (let row = 0; row < this.gridSize.rows; row++) {
       for (let col = 0; col < this.gridSize.cols - 1; col++) {
-        // Échanger temporairement
-        const temp = this.grid[row][col].color;
-        this.grid[row][col].color = this.grid[row][col + 1].color;
-        this.grid[row][col + 1].color = temp;
-        // Vérifier s'il y a une correspondance après l'échange
-        if (this.hasMatch(row, col) || this.hasMatch(row, col + 1)) {
+        const simGrid = createSimulatedGrid();
+        const result = evaluateSwap(simGrid, row, col, row, col + 1);
+
+        if (result.score > 0) {
           possibleMoves.push({
             row1: row,
             col1: col,
             row2: row,
             col2: col + 1,
-            score: this.evaluateMove(row, col, row, col + 1),
+            score: result.score,
+            matchCount: result.matches.length,
+            matchSizes: result.matches.map((m) => m.length),
           });
         }
-        // Rétablir l'état d'origine
-        this.grid[row][col + 1].color = this.grid[row][col].color;
-        this.grid[row][col].color = temp;
       }
     }
 
-    // Vérifier tous les échanges verticaux possibles
+    // Tester tous les échanges verticaux possibles
     for (let row = 0; row < this.gridSize.rows - 1; row++) {
       for (let col = 0; col < this.gridSize.cols; col++) {
-        // Échanger temporairement
-        const temp = this.grid[row][col].color;
-        this.grid[row][col].color = this.grid[row + 1][col].color;
-        this.grid[row + 1][col].color = temp;
-        // Vérifier s'il y a une correspondance après l'échange
-        if (this.hasMatch(row, col) || this.hasMatch(row + 1, col)) {
+        const simGrid = createSimulatedGrid();
+        const result = evaluateSwap(simGrid, row, col, row + 1, col);
+
+        if (result.score > 0) {
           possibleMoves.push({
             row1: row,
             col1: col,
             row2: row + 1,
             col2: col,
-            score: this.evaluateMove(row, col, row + 1, col),
+            score: result.score,
+            matchCount: result.matches.length,
+            matchSizes: result.matches.map((m) => m.length),
           });
         }
-        // Rétablir l'état d'origine
-        this.grid[row + 1][col].color = this.grid[row][col].color;
-        this.grid[row][col].color = temp;
       }
     }
 
-    // Trier les mouvements par score
+    // Trier les mouvements par score (du plus élevé au plus bas)
     possibleMoves.sort((a, b) => b.score - a.score);
 
     // Retourner le meilleur mouvement ou null si aucun mouvement possible
@@ -609,16 +711,30 @@ class Match3Simulation {
     const temp = this.grid[row1][col1].color;
     this.grid[row1][col1].color = this.grid[row2][col2].color;
     this.grid[row2][col2].color = temp;
+
     // Calculer les correspondances
     const matches = this.checkMatches();
+
     // Rétablir l'état d'origine
     this.grid[row2][col2].color = this.grid[row1][col1].color;
     this.grid[row1][col1].color = temp;
+
     // Attribuer un score basé sur le nombre de tuiles dans les correspondances
+    // avec un bonus significatif pour les correspondances de 4 ou plus
     let score = 0;
     for (const match of matches) {
-      score += match.tiles.length;
+      const tileCount = match.tiles.length;
+
+      // Bonus exponentiel pour les correspondances de plus de 3 tuiles
+      if (tileCount > 3) {
+        // Un match de 4 vaut 4² = 16 points, un match de 5 vaut 5² = 25 points, etc.
+        score += tileCount * tileCount;
+      } else {
+        // Un match de 3 vaut 3 points seulement
+        score += tileCount;
+      }
     }
+
     return score;
   }
 
