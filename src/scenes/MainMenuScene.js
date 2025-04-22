@@ -146,6 +146,8 @@ class MainMenuScene extends Phaser.Scene {
         { size: "small" },
         300
       );
+
+      createToggleSoundButton(this, { fadeInDelay: 300 });
     });
 
     // Initialisation du sprite monstre en dehors de l'écran

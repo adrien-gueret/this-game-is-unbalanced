@@ -66,6 +66,8 @@ class EditorScene extends Phaser.Scene {
       })
       .setOrigin(0, 0.5);
 
+    createToggleSoundButton(this, { y: 30, deltaX: 15 });
+
     // Zone d'édition des paramètres
     this.createParametersPanel();
 

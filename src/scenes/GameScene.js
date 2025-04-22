@@ -62,6 +62,8 @@ class GameScene extends Phaser.Scene {
       })
       .setOrigin(0, 0.5);
 
+    createToggleSoundButton(this, { y: 30, deltaX: 15 });
+
     // Création du masque basé sur le rectangle de la zone de jeu
     const mask = this.make.graphics();
     mask.fillStyle(0xffffff);

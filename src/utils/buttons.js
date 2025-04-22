@@ -124,3 +124,53 @@ function createButton(scene, label, x, y, onClick, styleOptions = {}) {
 
   return button;
 }
+
+function createToggleSoundButton(
+  scene,
+  { fadeInDelay = 0, y = 40, deltaX = 0 } = {}
+) {
+  // Position en haut à droite
+  const x = scene.cameras.main.width - 40 - deltaX;
+
+  // Déterminer le label du bouton en fonction de l'état du son
+  const label = scene.sound.mute ? "🔇" : "🔊";
+
+  // Créer le bouton en utilisant la fonction createButton
+  const button = createButton(
+    scene,
+    label,
+    x,
+    y,
+    () => {
+      // Toggle l'état du son (inversé de l'état actuel)
+      const newMuteState = !scene.sound.mute;
+
+      // Mettre à jour l'état du son
+      scene.sound.setMute(newMuteState);
+
+      // Mettre à jour le label du bouton
+      const buttonText = button.list.find((child) => child.type === "Text");
+      if (buttonText) {
+        buttonText.setText(newMuteState ? "🔇" : "🔊");
+      }
+    },
+    { size: "small" }
+  );
+
+  if (fadeInDelay > 0) {
+    button.setAlpha(0);
+
+    scene.tweens.add({
+      targets: button,
+      alpha: 1,
+      duration: 500,
+      ease: "Cubic.easeIn",
+      delay: 300,
+    });
+  }
+
+  // Mettre le bouton en haut de la pile d'affichage
+  button.setDepth(100);
+
+  return button;
+}

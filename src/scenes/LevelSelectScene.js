@@ -32,8 +32,8 @@ class LevelSelectScene extends Phaser.Scene {
     createButton(
       this,
       window.i18n.get("backButton"),
-      100,
       50,
+      40,
       () => {
         this.cameras.main.fade(500, 0, 0, 0);
         this.time.delayedCall(500, () => {
@@ -64,6 +64,8 @@ class LevelSelectScene extends Phaser.Scene {
 
     // Affichage des niveaux
     this.displayLevels();
+
+    createToggleSoundButton(this);
 
     // Animation d'entrée
     this.cameras.main.fadeIn(500);
