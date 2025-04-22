@@ -91,7 +91,10 @@ function showMessage(
   // Timer pour démarrer automatiquement
   const startTimer = scene.time.delayedCall(5000, next);
   // Ajouter l'écouteur de clic sur toute la scène
-  scene.input.once("pointerdown", next);
+  scene.input.once("pointerdown", () => {
+    scene.sound.play("click");
+    next();
+  });
 
   // Ajouter un message "Cliquez pour continuer" après un délai
   const continueTimer = scene.time.delayedCall(2500, () => {

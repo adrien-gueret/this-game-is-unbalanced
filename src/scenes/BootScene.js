@@ -107,9 +107,21 @@ class BootScene extends Phaser.Scene {
       frameHeight: 16,
     });
 
-    // Si vous avez des sons
     // this.load.audio('music', 'assets/audio/music.mp3');
-    // this.load.audio('jump', 'assets/audio/jump.wav');
+    this.load.audio("surprised", [
+      "./assets/audio/surprised.ogg",
+      "./assets/audio/surprised.mp3",
+    ]);
+
+    this.load.audio("click", [
+      "./assets/audio/click.ogg",
+      "./assets/audio/click.mp3",
+    ]);
+
+    this.load.audio("music_title", [
+      "./assets/audio/music_title.ogg",
+      "./assets/audio/music_title.mp3",
+    ]);
   }
 
   create() {

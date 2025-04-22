@@ -117,7 +117,10 @@ function createButton(scene, label, x, y, onClick, styleOptions = {}) {
     buttonText.clearTint();
   });
 
-  button.on("pointerdown", onClick);
+  button.on("pointerdown", () => {
+    scene.sound.play("click");
+    onClick();
+  });
 
   return button;
 }

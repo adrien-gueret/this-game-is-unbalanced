@@ -4,13 +4,32 @@
  * Cette scène affiche le menu d'accueil avec les options pour démarrer le jeu
  * et présente le titre du jeu.
  */
+
 class MainMenuScene extends Phaser.Scene {
   constructor() {
     super({ key: "MainMenuScene" });
+    this.backgroundMusic = null;
   }
 
   create() {
     const { width, height } = this.cameras.main;
+
+    // Initialisation de la musique de fond
+    if (!this.backgroundMusic) {
+      this.backgroundMusic = this.sound.add("music_title", {
+        volume: 0.5,
+        loop: true,
+      });
+    }
+
+    // Essayer de jouer la musique automatiquement (peut être bloqué par le navigateur)
+    this.tryPlayMusic();
+
+    // Ajouter un gestionnaire d'événements global pour détecter la première interaction utilisateur
+    if (!this.backgroundMusic.isPlaying) {
+      this.input.on("pointerdown", this.handleFirstInteraction, this);
+      this.input.keyboard.on("keydown", this.handleFirstInteraction, this);
+    }
 
     // Affichage du background
     this.add
@@ -125,7 +144,7 @@ class MainMenuScene extends Phaser.Scene {
           this.scene.restart();
         },
         { size: "small" },
-        300 // Dernier bouton à apparaître
+        300
       );
     });
 
@@ -161,6 +180,8 @@ class MainMenuScene extends Phaser.Scene {
             if (monsterSprite.isEasterEggActive) return;
 
             monsterSprite.isEasterEggActive = true;
+
+            this.sound.play("surprised");
 
             // Stopper l'animation d'idle si elle existe
             if (this.idleTween) {
@@ -227,6 +248,29 @@ class MainMenuScene extends Phaser.Scene {
 
     // Animation d'entrée
     this.cameras.main.fadeIn(1000);
+  }
+
+  // Essayer de jouer la musique (peut être bloqué par le navigateur)
+  tryPlayMusic() {
+    if (this.backgroundMusic.isPlaying) {
+      return;
+    }
+
+    try {
+      this.backgroundMusic.play();
+    } catch (error) {}
+  }
+
+  // Gérer la première interaction utilisateur
+  handleFirstInteraction() {
+    // Ne démarrer la musique que si elle n'est pas déjà en cours de lecture
+    if (!this.backgroundMusic?.isPlaying) {
+      this.backgroundMusic.play();
+    }
+
+    // Retirer les écouteurs après la première interaction
+    this.input.off("pointerdown", this.handleFirstInteraction, this);
+    this.input.keyboard.off("keydown", this.handleFirstInteraction, this);
   }
 
   // Méthode pour démarrer l'animation d'idle
