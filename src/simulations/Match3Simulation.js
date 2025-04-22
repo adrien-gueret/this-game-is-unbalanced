@@ -1041,7 +1041,10 @@ class Match3Simulation {
     const stepDuration = duration / steps;
     for (let i = 1; i <= steps; i++) {
       this.scene.time.delayedCall(i * stepDuration, () => {
-        const currentScore = Math.min(oldScore + i * increment, this.score);
+        const currentScore =
+          increment > 0
+            ? Math.min(oldScore + i * increment, this.score)
+            : Math.max(oldScore + i * increment, this.score);
         this.scoreText.setText(
           window.i18n.get("match3Score")(currentScore, targetScore)
         );
