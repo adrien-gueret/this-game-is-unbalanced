@@ -82,12 +82,14 @@ window.languages.fr = {
   bossFeedbackTimeout:
     "Ce jeu est mal équilibré, le combat est beaucoup trop long... J'ai autre chose à faire !",
 
-  platforms1_title: "Mon premier jeu",
-  platforms2_title: "Oh, de l'eau !",
-  platforms3_title: "Laisse tomber...",
-  boss4_title: "L'heure du duel !",
-  boss5_title: "C'est critique",
-  boss6_title: "Besoin de soins",
+  platforms_1_title: "Mon premier jeu",
+  platforms_2_title: "Oh, de l'eau !",
+  platforms_3_title: "Laisse tomber...",
+  boss_1_title: "L'heure du duel !",
+  boss_2_title: "C'est critique",
+  boss_3_title: "Besoin de soins",
+  match3_1_title: "Pas un Pay-2-Win",
+  match3_2_title: "Pas un Pay-2-Win",
 
   // Feedback
   feedbackTitle: "L'avis de Potimonstre",
@@ -136,5 +138,26 @@ window.languages.fr = {
       heal > 1 ? "s" : ""
     } de vie !`,
 
+  match3Success: "Potimonstre a obtenu le score à atteindre !",
+  match3MovesDepleted: "Potimonstre a épuisé tous ses coups...",
+
+  match3MovesDepletedFeedback:
+    "Ce jeu est trop difficile ! J'ai joué du mieux que j'ai pu, mais j'ai perdu...",
+  match3FeedbackTooEasy:
+    "Ce jeu est trop facile ! Il me donne trop de moyens pour obtenir le score à atteindre.",
+  match3FeedbackTooHard:
+    "J'ai gagné mais... J'ai trouvé ça stressant. Le jeu fixe un objectif trop difficile à atteindre...",
+  match3FeedbackTooFast:
+    "J'ai gagné en beaucoup moins de coups que nécessaire : où est le défi ?",
+
   match3Blocked: "Jeu bloqué ! Mélangé de la grille...",
+  match3Score: (currentScore, targetScore) =>
+    `Score : ${Math.floor(currentScore)}/${targetScore}`,
+  match3Moves: (movesCount, moveLimit) => `Coups: ${movesCount}/${moveLimit}`,
+
+  match3TotalColorsSettings: "Nombre de couleurs",
+  match3TargetScoreSettings: "Score à atteindre",
+  match3MaxMovesSettings: "Nombre de coups maximum",
+  match3ScorePerTileSettings: "Score obtenu par tuile supprimée",
+  match3ComboMultiplierSettings: "Incrément du combo multiplicateur",
 };

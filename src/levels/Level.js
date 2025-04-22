@@ -2,7 +2,10 @@ class Level {
   static levels = [];
 
   static addLevel(level) {
-    level.id = Level.levels.length + 1;
+    const levelIndex =
+      Level.levels.filter((l) => l.type === level.type).length + 1;
+
+    level.id = `${level.type}_${levelIndex}`;
     Level.levels.push(level);
   }
 
@@ -21,7 +24,7 @@ class Level {
   }
 
   getTitle() {
-    return window.i18n.get(`${this.type}${this.id}_title`);
+    return window.i18n.get(`${this.id}_title`);
   }
 }
 
@@ -137,28 +140,47 @@ class BossLevel extends Level {
 }
 
 class Match3Level extends Level {
-  constructor(settings, getDifficulty, start) {
+  constructor(settings) {
     const commonSimulationsSettings = {
       totalColors: {
         value: 7,
-        min: 4,
+        min: 3,
         max: 9,
         step: 1,
         label: "match3TotalColorsSettings",
       },
       targetScore: {
-        value: 1000,
-        min: 300,
-        max: 2000,
+        value: 500,
+        min: 100,
+        max: 1000,
         step: 50,
         label: "match3TargetScoreSettings",
+      },
+      movesLimit: {
+        value: 5,
+        min: 5,
+        max: 40,
+        step: 5,
+        label: "match3MaxMovesSettings",
+      },
+      scorePerTile: {
+        value: 10,
+        min: 5,
+        max: 100,
+        step: 5,
+        label: "match3ScorePerTileSettings",
+      },
+      comboMultiplier: {
+        value: 0.5,
+        min: 0.5,
+        max: 2,
+        step: 0.5,
+        label: "match3ComboMultiplierSettings",
       },
     };
 
     super({
-      start,
       settings: { ...commonSimulationsSettings, ...settings },
-      getDifficulty,
       type: "match3",
     });
   }

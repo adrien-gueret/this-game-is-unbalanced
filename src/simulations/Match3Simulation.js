@@ -6,32 +6,28 @@
 
 const MATCH_3_GRID_COLUMNS = 8;
 const MATCH_3_GRID_ROWS = 6;
-const TILE_SIZE = 64; // Réduire la taille des tuiles pour éviter les débordements
+const MATCH_3_TILE_SIZE = 64; // Réduire la taille des tuiles pour éviter les débordements
+const MATCH_3_COLORS = [
+  "red",
+  "blue",
+  "green",
+  "yellow",
+  "purple",
+  "orange",
+  "brown",
+  "white",
+  "black",
+];
 
 class Match3Simulation {
   constructor(scene) {
     this.scene = scene;
     this.simulationTimer = null;
     this.grid = [];
-
-    this.colors = [
-      "red",
-      "blue",
-      "green",
-      "yellow",
-      "purple",
-      "orange",
-      "brown",
-      "white",
-      "black",
-    ];
     this.score = 0;
-    this.targetScore = 0;
-    this.matchesMade = 0;
     this.isSimulating = false;
     this.simulationSpeed = 1000; // ms entre les moves
     this.movesCount = 0; // Nombre de coups effectués
-    this.movesLimit = 0; // Limite de coups autorisés
     this.comboMultiplier = 1; // Multiplicateur de combo initial
     this.isCombo = false; // Indique si un combo est en cours
 
@@ -58,20 +54,23 @@ class Match3Simulation {
   async startLevel(level) {
     const { width, height } = this.scene.cameras.main;
 
+    // Limiter les couleurs utilisées selon les paramètres du niveau
+    const totalColors =
+      level.settings.totalColors?.value || MATCH_3_COLORS.length;
+    this.activeColors = MATCH_3_COLORS.slice(
+      0,
+      Math.min(Math.max(3, totalColors), MATCH_3_COLORS.length)
+    );
+
     // Créer le conteneur de la grille avec un positionnement ajusté
     this.gridContainer = this.scene.add.container(
-      width / 2 - (MATCH_3_GRID_COLUMNS * TILE_SIZE) / 2,
-      height / 2 - (MATCH_3_GRID_ROWS * TILE_SIZE) / 2 + 50
+      width / 2 - (MATCH_3_GRID_COLUMNS * MATCH_3_TILE_SIZE) / 2,
+      height / 2 - (MATCH_3_GRID_ROWS * MATCH_3_TILE_SIZE) / 2 + 50
     );
 
     // Initialiser la grille
     this.initializeGrid();
 
-    // Configurer le score cible
-    this.targetScore = level.settings.targetScore.value;
-
-    // Configurer la limite de coups (à la place de la limite de temps)
-    this.movesLimit = level.settings.movesLimit?.value || 20; // Valeur par défaut de 20 coups si non définie
     this.movesCount = 0;
 
     // Créer la main du joueur en utilisant la spritesheet "player-match3"
@@ -91,29 +90,41 @@ class Match3Simulation {
 
     // Afficher le score avec position ajustée
     this.scoreText = this.scene.add
-      .text(40, 110, `Score: ${this.score} / ${this.targetScore}`, {
-        fontSize: "28px",
-        fontFamily: "Arial",
-        color: "#ffffff",
-        stroke: "#000000",
-        strokeThickness: 4,
-      })
+      .text(
+        40,
+        110,
+        window.i18n.get("match3Score")(
+          this.score,
+          level.settings.targetScore.value
+        ),
+        {
+          fontSize: "28px",
+          fontFamily: "Arial",
+          color: "#ffffff",
+          stroke: "#000000",
+          strokeThickness: 4,
+        }
+      )
       .setOrigin(0, 0.5);
 
     // Afficher le compteur de coups dès le début
     this.movesText = this.scene.add
-      .text(width - 40, 110, `Coups: ${this.movesCount}/${this.movesLimit}`, {
-        fontSize: "24px",
-        fontFamily: "Arial",
-        color: "#ffffff",
-        stroke: "#000000",
-        strokeThickness: 4,
-      })
+      .text(
+        width - 40,
+        110,
+        window.i18n.get("match3Moves")(
+          this.movesCount,
+          level.settings.movesLimit.value
+        ),
+        {
+          fontSize: "24px",
+          fontFamily: "Arial",
+          color: "#ffffff",
+          stroke: "#000000",
+          strokeThickness: 4,
+        }
+      )
       .setOrigin(1, 0.5); // Aligné à droite
-
-    level.start({
-      scene: this.scene,
-    });
 
     showMessage(
       this.scene,
@@ -136,9 +147,9 @@ class Match3Simulation {
     for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
       this.grid[row] = [];
       for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
-        // Sélectionner une couleur aléatoire
-        const colorIndex = Math.floor(Math.random() * this.colors.length);
-        const color = this.colors[colorIndex];
+        // Sélectionner une couleur aléatoire parmi les couleurs actives
+        const colorIndex = Math.floor(Math.random() * this.activeColors.length);
+        const color = this.activeColors[colorIndex];
         // Créer une tuile avec cette couleur
         const tile = this.createTile(row, col, color);
         this.grid[row][col] = tile;
@@ -166,13 +177,14 @@ class Match3Simulation {
               this.grid[row][col].color === this.grid[row][col + 2].color
             ) {
               const newColorIndex = Math.floor(
-                Math.random() * this.colors.length
+                Math.random() * this.activeColors.length
               );
-              const newColor = this.colors[newColorIndex];
+              const newColor = this.activeColors[newColorIndex];
               // S'assurer que la nouvelle couleur est différente
               if (newColor === this.grid[row][col].color) {
-                const nextIndex = (newColorIndex + 1) % this.colors.length;
-                this.grid[row][col + 2].setColor(this.colors[nextIndex]);
+                const nextIndex =
+                  (newColorIndex + 1) % this.activeColors.length;
+                this.grid[row][col + 2].setColor(this.activeColors[nextIndex]);
               } else {
                 this.grid[row][col + 2].setColor(newColor);
               }
@@ -186,13 +198,14 @@ class Match3Simulation {
               this.grid[row][col].color === this.grid[row + 2][col].color
             ) {
               const newColorIndex = Math.floor(
-                Math.random() * this.colors.length
+                Math.random() * this.activeColors.length
               );
-              const newColor = this.colors[newColorIndex];
+              const newColor = this.activeColors[newColorIndex];
               // S'assurer que la nouvelle couleur est différente
               if (newColor === this.grid[row][col].color) {
-                const nextIndex = (newColorIndex + 1) % this.colors.length;
-                this.grid[row + 2][col].setColor(this.colors[nextIndex]);
+                const nextIndex =
+                  (newColorIndex + 1) % this.activeColors.length;
+                this.grid[row + 2][col].setColor(this.activeColors[nextIndex]);
               } else {
                 this.grid[row + 2][col].setColor(newColor);
               }
@@ -208,8 +221,8 @@ class Match3Simulation {
    * Crée une tuile à une position spécifique avec une couleur donnée
    */
   createTile(row, col, color) {
-    const x = col * TILE_SIZE + TILE_SIZE / 2;
-    const y = row * TILE_SIZE + TILE_SIZE / 2;
+    const x = col * MATCH_3_TILE_SIZE + MATCH_3_TILE_SIZE / 2;
+    const y = row * MATCH_3_TILE_SIZE + MATCH_3_TILE_SIZE / 2;
 
     // Utiliser la spritesheet "tiles-match3" avec la frame correspondant à la couleur
     // La frame 1 de chaque couleur (+0 car index de la première frame = 0)
@@ -219,13 +232,13 @@ class Match3Simulation {
     const sprite = this.scene.add.sprite(0, 0, "tiles-match3", frameIndex);
 
     // Ajuster la taille du sprite pour correspondre à la taille de tuile désirée
-    const scale = (TILE_SIZE - 12) / 32; // 32px = taille originale du sprite
+    const scale = (MATCH_3_TILE_SIZE - 12) / 32; // 32px = taille originale du sprite
     sprite.setScale(scale);
 
     // Créer un conteneur pour le sprite
     const container = this.scene.add.container(x, y, [sprite]);
-    const tileWidth = TILE_SIZE - 12;
-    const tileHeight = TILE_SIZE - 12;
+    const tileWidth = MATCH_3_TILE_SIZE - 12;
+    const tileHeight = MATCH_3_TILE_SIZE - 12;
     container.setSize(tileWidth, tileHeight);
 
     // Ajouter au conteneur de la grille
@@ -331,30 +344,27 @@ class Match3Simulation {
       delay: 16.6, // ~60 fps
       callback: () => {
         // Mise à jour du texte de coups
-        this.movesText.setText(`Coups: ${this.movesCount}/${this.movesLimit}`);
+        this.movesText.setText(
+          window.i18n.get("match3Moves")(
+            this.movesCount,
+            level.settings.movesLimit.value
+          )
+        );
         // Vérifier si le nombre de coups a atteint la limite
-        if (this.movesCount >= this.movesLimit) {
+        if (this.movesCount >= level.settings.movesLimit.value) {
           // Ajouter un délai pour laisser l'animation se terminer
           if (!this.isEndingSimulation) {
             this.isEndingSimulation = true;
             // Attendre 1 seconde avant d'afficher le message de fin
             this.scene.time.delayedCall(1000, () => {
-              this.completeSimulation(
-                "MOVES_DEPLETED",
-                this.movesLimit,
-                level.getDifficulty()
-              );
+              this.completeSimulation("MOVES_DEPLETED", level);
             });
           }
           return;
         }
         // Vérifier si le score a atteint la cible
-        if (this.score >= this.targetScore) {
-          this.completeSimulation(
-            "SUCCESS",
-            this.movesLimit,
-            level.getDifficulty()
-          );
+        if (this.score >= level.settings.targetScore.value) {
+          this.completeSimulation("SUCCESS", level);
           return;
         }
       },
@@ -444,15 +454,17 @@ class Match3Simulation {
 
     // Position globale de la première tuile
     const tile1Position = {
-      x: this.gridContainer.x + col1 * TILE_SIZE + TILE_SIZE / 2,
-      y: this.gridContainer.y + row1 * TILE_SIZE + TILE_SIZE / 2,
+      x:
+        this.gridContainer.x + col1 * MATCH_3_TILE_SIZE + MATCH_3_TILE_SIZE / 2,
+      y:
+        this.gridContainer.y + row1 * MATCH_3_TILE_SIZE + MATCH_3_TILE_SIZE / 2,
     };
 
     // Ajouter un décalage pour que la main "tienne" la tuile depuis son centre
     // Au lieu d'être directement sur la tuile
     const handOffset = {
-      x: TILE_SIZE / 2, // Décalage horizontal (vers la droite)
-      y: TILE_SIZE / 2 - 8, // Décalage vertical (vers le bas)
+      x: MATCH_3_TILE_SIZE / 2, // Décalage horizontal (vers la droite)
+      y: MATCH_3_TILE_SIZE / 2 - 8, // Décalage vertical (vers le bas)
     };
 
     // Calculer la distance entre la dernière position de la main et la première tuile (avec offset)
@@ -490,8 +502,14 @@ class Match3Simulation {
         this.scene.time.delayedCall(200, () => {
           // Position globale de la deuxième tuile
           const tile2Position = {
-            x: this.gridContainer.x + col2 * TILE_SIZE + TILE_SIZE / 2,
-            y: this.gridContainer.y + row2 * TILE_SIZE + TILE_SIZE / 2,
+            x:
+              this.gridContainer.x +
+              col2 * MATCH_3_TILE_SIZE +
+              MATCH_3_TILE_SIZE / 2,
+            y:
+              this.gridContainer.y +
+              row2 * MATCH_3_TILE_SIZE +
+              MATCH_3_TILE_SIZE / 2,
           };
 
           // Calculer la distance entre la main et la deuxième tuile (avec offset)
@@ -893,15 +911,12 @@ class Match3Simulation {
   resolveMatches(matches, level) {
     if (!this.isSimulating) return;
 
-    // Mettre à jour le nombre de correspondances
-    this.matchesMade += matches.length;
-
     // Points à ajouter
     let pointsToAdd = 0;
 
     // Si c'est un combo (résolution de correspondances en chaîne), augmenter le multiplicateur
     if (this.isCombo) {
-      this.comboMultiplier += 1; // Augmenter le multiplicateur de 0.5 à chaque combo
+      this.comboMultiplier += level.settings.comboMultiplier.value; // Augmenter le multiplicateur à chaque combo
     } else {
       this.comboMultiplier = 1; // Réinitialiser le multiplicateur s'il ne s'agit pas d'un combo
       // Incrémenter le compteur de coups ici après que des correspondances ont été trouvées
@@ -917,7 +932,9 @@ class Match3Simulation {
     for (const match of matches) {
       // Points basés sur la taille de la correspondance avec multiplicateur de combo
       const matchPoints = Math.floor(
-        match.tiles.length * 10 * this.comboMultiplier
+        match.tiles.length *
+          level.settings.scorePerTile.value *
+          this.comboMultiplier
       );
       pointsToAdd += matchPoints;
 
@@ -925,9 +942,13 @@ class Match3Simulation {
       for (const tile of match.tiles) {
         // Ajouter la position globale de cette tuile à la moyenne
         const tileX =
-          this.gridContainer.x + tile.col * TILE_SIZE + TILE_SIZE / 2;
+          this.gridContainer.x +
+          tile.col * MATCH_3_TILE_SIZE +
+          MATCH_3_TILE_SIZE / 2;
         const tileY =
-          this.gridContainer.y + tile.row * TILE_SIZE + TILE_SIZE / 2;
+          this.gridContainer.y +
+          tile.row * MATCH_3_TILE_SIZE +
+          MATCH_3_TILE_SIZE / 2;
         avgX += tileX;
         avgY += tileY;
         tileCount++;
@@ -970,7 +991,7 @@ class Match3Simulation {
     }
 
     // Mettre à jour le score et afficher les points aux coordonnées calculées
-    this.updateScore(pointsToAdd, avgX, avgY);
+    this.updateScore(pointsToAdd, level.settings.targetScore.value, avgX, avgY);
 
     // Attendre la fin des animations
     this.scene.time.delayedCall(250, () => {
@@ -1010,7 +1031,7 @@ class Match3Simulation {
   /**
    * Met à jour le score avec animation
    */
-  updateScore(points, x, y) {
+  updateScore(points, targetScore, x, y) {
     const oldScore = this.score;
     this.score += points;
     // Animation d'incrémentation du score
@@ -1022,18 +1043,17 @@ class Match3Simulation {
       this.scene.time.delayedCall(i * stepDuration, () => {
         const currentScore = Math.min(oldScore + i * increment, this.score);
         this.scoreText.setText(
-          `Score: ${Math.floor(currentScore)} / ${this.targetScore}`
-          //window.i18n.get("score")(Math.floor(currentScore), this.targetScore)
+          window.i18n.get("match3Score")(currentScore, targetScore)
         );
       });
     }
 
     // Créer le texte de points à la position fournie
     const pointsText = this.scene.add
-      .text(x, y, `+${points}`, {
+      .text(x, y, `${points > 0 ? "+" : ""}${points}`, {
         fontSize: "36px",
         fontFamily: "Arial",
-        color: "#ffff00",
+        color: points < 0 ? "#ff0000" : "#00ff00",
         stroke: "#000000",
         strokeThickness: 4,
       })
@@ -1088,7 +1108,7 @@ class Match3Simulation {
           // Animer le déplacement
           this.scene.tweens.add({
             targets: tile,
-            y: newRow * TILE_SIZE + TILE_SIZE / 2,
+            y: newRow * MATCH_3_TILE_SIZE + MATCH_3_TILE_SIZE / 2,
             duration: 300,
             ease: "Bounce.easeOut",
             onComplete: () => {
@@ -1129,13 +1149,13 @@ class Match3Simulation {
       // Créer de nouvelles tuiles pour les espaces vides
       for (let i = 0; i < emptySpaces; i++) {
         const row = i;
-        const startY = -TILE_SIZE * (emptySpaces - i);
-        // Sélectionner une couleur aléatoire
-        const colorIndex = Math.floor(Math.random() * this.colors.length);
-        const color = this.colors[colorIndex];
+        const startY = -MATCH_3_TILE_SIZE * (emptySpaces - i);
+        // Sélectionner une couleur aléatoire parmi les couleurs actives
+        const colorIndex = Math.floor(Math.random() * this.activeColors.length);
+        const color = this.activeColors[colorIndex];
         // Créer une tuile
         const tile = this.createTile(row, col, color);
-        tile.y = startY + TILE_SIZE / 2;
+        tile.y = startY + MATCH_3_TILE_SIZE / 2;
 
         // Définir la frame d'animation de mouvement (frame 4)
         const moveFrame = this.colorToFrame[color] + 3;
@@ -1147,7 +1167,7 @@ class Match3Simulation {
         // Animer l'entrée de la tuile
         this.scene.tweens.add({
           targets: tile,
-          y: row * TILE_SIZE + TILE_SIZE / 2,
+          y: row * MATCH_3_TILE_SIZE + MATCH_3_TILE_SIZE / 2,
           duration: 500,
           ease: "Bounce.easeOut",
           onComplete: () => {
@@ -1174,10 +1194,10 @@ class Match3Simulation {
     // Créer un effet flash pour indiquer que le mélange commence
     const flashOverlay = this.scene.add
       .rectangle(
-        this.gridContainer.x + (MATCH_3_GRID_COLUMNS * TILE_SIZE) / 2,
-        this.gridContainer.y + (MATCH_3_GRID_ROWS * TILE_SIZE) / 2,
-        MATCH_3_GRID_COLUMNS * TILE_SIZE + 20,
-        MATCH_3_GRID_ROWS * TILE_SIZE + 20,
+        this.gridContainer.x + (MATCH_3_GRID_COLUMNS * MATCH_3_TILE_SIZE) / 2,
+        this.gridContainer.y + (MATCH_3_GRID_ROWS * MATCH_3_TILE_SIZE) / 2,
+        MATCH_3_GRID_COLUMNS * MATCH_3_TILE_SIZE + 20,
+        MATCH_3_GRID_ROWS * MATCH_3_TILE_SIZE + 20,
         0xffffff
       )
       .setAlpha(0);
@@ -1287,7 +1307,7 @@ class Match3Simulation {
   /**
    * Termine la simulation
    */
-  completeSimulation(finishReason, movesLimit, difficulty) {
+  completeSimulation(finishReason, level) {
     if (this.simulationTimer) {
       this.simulationTimer.remove();
     }
@@ -1308,13 +1328,35 @@ class Match3Simulation {
     let message = "";
     let messageColor = "#ffffff";
 
+    const movesLimit = level.settings.movesLimit.value;
+
     switch (finishReason) {
       case "SUCCESS":
         message = window.i18n.get("match3Success");
         messageColor = "#7CFC00";
-        // S'assurer que le dernier déplacement est compté si le score a été atteint
+
         const movesRatio = Math.floor((this.movesCount / movesLimit) * 100);
-        const matchRate = this.matchesMade / this.movesCount; // Taux de correspondances par coup
+
+        const difficulty = (() => {
+          if (
+            level.settings.moveLimit > 20 &&
+            level.settings.totalColors < 5 &&
+            level.settings.targetScore < 500
+          ) {
+            return "easy";
+          }
+
+          if (
+            level.settings.moveLimit < 15 &&
+            level.settings.totalColors > 6 &&
+            level.settings.targetScore > 600
+          ) {
+            return "hard";
+          }
+
+          return "medium";
+        })();
+
         switch (difficulty) {
           case "easy":
             feedback = window.i18n.get("match3FeedbackTooEasy");
@@ -1325,12 +1367,9 @@ class Match3Simulation {
             monsterStaticFrame = 6;
             break;
           case "medium":
-            if (movesRatio <= 40) {
+            if (movesRatio <= 60) {
               feedback = window.i18n.get("match3FeedbackTooFast");
               monsterAnimation = "oopsy";
-            } else if (movesRatio >= 80) {
-              feedback = window.i18n.get("match3FeedbackTooSlow");
-              monsterStaticFrame = 6;
             } else {
               feedback = window.i18n.get("gameFeedbackBalanced");
               monsterAnimation = "happy";
@@ -1340,13 +1379,9 @@ class Match3Simulation {
         }
         break;
       case "MOVES_DEPLETED":
-        message =
-          window.i18n.get("movesDepletedMessage") ||
-          "Plus de coups disponibles !";
+        message = window.i18n.get("match3MovesDepleted");
         messageColor = "#FF6347";
-        feedback =
-          window.i18n.get("match3FeedbackMovesOut") ||
-          "Vous avez épuisé tous vos coups disponibles.";
+        feedback = window.i18n.get("match3MovesDepletedFeedback");
         monsterAnimation = "sad";
         break;
     }

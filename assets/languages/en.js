@@ -24,7 +24,7 @@ window.languages.en = {
 
   // Instructions du tutoriel
   tutorialInstructions: [
-    "1. See Lilmonster playing a game",
+    "1. Watch Lilmonster playing a game",
     "2. It then gives you feedback on its gameplay experience",
     "3. Balance the game by adjusting some parameters",
     "4. Unlock new games by balancing previous ones",
@@ -82,12 +82,14 @@ window.languages.en = {
   bossFeedbackTimeout:
     "This game is unbalanced, the fight is way too long... I have better things to do!",
 
-  platforms1_title: "My first game",
-  platforms2_title: "Oh. Water!",
-  platforms3_title: "Let's drop it...",
-  boss4_title: "Time to duel!",
-  boss5_title: "It's critical",
-  boss6_title: "I need healing",
+  platforms_1_title: "My first game",
+  platforms_2_title: "Oh. Water!",
+  platforms_3_title: "Let's drop it...",
+  boss_1_title: "Time to duel!",
+  boss_2_title: "It's critical",
+  boss_3_title: "I need healing",
+  match3_1_title: "Not a Pay-2-Win",
+  match3_2_title: "Not a Pay-2-Win",
 
   // Feedback
   feedbackTitle: "Lilmonster's Feedback",
@@ -137,4 +139,24 @@ window.languages.en = {
     }!`,
 
   match3Blocked: "Game blocked! Shuffling the grid...",
+  match3Success: "Lilmonster reached the target score!",
+  match3MovesDepleted: "Lilmonster ran out of moves...",
+  match3MovesDepletedFeedback:
+    "This game is too difficult! I played as best as I could, but I lost...",
+  match3FeedbackTooEasy:
+    "This game is too easy! It gives me too many ways to reach the target score.",
+  match3FeedbackTooHard:
+    "I won but... I found it stressful. The game sets a goal that's too hard to reach...",
+  match3FeedbackTooFast:
+    "I won in far fewer moves than needed: where's the challenge?",
+
+  match3Score: (currentScore, targetScore) =>
+    `Score: ${Math.floor(currentScore)}/${targetScore}`,
+  match3Moves: (movesCount, moveLimit) => `Moves: ${movesCount}/${moveLimit}`,
+
+  match3TotalColorsSettings: "Total of colors",
+  match3TargetScoreSettings: "Score to reach",
+  match3MaxMovesSettings: "Maximum number of moves",
+  match3ScorePerTileSettings: "Score per removed tile",
+  match3ComboMultiplierSettings: "Combo multiplier increment",
 };
