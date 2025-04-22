@@ -89,7 +89,8 @@ window.languages.fr = {
   boss_2_title: "C'est critique",
   boss_3_title: "Besoin de soins",
   match3_1_title: "Pas un Pay-2-Win",
-  match3_2_title: "Pas un Pay-2-Win",
+  match3_2_title: "C-c-combos !",
+  match3_3_title: "Combo cassé...",
 
   // Feedback
   feedbackTitle: "L'avis de Potimonstre",
@@ -153,7 +154,7 @@ window.languages.fr = {
   match3Blocked: "Jeu bloqué ! Mélangé de la grille...",
   match3Score: (currentScore, targetScore) =>
     `Score : ${Math.floor(currentScore)}/${targetScore}`,
-  match3Moves: (movesCount, moveLimit) => `Coups: ${movesCount}/${moveLimit}`,
+  match3Moves: (movesCount, moveLimit) => `Coups : ${movesCount}/${moveLimit}`,
 
   match3TotalColorsSettings: "Nombre de couleurs",
   match3TargetScoreSettings: "Score à atteindre",

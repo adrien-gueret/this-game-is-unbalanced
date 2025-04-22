@@ -89,7 +89,8 @@ window.languages.en = {
   boss_2_title: "It's critical",
   boss_3_title: "I need healing",
   match3_1_title: "Not a Pay-2-Win",
-  match3_2_title: "Not a Pay-2-Win",
+  match3_2_title: "C-c-combos!",
+  match3_3_title: "Broken combo...",
 
   // Feedback
   feedbackTitle: "Lilmonster's Feedback",
