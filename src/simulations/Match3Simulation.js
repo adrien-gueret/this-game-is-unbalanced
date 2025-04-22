@@ -14,7 +14,17 @@ class Match3Simulation {
     this.simulationTimer = null;
     this.grid = [];
 
-    this.colors = ["red", "blue", "green", "yellow", "purple", "orange"];
+    this.colors = [
+      "red",
+      "blue",
+      "green",
+      "yellow",
+      "purple",
+      "orange",
+      "brown",
+      "white",
+      "black",
+    ];
     this.score = 0;
     this.targetScore = 0;
     this.matchesMade = 0;
@@ -33,9 +43,9 @@ class Match3Simulation {
       blue: 15, // 4ème ligne (index 15)
       purple: 20, // 5ème ligne (index 20)
       orange: 25, // 6ème ligne (index 25)
-      // "marron": 30, // 7ème ligne (index 30) - non utilisée pour le moment
-      // "blanc": 35,  // 8ème ligne (index 35) - non utilisée pour le moment
-      // "noir": 40    // 9ème ligne (index 40) - non utilisée pour le moment
+      brown: 30, // 7ème ligne (index 30)
+      white: 35, // 8ème ligne (index 35)
+      black: 40, // 9ème ligne (index 40)
     };
 
     // Propriétés pour la main du joueur
@@ -1055,38 +1065,116 @@ class Match3Simulation {
    * Mélange la grille s'il n'y a plus de mouvements possibles
    */
   shuffleGrid() {
-    // Animation de mélange
+    // Créer un effet flash pour indiquer que le mélange commence
+    const flashOverlay = this.scene.add
+      .rectangle(
+        this.gridContainer.x + (MATCH_3_GRID_COLUMNS * TILE_SIZE) / 2,
+        this.gridContainer.y + (MATCH_3_GRID_ROWS * TILE_SIZE) / 2,
+        MATCH_3_GRID_COLUMNS * TILE_SIZE + 20,
+        MATCH_3_GRID_ROWS * TILE_SIZE + 20,
+        0xffffff
+      )
+      .setAlpha(0);
+
+    // Animation de flash
     this.scene.tweens.add({
-      targets: this.gridContainer,
-      alpha: 0.5,
-      scale: 0.9,
-      duration: 300,
+      targets: flashOverlay,
+      alpha: 0.7,
+      duration: 150,
       yoyo: true,
-      onComplete: () => {
-        // Mélanger les couleurs des tuiles existantes
-        const colors = [];
-        // Collecter toutes les couleurs
-        for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
-          for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
-            colors.push(this.grid[row][col].color);
-          }
+      repeat: 0,
+      onComplete: () => flashOverlay.destroy(),
+    });
+
+    // Pour chaque tuile, on va l'animer individuellement
+    for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
+      for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
+        const tile = this.grid[row][col];
+
+        // Stocker la position originale pour revenir après
+        const originalPos = { x: tile.x, y: tile.y };
+        const originalScale = tile.scale;
+
+        // Pause de l'animation idle
+        if (tile.idleTimer) tile.idleTimer.paused = true;
+
+        // Animation de shake aléatoire pour chaque tuile
+        this.scene.tweens.add({
+          targets: tile,
+          x: originalPos.x + (Math.random() - 0.5) * 20,
+          y: originalPos.y + (Math.random() - 0.5) * 20,
+          scale: originalScale * (0.8 + Math.random() * 0.4),
+          rotation: (Math.random() - 0.5) * 0.2,
+          duration: 300,
+          ease: "Sine.easeInOut",
+          onComplete: () => {
+            // Animation de retour à la position d'origine
+            this.scene.tweens.add({
+              targets: tile,
+              x: originalPos.x,
+              y: originalPos.y,
+              scale: originalScale,
+              rotation: 0,
+              duration: 200,
+              ease: "Back.easeOut",
+            });
+          },
+        });
+      }
+    }
+
+    // Attendre que les animations terminent avant de mélanger les couleurs
+    this.scene.time.delayedCall(550, () => {
+      // Mélanger les couleurs des tuiles existantes
+      const colors = [];
+
+      // Collecter toutes les couleurs
+      for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
+        for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
+          colors.push(this.grid[row][col].color);
         }
-        // Mélanger les couleurs
-        for (let i = colors.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [colors[i], colors[j]] = [colors[j], colors[i]];
+      }
+
+      // Mélanger les couleurs
+      for (let i = colors.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [colors[i], colors[j]] = [colors[j], colors[i]];
+      }
+
+      // Réattribuer les couleurs avec une animation
+      let colorIndex = 0;
+      for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
+        for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
+          const tile = this.grid[row][col];
+          const newColor = colors[colorIndex];
+
+          // Animation de changement de couleur
+          if (tile.idleTimer) tile.idleTimer.paused = true;
+
+          // Séquence d'images rapide pour simuler un changement de couleur
+          this.scene.time.delayedCall(50 * (row + col), () => {
+            tile.sprite.setFrame(this.colorToFrame.white + 0);
+
+            this.scene.time.delayedCall(100, () => {
+              // Changer la couleur
+              tile.setColor(newColor);
+
+              // Réactiver l'animation idle
+              if (tile.idleTimer) {
+                tile.idleState = 0;
+                tile.idleTimer.paused = false;
+              }
+            });
+          });
+
+          colorIndex++;
         }
-        // Réattribuer les couleurs
-        let colorIndex = 0;
-        for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
-          for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
-            this.grid[row][col].setColor(colors[colorIndex]);
-            colorIndex++;
-          }
-        }
-        // S'assurer qu'il n'y a pas de correspondances initiales
+      }
+
+      // S'assurer qu'il n'y a pas de correspondances initiales après un court délai
+      this.scene.time.delayedCall(800, () => {
         this.resolveInitialMatches();
-      },
+      });
     });
   }
 
