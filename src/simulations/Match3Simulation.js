@@ -3,14 +3,17 @@
  *
  * Cette classe gère la simulation des niveaux de type match 3.
  */
+
+const MATCH_3_GRID_COLUMNS = 8;
+const MATCH_3_GRID_ROWS = 6;
+const TILE_SIZE = 64; // Réduire la taille des tuiles pour éviter les débordements
+
 class Match3Simulation {
   constructor(scene) {
     this.scene = scene;
-    this.timerValue = 0;
     this.simulationTimer = null;
     this.grid = [];
-    this.gridSize = { rows: 8, cols: 8 };
-    this.tileSize = 55; // Réduire la taille des tuiles pour éviter les débordements
+
     this.colors = ["red", "blue", "green", "yellow", "purple", "orange"];
     this.score = 0;
     this.targetScore = 0;
@@ -38,7 +41,6 @@ class Match3Simulation {
     // Propriétés pour la main du joueur
     this.playerHand = null;
     this.handSpeed = 400; // Vitesse de déplacement de la main en pixels par seconde
-    this.handSize = 32; // Taille ajustée à la taille du sprite (32px)
     this.isHandMoving = false;
     this.lastHandPosition = { x: 0, y: 0 }; // Propriété pour stocker la dernière position
   }
@@ -48,8 +50,8 @@ class Match3Simulation {
 
     // Créer le conteneur de la grille avec un positionnement ajusté
     this.gridContainer = this.scene.add.container(
-      width / 2 - (this.gridSize.cols * this.tileSize) / 2,
-      height / 2 - (this.gridSize.rows * this.tileSize) / 2 + 50
+      width / 2 - (MATCH_3_GRID_COLUMNS * TILE_SIZE) / 2,
+      height / 2 - (MATCH_3_GRID_ROWS * TILE_SIZE) / 2 + 50
     );
 
     // Initialiser la grille
@@ -79,7 +81,7 @@ class Match3Simulation {
 
     // Afficher le score avec position ajustée
     this.scoreText = this.scene.add
-      .text(40, 100, `Score: ${this.score} / ${this.targetScore}`, {
+      .text(40, 110, `Score: ${this.score} / ${this.targetScore}`, {
         fontSize: "28px",
         fontFamily: "Arial",
         color: "#ffffff",
@@ -90,7 +92,7 @@ class Match3Simulation {
 
     // Afficher le compteur de coups dès le début
     this.movesText = this.scene.add
-      .text(width - 40, 100, `Coups: ${this.movesCount}/${this.movesLimit}`, {
+      .text(width - 40, 110, `Coups: ${this.movesCount}/${this.movesLimit}`, {
         fontSize: "24px",
         fontFamily: "Arial",
         color: "#ffffff",
@@ -121,9 +123,9 @@ class Match3Simulation {
     this.grid = [];
 
     // Créer une grille initiale
-    for (let row = 0; row < this.gridSize.rows; row++) {
+    for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
       this.grid[row] = [];
-      for (let col = 0; col < this.gridSize.cols; col++) {
+      for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
         // Sélectionner une couleur aléatoire
         const colorIndex = Math.floor(Math.random() * this.colors.length);
         const color = this.colors[colorIndex];
@@ -145,10 +147,10 @@ class Match3Simulation {
     while (hasMatches) {
       hasMatches = false;
       // Vérifier les correspondances horizontales et verticales
-      for (let row = 0; row < this.gridSize.rows; row++) {
-        for (let col = 0; col < this.gridSize.cols; col++) {
+      for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
+        for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
           // Vérifier horizontalement
-          if (col < this.gridSize.cols - 2) {
+          if (col < MATCH_3_GRID_COLUMNS - 2) {
             if (
               this.grid[row][col].color === this.grid[row][col + 1].color &&
               this.grid[row][col].color === this.grid[row][col + 2].color
@@ -168,7 +170,7 @@ class Match3Simulation {
             }
           }
           // Vérifier verticalement
-          if (row < this.gridSize.rows - 2) {
+          if (row < MATCH_3_GRID_ROWS - 2) {
             if (
               this.grid[row][col].color === this.grid[row + 1][col].color &&
               this.grid[row][col].color === this.grid[row + 2][col].color
@@ -196,8 +198,8 @@ class Match3Simulation {
    * Crée une tuile à une position spécifique avec une couleur donnée
    */
   createTile(row, col, color) {
-    const x = col * this.tileSize + this.tileSize / 2;
-    const y = row * this.tileSize + this.tileSize / 2;
+    const x = col * TILE_SIZE + TILE_SIZE / 2;
+    const y = row * TILE_SIZE + TILE_SIZE / 2;
 
     // Utiliser la spritesheet "tiles-match3" avec la frame correspondant à la couleur
     // La frame 1 de chaque couleur (+0 car index de la première frame = 0)
@@ -207,13 +209,13 @@ class Match3Simulation {
     const sprite = this.scene.add.sprite(0, 0, "tiles-match3", frameIndex);
 
     // Ajuster la taille du sprite pour correspondre à la taille de tuile désirée
-    const scale = (this.tileSize - 12) / 32; // 32px = taille originale du sprite
+    const scale = (TILE_SIZE - 12) / 32; // 32px = taille originale du sprite
     sprite.setScale(scale);
 
     // Créer un conteneur pour le sprite
     const container = this.scene.add.container(x, y, [sprite]);
-    const tileWidth = this.tileSize - 12;
-    const tileHeight = this.tileSize - 12;
+    const tileWidth = TILE_SIZE - 12;
+    const tileHeight = TILE_SIZE - 12;
     container.setSize(tileWidth, tileHeight);
 
     // Ajouter au conteneur de la grille
@@ -396,15 +398,15 @@ class Match3Simulation {
 
     // Position globale de la première tuile
     const tile1Position = {
-      x: this.gridContainer.x + col1 * this.tileSize + this.tileSize / 2,
-      y: this.gridContainer.y + row1 * this.tileSize + this.tileSize / 2,
+      x: this.gridContainer.x + col1 * TILE_SIZE + TILE_SIZE / 2,
+      y: this.gridContainer.y + row1 * TILE_SIZE + TILE_SIZE / 2,
     };
 
     // Ajouter un décalage pour que la main "tienne" la tuile depuis son centre
     // Au lieu d'être directement sur la tuile
     const handOffset = {
-      x: this.tileSize / 2, // Décalage horizontal (vers la droite)
-      y: this.tileSize / 2 - 8, // Décalage vertical (vers le bas)
+      x: TILE_SIZE / 2, // Décalage horizontal (vers la droite)
+      y: TILE_SIZE / 2 - 8, // Décalage vertical (vers le bas)
     };
 
     // Calculer la distance entre la dernière position de la main et la première tuile (avec offset)
@@ -442,8 +444,8 @@ class Match3Simulation {
         this.scene.time.delayedCall(200, () => {
           // Position globale de la deuxième tuile
           const tile2Position = {
-            x: this.gridContainer.x + col2 * this.tileSize + this.tileSize / 2,
-            y: this.gridContainer.y + row2 * this.tileSize + this.tileSize / 2,
+            x: this.gridContainer.x + col2 * TILE_SIZE + TILE_SIZE / 2,
+            y: this.gridContainer.y + row2 * TILE_SIZE + TILE_SIZE / 2,
           };
 
           // Calculer la distance entre la main et la deuxième tuile (avec offset)
@@ -521,6 +523,10 @@ class Match3Simulation {
   highlightTile(tile) {
     // Stocker la scale originale
     tile.originalScale = tile.scale;
+
+    const moveFrame = this.colorToFrame[tile.color] + 3;
+    tile.sprite.setFrame(moveFrame);
+
     // Agrandir légèrement la tuile
     this.scene.tweens.add({
       targets: tile,
@@ -551,9 +557,9 @@ class Match3Simulation {
     // Créer une grille simulée pour tester les mouvements
     const createSimulatedGrid = () => {
       const simGrid = [];
-      for (let r = 0; r < this.gridSize.rows; r++) {
+      for (let r = 0; r < MATCH_3_GRID_ROWS; r++) {
         simGrid[r] = [];
-        for (let c = 0; c < this.gridSize.cols; c++) {
+        for (let c = 0; c < MATCH_3_GRID_COLUMNS; c++) {
           simGrid[r][c] = { color: this.grid[r][c].color, row: r, col: c };
         }
       }
@@ -569,14 +575,14 @@ class Match3Simulation {
 
       // Vérifier les correspondances horizontales
       const horizontalMatches = [];
-      for (let row = 0; row < this.gridSize.rows; row++) {
+      for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
         let col = 0;
-        while (col < this.gridSize.cols - 2) {
+        while (col < MATCH_3_GRID_COLUMNS - 2) {
           const color = grid[row][col].color;
           let matchLength = 1;
 
           while (
-            col + matchLength < this.gridSize.cols &&
+            col + matchLength < MATCH_3_GRID_COLUMNS &&
             grid[row][col + matchLength].color === color
           ) {
             matchLength++;
@@ -601,14 +607,14 @@ class Match3Simulation {
 
       // Vérifier les correspondances verticales
       const verticalMatches = [];
-      for (let col = 0; col < this.gridSize.cols; col++) {
+      for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
         let row = 0;
-        while (row < this.gridSize.rows - 2) {
+        while (row < MATCH_3_GRID_ROWS - 2) {
           const color = grid[row][col].color;
           let matchLength = 1;
 
           while (
-            row + matchLength < this.gridSize.rows &&
+            row + matchLength < MATCH_3_GRID_ROWS &&
             grid[row + matchLength][col].color === color
           ) {
             matchLength++;
@@ -657,8 +663,8 @@ class Match3Simulation {
     };
 
     // Tester tous les échanges horizontaux possibles
-    for (let row = 0; row < this.gridSize.rows; row++) {
-      for (let col = 0; col < this.gridSize.cols - 1; col++) {
+    for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
+      for (let col = 0; col < MATCH_3_GRID_COLUMNS - 1; col++) {
         const simGrid = createSimulatedGrid();
         const result = evaluateSwap(simGrid, row, col, row, col + 1);
 
@@ -677,8 +683,8 @@ class Match3Simulation {
     }
 
     // Tester tous les échanges verticaux possibles
-    for (let row = 0; row < this.gridSize.rows - 1; row++) {
-      for (let col = 0; col < this.gridSize.cols; col++) {
+    for (let row = 0; row < MATCH_3_GRID_ROWS - 1; row++) {
+      for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
         const simGrid = createSimulatedGrid();
         const result = evaluateSwap(simGrid, row, col, row + 1, col);
 
@@ -701,79 +707,6 @@ class Match3Simulation {
 
     // Retourner le meilleur mouvement ou null si aucun mouvement possible
     return possibleMoves.length > 0 ? possibleMoves[0] : null;
-  }
-
-  /**
-   * Évalue la qualité d'un mouvement
-   */
-  evaluateMove(row1, col1, row2, col2) {
-    // Échanger temporairement
-    const temp = this.grid[row1][col1].color;
-    this.grid[row1][col1].color = this.grid[row2][col2].color;
-    this.grid[row2][col2].color = temp;
-
-    // Calculer les correspondances
-    const matches = this.checkMatches();
-
-    // Rétablir l'état d'origine
-    this.grid[row2][col2].color = this.grid[row1][col1].color;
-    this.grid[row1][col1].color = temp;
-
-    // Attribuer un score basé sur le nombre de tuiles dans les correspondances
-    // avec un bonus significatif pour les correspondances de 4 ou plus
-    let score = 0;
-    for (const match of matches) {
-      const tileCount = match.tiles.length;
-
-      // Bonus exponentiel pour les correspondances de plus de 3 tuiles
-      if (tileCount > 3) {
-        // Un match de 4 vaut 4² = 16 points, un match de 5 vaut 5² = 25 points, etc.
-        score += tileCount * tileCount;
-      } else {
-        // Un match de 3 vaut 3 points seulement
-        score += tileCount;
-      }
-    }
-
-    return score;
-  }
-
-  /**
-   * Vérifie s'il y a une correspondance à partir d'une position
-   */
-  hasMatch(row, col) {
-    const color = this.grid[row][col].color;
-    // Vérifier horizontalement
-    let count = 1;
-    // Vérifier à gauche
-    for (let c = col - 1; c >= 0 && this.grid[row][c].color === color; c--) {
-      count++;
-    }
-    // Vérifier à droite
-    for (
-      let c = col + 1;
-      c < this.gridSize.cols && this.grid[row][c].color === color;
-      c++
-    ) {
-      count++;
-    }
-    if (count >= 3) return true;
-    // Vérifier verticalement
-    count = 1;
-    // Vérifier en haut
-    for (let r = row - 1; r >= 0 && this.grid[r][col].color === color; r--) {
-      count++;
-    }
-    // Vérifier en bas
-    for (
-      let r = row + 1;
-      r < this.gridSize.rows && this.grid[r][col].color === color;
-      r++
-    ) {
-      count++;
-    }
-    if (count >= 3) return true;
-    return false;
   }
 
   /**
@@ -852,14 +785,14 @@ class Match3Simulation {
     const matches = [];
 
     // Vérifier les correspondances horizontales
-    for (let row = 0; row < this.gridSize.rows; row++) {
+    for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
       let col = 0;
-      while (col < this.gridSize.cols - 2) {
+      while (col < MATCH_3_GRID_COLUMNS - 2) {
         const color = this.grid[row][col].color;
         let matchLength = 1;
         // Compter les tuiles consécutives de même couleur
         while (
-          col + matchLength < this.gridSize.cols &&
+          col + matchLength < MATCH_3_GRID_COLUMNS &&
           this.grid[row][col + matchLength].color === color
         ) {
           matchLength++;
@@ -879,14 +812,14 @@ class Match3Simulation {
     }
 
     // Vérifier les correspondances verticales
-    for (let col = 0; col < this.gridSize.cols; col++) {
+    for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
       let row = 0;
-      while (row < this.gridSize.rows - 2) {
+      while (row < MATCH_3_GRID_ROWS - 2) {
         const color = this.grid[row][col].color;
         let matchLength = 1;
         // Compter les tuiles consécutives de même couleur
         while (
-          row + matchLength < this.gridSize.rows &&
+          row + matchLength < MATCH_3_GRID_ROWS &&
           this.grid[row + matchLength][col].color === color
         ) {
           matchLength++;
@@ -1015,10 +948,10 @@ class Match3Simulation {
     }
 
     // Pour chaque colonne
-    for (let col = 0; col < this.gridSize.cols; col++) {
+    for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
       let emptySpaces = 0;
       // Parcourir la colonne de bas en haut
-      for (let row = this.gridSize.rows - 1; row >= 0; row--) {
+      for (let row = MATCH_3_GRID_ROWS - 1; row >= 0; row--) {
         if (tilesToRemove.has(`${row},${col}`)) {
           // Incrémenter le compteur d'espaces vides
           emptySpaces++;
@@ -1039,7 +972,7 @@ class Match3Simulation {
           // Animer le déplacement
           this.scene.tweens.add({
             targets: tile,
-            y: newRow * this.tileSize + this.tileSize / 2,
+            y: newRow * TILE_SIZE + TILE_SIZE / 2,
             duration: 300,
             ease: "Bounce.easeOut",
             onComplete: () => {
@@ -1067,10 +1000,10 @@ class Match3Simulation {
    * Remplit les espaces vides avec de nouvelles tuiles
    */
   fillEmptySpaces() {
-    for (let col = 0; col < this.gridSize.cols; col++) {
+    for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
       let emptySpaces = 0;
       // Compter les espaces vides dans la colonne
-      for (let row = 0; row < this.gridSize.rows; row++) {
+      for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
         if (this.grid[row][col] === null) {
           emptySpaces++;
         }
@@ -1080,13 +1013,13 @@ class Match3Simulation {
       // Créer de nouvelles tuiles pour les espaces vides
       for (let i = 0; i < emptySpaces; i++) {
         const row = i;
-        const startY = -this.tileSize * (emptySpaces - i);
+        const startY = -TILE_SIZE * (emptySpaces - i);
         // Sélectionner une couleur aléatoire
         const colorIndex = Math.floor(Math.random() * this.colors.length);
         const color = this.colors[colorIndex];
         // Créer une tuile
         const tile = this.createTile(row, col, color);
-        tile.y = startY + this.tileSize / 2;
+        tile.y = startY + TILE_SIZE / 2;
 
         // Définir la frame d'animation de mouvement (frame 4)
         const moveFrame = this.colorToFrame[color] + 3;
@@ -1098,7 +1031,7 @@ class Match3Simulation {
         // Animer l'entrée de la tuile
         this.scene.tweens.add({
           targets: tile,
-          y: row * this.tileSize + this.tileSize / 2,
+          y: row * TILE_SIZE + TILE_SIZE / 2,
           duration: 500,
           ease: "Bounce.easeOut",
           onComplete: () => {
@@ -1133,8 +1066,8 @@ class Match3Simulation {
         // Mélanger les couleurs des tuiles existantes
         const colors = [];
         // Collecter toutes les couleurs
-        for (let row = 0; row < this.gridSize.rows; row++) {
-          for (let col = 0; col < this.gridSize.cols; col++) {
+        for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
+          for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
             colors.push(this.grid[row][col].color);
           }
         }
@@ -1145,8 +1078,8 @@ class Match3Simulation {
         }
         // Réattribuer les couleurs
         let colorIndex = 0;
-        for (let row = 0; row < this.gridSize.rows; row++) {
-          for (let col = 0; col < this.gridSize.cols; col++) {
+        for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
+          for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
             this.grid[row][col].setColor(colors[colorIndex]);
             colorIndex++;
           }
@@ -1267,26 +1200,6 @@ class Match3Simulation {
           "Vous avez épuisé tous vos coups disponibles.";
         monsterAnimation = "sad";
         break;
-    }
-
-    // Animation finale
-    if (finishReason === "SUCCESS") {
-      // Afficher des confettis pour une victoire
-      const confetti = this.scene.add
-        .image(
-          this.scene.cameras.main.width / 2,
-          this.scene.cameras.main.height / 2,
-          "confettis"
-        )
-        .setAlpha(0)
-        .setScale(0.5);
-      this.scene.tweens.add({
-        targets: confetti,
-        alpha: 0.8,
-        scale: 0.8,
-        duration: 1000,
-        ease: "Sine.easeOut",
-      });
     }
 
     showMessage(this.scene, message, messageColor, () => {
