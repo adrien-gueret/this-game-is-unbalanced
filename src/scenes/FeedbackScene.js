@@ -59,6 +59,8 @@ class FeedbackScene extends Phaser.Scene {
     if (this.isBalanced) {
       LevelSelectScene.markLevelAsCompleted(this.level);
       this.sound.play("feedback-victory");
+    } else {
+      this.sound.play("feedback-defeat");
     }
 
     // Bulle de dialogue

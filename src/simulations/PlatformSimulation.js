@@ -310,6 +310,7 @@ class PlatformSimulation {
 
     switch (finishReason) {
       case "SUCCESS":
+        this.scene.sound.play("game-victory");
         message = window.i18n.get("platformsSuccess");
         messageColor = "#7CFC00";
 

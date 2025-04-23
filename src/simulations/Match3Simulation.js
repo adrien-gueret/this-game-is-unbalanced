@@ -1340,6 +1340,7 @@ class Match3Simulation {
 
     switch (finishReason) {
       case "SUCCESS":
+        this.scene.sound.play("game-victory");
         message = window.i18n.get("match3Success");
         messageColor = "#7CFC00";
 
