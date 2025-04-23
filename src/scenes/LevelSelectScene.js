@@ -137,7 +137,7 @@ class LevelSelectScene extends Phaser.Scene {
 
   displayLevels() {
     const padding = 20;
-    const startY = 150;
+    const startY = 135;
 
     // Grouper les niveaux par type
     const levelsByType = {};
@@ -152,9 +152,9 @@ class LevelSelectScene extends Phaser.Scene {
     let currentY = startY;
     const categoryHeight = 50;
     const levelHeight = 80;
-    const levelWidth = 150;
-    const levelsPerRow = 3;
-    const gapBetweenLevels = 20;
+    const levelWidth = 160;
+    const levelsPerRow = 4;
+    const gapBetweenLevels = 15;
 
     // Parcourir chaque type de niveau
     Object.keys(levelsByType).forEach((type) => {
@@ -200,15 +200,28 @@ class LevelSelectScene extends Phaser.Scene {
             backgroundColor = 0x3498db; // Bleu pour déverrouillé mais non complété
           }
 
-          const background = this.add
-            .rectangle(
-              xPosition,
-              rowY,
-              levelWidth,
-              levelHeight,
-              backgroundColor
-            )
-            .setStrokeStyle(2, 0xffffff);
+          // Créer un graphique avec des coins arrondis au lieu d'un rectangle
+          const background = this.add.graphics();
+          background.fillStyle(backgroundColor, 1);
+          background.lineStyle(2, 0xffffff, 1);
+
+          // Dessiner un rectangle avec des coins arrondis (x, y, width, height, radius)
+          background.fillRoundedRect(
+            xPosition - levelWidth / 2,
+            rowY - levelHeight / 2,
+            levelWidth,
+            levelHeight,
+            12
+          );
+
+          // Ajouter une bordure avec des coins arrondis
+          background.strokeRoundedRect(
+            xPosition - levelWidth / 2,
+            rowY - levelHeight / 2,
+            levelWidth,
+            levelHeight,
+            12
+          );
 
           // Titre du niveau
           const levelTitle = level.getTitle();
@@ -235,22 +248,59 @@ class LevelSelectScene extends Phaser.Scene {
 
           // Rendre le bouton interactif seulement si le niveau est déverrouillé
           if (isUnlocked) {
-            background
-              .setInteractive({ useHandCursor: true })
-              .on("pointerover", () => {
-                const hoverColor = isCompleted ? 0x219653 : 0x2980b9; // Vert foncé ou bleu foncé au survol
-                background.setFillStyle(hoverColor);
-              })
-              .on("pointerout", () => {
-                background.setFillStyle(backgroundColor);
-              })
-              .on("pointerdown", () => {
-                this.sound.play("click");
-                this.cameras.main.fade(500, 0, 0, 0);
-                this.time.delayedCall(500, () => {
-                  this.scene.start("GameScene", { level });
-                });
+            // Créer une zone interactive invisible qui couvre la tuile
+            const hitArea = this.add
+              .zone(xPosition, rowY, levelWidth, levelHeight)
+              .setInteractive({ useHandCursor: true });
+
+            hitArea.on("pointerover", () => {
+              const hoverColor = isCompleted ? 0x219653 : 0x2980b9; // Vert foncé ou bleu foncé au survol
+              background.clear();
+              background.fillStyle(hoverColor, 1);
+              background.lineStyle(2, 0xffffff, 1);
+              background.fillRoundedRect(
+                xPosition - levelWidth / 2,
+                rowY - levelHeight / 2,
+                levelWidth,
+                levelHeight,
+                12
+              );
+              background.strokeRoundedRect(
+                xPosition - levelWidth / 2,
+                rowY - levelHeight / 2,
+                levelWidth,
+                levelHeight,
+                12
+              );
+            });
+
+            hitArea.on("pointerout", () => {
+              background.clear();
+              background.fillStyle(backgroundColor, 1);
+              background.lineStyle(2, 0xffffff, 1);
+              background.fillRoundedRect(
+                xPosition - levelWidth / 2,
+                rowY - levelHeight / 2,
+                levelWidth,
+                levelHeight,
+                12
+              );
+              background.strokeRoundedRect(
+                xPosition - levelWidth / 2,
+                rowY - levelHeight / 2,
+                levelWidth,
+                levelHeight,
+                12
+              );
+            });
+
+            hitArea.on("pointerdown", () => {
+              this.sound.play("click");
+              this.cameras.main.fade(500, 0, 0, 0);
+              this.time.delayedCall(500, () => {
+                this.scene.start("GameScene", { level });
               });
+            });
           }
         }
 
