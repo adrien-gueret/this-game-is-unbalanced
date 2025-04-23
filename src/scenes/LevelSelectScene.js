@@ -138,6 +138,7 @@ class LevelSelectScene extends Phaser.Scene {
   displayLevels() {
     const padding = 20;
     const startY = 135;
+    const { width } = this.cameras.main;
 
     // Grouper les niveaux par type
     const levelsByType = {};
@@ -179,11 +180,22 @@ class LevelSelectScene extends Phaser.Scene {
       for (let i = 0; i < levels.length; i += levelsPerRow) {
         const rowY = currentY;
 
+        // Calculer le nombre de niveaux dans cette ligne
+        const levelsInCurrentRow = Math.min(levelsPerRow, levels.length - i);
+
+        // Calculer la largeur totale que vont occuper les niveaux dans cette ligne
+        const rowWidth =
+          levelsInCurrentRow * levelWidth +
+          (levelsInCurrentRow - 1) * gapBetweenLevels;
+
+        // Calculer la position de départ pour centrer la ligne
+        const startX = (width - rowWidth) / 2;
+
         // Créer une ligne de niveaux
         for (let j = 0; j < levelsPerRow && i + j < levels.length; j++) {
           const level = levels[i + j];
           const xPosition =
-            padding + j * (levelWidth + gapBetweenLevels) + levelWidth / 2;
+            startX + j * (levelWidth + gapBetweenLevels) + levelWidth / 2;
 
           // Vérifier si le niveau est déverrouillé et complété
           const levelIndex = i + j;

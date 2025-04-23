@@ -568,7 +568,7 @@ class BossSimulation {
 
     // Affiche la frame 2 (blessé)
     target.sprite.setFrame(2);
-    this.scene.sound.play("hurt");
+    this.scene.sound.play("hurt", { volume: 0.3 });
 
     // Ne revenir à l'animation idle que si la cible n'est pas vaincue et que la simulation n'est pas terminée
     if (target.life > 0 && !this.isSimulationEnd) {

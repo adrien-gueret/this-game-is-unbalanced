@@ -967,7 +967,7 @@ class Match3Simulation {
         const disappearFrame = this.colorToFrame[tile.color] + 4;
         tile.sprite.setFrame(disappearFrame);
 
-        this.scene.sound.play("popout");
+        this.scene.sound.play("popout", { volume: 0.1 });
 
         // Animation de disparition depuis le centre
         this.scene.tweens.add({
