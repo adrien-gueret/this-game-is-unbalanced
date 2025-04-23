@@ -496,6 +496,7 @@ class Match3Simulation {
         this.playerHand.setFrame(1);
 
         // Marquer la première tuile comme "sélectionnée" (changement visuel)
+        this.scene.sound.play("click");
         this.highlightTile(tile1);
 
         // Ajouter un petit délai pour voir l'effet de la main qui "attrape" la tuile
@@ -795,6 +796,8 @@ class Match3Simulation {
     tile1.sprite.setFrame(frame1);
     tile2.sprite.setFrame(frame2);
 
+    this.scene.sound.play("tile-slide");
+
     // Animer l'échange
     this.scene.tweens.add({
       targets: tile1,
@@ -963,6 +966,8 @@ class Match3Simulation {
         // Utiliser la frame 5 (index 4) pour l'animation de disparition
         const disappearFrame = this.colorToFrame[tile.color] + 4;
         tile.sprite.setFrame(disappearFrame);
+
+        this.scene.sound.play("popout");
 
         // Animation de disparition depuis le centre
         this.scene.tweens.add({

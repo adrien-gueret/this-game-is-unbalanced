@@ -201,6 +201,7 @@ class PlatformSimulation {
                 this.isHoleAhead(player, platformsGroup)
               ) {
                 // Faire sauter le joueur
+                this.scene.sound.play("jump");
                 player.setVelocityY(-level.settings.jumpHeight.value);
               }
             } else {

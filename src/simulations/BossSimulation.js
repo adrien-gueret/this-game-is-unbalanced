@@ -434,6 +434,7 @@ class BossSimulation {
     // Utiliser un simple flash et des cercles verts au lieu de particules
     let flashCount = 0;
     const maxFlashes = 4;
+    this.scene.sound.play("heal");
     const flashTimer = this.scene.time.addEvent({
       delay: 100,
       callback: () => {
@@ -567,6 +568,7 @@ class BossSimulation {
 
     // Affiche la frame 2 (blessé)
     target.sprite.setFrame(2);
+    this.scene.sound.play("hurt");
 
     // Ne revenir à l'animation idle que si la cible n'est pas vaincue et que la simulation n'est pas terminée
     if (target.life > 0 && !this.isSimulationEnd) {

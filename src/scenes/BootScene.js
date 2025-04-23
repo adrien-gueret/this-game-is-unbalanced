@@ -107,17 +107,6 @@ class BootScene extends Phaser.Scene {
       frameHeight: 16,
     });
 
-    // this.load.audio('music', 'assets/audio/music.mp3');
-    this.load.audio("surprised", [
-      "./assets/audio/surprised.ogg",
-      "./assets/audio/surprised.mp3",
-    ]);
-
-    this.load.audio("click", [
-      "./assets/audio/click.ogg",
-      "./assets/audio/click.mp3",
-    ]);
-
     this.load.audio("music_title", [
       "./assets/audio/music_title.ogg",
       "./assets/audio/music_title.mp3",
@@ -136,6 +125,41 @@ class BootScene extends Phaser.Scene {
     this.load.audio("music_match3", [
       "./assets/audio/music_match3.ogg",
       "./assets/audio/music_match3.mp3",
+    ]);
+
+    this.load.audio("surprised", [
+      "./assets/audio/surprised.ogg",
+      "./assets/audio/surprised.mp3",
+    ]);
+
+    this.load.audio("click", [
+      "./assets/audio/click.ogg",
+      "./assets/audio/click.mp3",
+    ]);
+
+    this.load.audio("jump", [
+      "./assets/audio/jump.wav",
+      "./assets/audio/jump.ogg",
+    ]);
+
+    this.load.audio("hurt", [
+      "./assets/audio/hurt.wav",
+      "./assets/audio/hurt.ogg",
+    ]);
+
+    this.load.audio("heal", [
+      "./assets/audio/heal.wav",
+      "./assets/audio/heal.ogg",
+    ]);
+
+    this.load.audio("tile-slide", [
+      "./assets/audio/tile-slide.wav",
+      "./assets/audio/tile-slide.ogg",
+    ]);
+
+    this.load.audio("popout", [
+      "./assets/audio/popout.wav",
+      "./assets/audio/popout.ogg",
     ]);
   }
 

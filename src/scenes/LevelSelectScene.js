@@ -32,7 +32,7 @@ class LevelSelectScene extends Phaser.Scene {
     createButton(
       this,
       window.i18n.get("backButton"),
-      50,
+      60,
       40,
       () => {
         this.cameras.main.fade(500, 0, 0, 0);
