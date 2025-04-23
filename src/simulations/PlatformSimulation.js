@@ -104,6 +104,7 @@ class PlatformSimulation {
    * Démarre la simulation du niveau de plateforme
    */
   startSimulation(player, platformsGroup, level) {
+    this.isSimulationEnd = false;
     player.body.setGravityY(level.settings.playerGravity.value);
 
     player.anims.play("right", true);
@@ -181,6 +182,9 @@ class PlatformSimulation {
               player.setFlipX(true);
 
               this.scene.time.delayedCall(400, () => {
+                if (this.isSimulationEnd) {
+                  return;
+                }
                 player.setVelocityX(level.settings.playerSpeed.value);
                 player.setFlipX(false);
                 isMovingBack = false;
@@ -303,7 +307,7 @@ class PlatformSimulation {
    */
   completeSimulation(finishReason, timeLimit, difficulty) {
     this.simulationTimer.remove();
-
+    this.isSimulationEnd = true;
     let isBalanced = false;
     let feedback = "";
     let monsterAnimation = undefined;

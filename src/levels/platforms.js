@@ -28,6 +28,15 @@ function createAnimatedWaterTile(
 Level.addLevels([
   new PlatformsLevel(
     {
+      playerSpeed: {
+        value: 120,
+      },
+      playerGravity: {
+        value: 50,
+      },
+      timeLimit: {
+        value: 10,
+      },
       wallHeight: {
         value: 1,
         min: 0,
@@ -124,18 +133,24 @@ Level.addLevels([
   new PlatformsLevel(
     {
       playerSpeed: {
-        value: 150,
+        value: 80,
         min: 50,
         max: 400,
         step: 10,
         label: "platformsPlayerSpeedSettings",
       },
-      playerGravity: {
+      jumpHeight: {
         value: 500,
-        min: 300,
-        max: 800,
+        min: 50,
+        max: 600,
         step: 50,
-        label: "platformsPlayerGravitySettings",
+        label: "platformsJumpHeightSettings",
+      },
+      playerGravity: {
+        value: 300,
+      },
+      timeLimit: {
+        value: 5,
       },
       waterLength: {
         value: 10,
@@ -166,7 +181,7 @@ Level.addLevels([
       const tileSize = 32;
       const groundY = height - tileSize;
 
-      const waterStartX = 288;
+      const waterEndX = 576;
 
       for (let x = 0; x < width; x += tileSize) {
         const tileIndex = (() => {
@@ -174,16 +189,16 @@ Level.addLevels([
             return 1;
           }
 
-          if (x >= waterStartX && x < waterStartX + tileSize * waterLength) {
+          if (x <= waterEndX && x > waterEndX - tileSize * waterLength) {
             return 7;
           }
 
-          if (x === waterStartX + tileSize * waterLength) {
-            return 0;
+          if (x === waterEndX - tileSize * waterLength) {
+            return 2;
           }
 
-          if (x === waterStartX - tileSize) {
-            return 2;
+          if (x === waterEndX + tileSize) {
+            return 0;
           }
 
           return 1;
@@ -195,6 +210,27 @@ Level.addLevels([
         }
 
         platformsGroup.create(x, groundY, "tiles-platforms", tileIndex);
+      }
+
+      const ceilX = width - 192;
+      const ceilY = groundY - 160;
+
+      for (let rowIndex = 10; rowIndex >= 0; rowIndex--) {
+        platformsGroup.create(
+          ceilX,
+          ceilY - tileSize * rowIndex,
+          "tiles-platforms",
+          rowIndex === 0 ? 9 : 3
+        );
+
+        for (let columnIndex = 1; columnIndex < 6; columnIndex++) {
+          platformsGroup.create(
+            ceilX + tileSize * columnIndex,
+            ceilY - tileSize * rowIndex,
+            "tiles-platforms",
+            rowIndex === 0 ? 12 : 4
+          );
+        }
       }
 
       finishGroup.create(width - 72, groundY - 32, "tiles-platforms", 11);
