@@ -67,6 +67,8 @@ class LevelSelectScene extends Phaser.Scene {
 
     createToggleSoundButton(this);
 
+    MusicManager.play(this, "music_title");
+
     // Animation d'entrée
     this.cameras.main.fadeIn(500);
   }

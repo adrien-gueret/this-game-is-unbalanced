@@ -43,14 +43,17 @@ class GameScene extends Phaser.Scene {
       case "platforms":
         typeIcon = "🏃";
         gameBackgroundImage = "background-platforms";
+        MusicManager.play(this, "music_platforms");
         break;
       case "match3":
         typeIcon = "🧩";
         gameBackgroundImage = "background-platforms";
+        MusicManager.play(this, "music_match3");
         break;
       case "boss":
         typeIcon = "👾";
         gameBackgroundImage = "background-boss";
+        MusicManager.play(this, "music_boss");
         break;
       default:
         typeIcon = "🎮";

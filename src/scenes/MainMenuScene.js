@@ -8,25 +8,16 @@
 class MainMenuScene extends Phaser.Scene {
   constructor() {
     super({ key: "MainMenuScene" });
-    this.backgroundMusic = null;
   }
 
   create() {
     const { width, height } = this.cameras.main;
 
-    // Initialisation de la musique de fond
-    if (!this.backgroundMusic) {
-      this.backgroundMusic = this.sound.add("music_title", {
-        volume: 0.5,
-        loop: true,
-      });
-    }
-
     // Essayer de jouer la musique automatiquement (peut être bloqué par le navigateur)
     this.tryPlayMusic();
 
     // Ajouter un gestionnaire d'événements global pour détecter la première interaction utilisateur
-    if (!this.backgroundMusic.isPlaying) {
+    if (!MusicManager.isPlaying()) {
       this.input.on("pointerdown", this.handleFirstInteraction, this);
       this.input.keyboard.on("keydown", this.handleFirstInteraction, this);
     }
@@ -254,20 +245,20 @@ class MainMenuScene extends Phaser.Scene {
 
   // Essayer de jouer la musique (peut être bloqué par le navigateur)
   tryPlayMusic() {
-    if (this.backgroundMusic.isPlaying) {
+    if (MusicManager.isPlaying()) {
       return;
     }
 
     try {
-      this.backgroundMusic.play();
+      MusicManager.play(this, "music_title");
     } catch (error) {}
   }
 
   // Gérer la première interaction utilisateur
   handleFirstInteraction() {
     // Ne démarrer la musique que si elle n'est pas déjà en cours de lecture
-    if (!this.backgroundMusic?.isPlaying) {
-      this.backgroundMusic.play();
+    if (!MusicManager.isPlaying()) {
+      MusicManager.play(this, "music_title");
     }
 
     // Retirer les écouteurs après la première interaction

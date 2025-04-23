@@ -44,7 +44,7 @@ class BootScene extends Phaser.Scene {
     });
 
     // Nettoyer quand le chargement est terminé
-    this.load.on("complete", function () {
+    this.load.on("complete", () => {
       progressBar.destroy();
       progressBox.destroy();
       loadingText.destroy();
@@ -121,6 +121,21 @@ class BootScene extends Phaser.Scene {
     this.load.audio("music_title", [
       "./assets/audio/music_title.ogg",
       "./assets/audio/music_title.mp3",
+    ]);
+
+    this.load.audio("music_platforms", [
+      "./assets/audio/music_platforms.ogg",
+      "./assets/audio/music_paltforms.mp3",
+    ]);
+
+    this.load.audio("music_boss", [
+      "./assets/audio/music_boss.ogg",
+      "./assets/audio/music_boss.mp3",
+    ]);
+
+    this.load.audio("music_match3", [
+      "./assets/audio/music_match3.ogg",
+      "./assets/audio/music_match3.mp3",
     ]);
   }
 
