@@ -58,6 +58,7 @@ class FeedbackScene extends Phaser.Scene {
     // Si le niveau est équilibré, le marquer comme complété pour débloquer le suivant
     if (this.isBalanced) {
       LevelSelectScene.markLevelAsCompleted(this.level);
+      this.sound.play("feedback-victory");
     }
 
     // Bulle de dialogue

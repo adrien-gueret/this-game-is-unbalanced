@@ -716,6 +716,7 @@ class BossSimulation {
         break;
 
       case "DEFEAT":
+        this.scene.sound.play("game-defeat");
         message = window.i18n.get("bossFailure");
         messageColor = "#FF6347";
         feedback = window.i18n.get("bossFeedbackDefeat");
@@ -730,6 +731,7 @@ class BossSimulation {
         break;
 
       case "TIMEOUT":
+        this.scene.sound.play("game-defeat");
         message = window.i18n.get("timeout");
         messageColor = "#FF6347";
         feedback = window.i18n.get("bossFeedbackTimeout");

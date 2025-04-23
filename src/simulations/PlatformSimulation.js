@@ -348,6 +348,7 @@ class PlatformSimulation {
         break;
 
       case "PLAYER_BLOCKED": {
+        this.scene.sound.play("game-defeat");
         message = window.i18n.get("platformsBlocked");
         messageColor = "#FFA500";
         feedback = window.i18n.get("platformsFeedbackBlocked");
@@ -356,6 +357,7 @@ class PlatformSimulation {
       }
 
       case "TIMEOUT": {
+        this.scene.sound.play("game-defeat");
         message = window.i18n.get("timeout");
         messageColor = "#FF6347";
         feedback = window.i18n.get("platformsFeedbackTimeout");
@@ -364,6 +366,7 @@ class PlatformSimulation {
       }
 
       case "FALL_IN_HOLE": {
+        this.scene.sound.play("game-defeat");
         message = window.i18n.get("platformsFailure");
         messageColor = "#FF6347";
         feedback = window.i18n.get("platformsFeedbackFailure");

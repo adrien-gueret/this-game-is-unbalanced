@@ -1387,6 +1387,7 @@ class Match3Simulation {
         }
         break;
       case "MOVES_DEPLETED":
+        this.scene.sound.play("game-defeat");
         message = window.i18n.get("match3MovesDepleted");
         messageColor = "#FF6347";
         feedback = window.i18n.get("match3MovesDepletedFeedback");

@@ -161,6 +161,16 @@ class BootScene extends Phaser.Scene {
       "./assets/audio/popout.wav",
       "./assets/audio/popout.ogg",
     ]);
+
+    this.load.audio("feedback-victory", [
+      "./assets/audio/feedback-victory.mp3",
+      "./assets/audio/feedback-victory.ogg",
+    ]);
+
+    this.load.audio("game-defeat", [
+      "./assets/audio/game-defeat.mp3",
+      "./assets/audio/game-defeat.ogg",
+    ]);
   }
 
   create() {
