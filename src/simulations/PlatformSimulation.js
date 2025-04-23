@@ -54,13 +54,7 @@ class PlatformSimulation {
     this.flagCollider = this.scene.physics.add.overlap(
       player,
       finishGroup,
-      (player, flag) =>
-        this.handleFinishFlag(
-          player,
-          flag,
-          level.getDifficulty(),
-          level.settings.timeLimit.value
-        ),
+      (player, flag) => this.handleFinishFlag(player, flag, level),
       null,
       this
     );
@@ -156,17 +150,11 @@ class PlatformSimulation {
             player.anims.stop();
             player.setFrame(7);
 
-            this.completeSimulation(
-              "PLAYER_BLOCKED",
-              level.settings.timeLimit.value
-            );
+            this.completeSimulation("PLAYER_BLOCKED", level);
             return;
           }
         } else if (player.y >= height) {
-          this.completeSimulation(
-            "FALL_IN_HOLE",
-            level.settings.timeLimit.value
-          );
+          this.completeSimulation("FALL_IN_HOLE", level);
           return;
         } else {
           if (player.body.blocked.right) {
@@ -220,7 +208,7 @@ class PlatformSimulation {
           player.setVelocityX(0);
           player.anims.play("sad", true);
 
-          this.completeSimulation("TIMEOUT", level.settings.timeLimit.value);
+          this.completeSimulation("TIMEOUT", level);
           return;
         }
       },
@@ -232,7 +220,7 @@ class PlatformSimulation {
   /**
    * Gère l'arrivée au drapeau
    */
-  handleFinishFlag(player, flag, difficulty, timeLimit) {
+  handleFinishFlag(player, flag, level) {
     this.simulationTimer.remove();
 
     if (player.x > flag.x) {
@@ -242,7 +230,7 @@ class PlatformSimulation {
       // Remove the overlap detection with the finish flag
       this.flagCollider.destroy();
 
-      this.completeSimulation("SUCCESS", timeLimit, difficulty);
+      this.completeSimulation("SUCCESS", level);
     }
   }
 
@@ -305,13 +293,16 @@ class PlatformSimulation {
    * Termine la simulation
    * @param {string} finishReason - PLAYER_BLOCKED, TIMEOUT, FAILURE
    */
-  completeSimulation(finishReason, timeLimit, difficulty) {
+  completeSimulation(finishReason, level) {
     this.simulationTimer.remove();
     this.isSimulationEnd = true;
     let isBalanced = false;
     let feedback = "";
     let monsterAnimation = undefined;
     let monsterStaticFrame = undefined;
+
+    const difficulty = level.getDifficulty();
+    const timeLimit = level.settings.timeLimit.value;
 
     // Variable pour stocker le message à afficher
     let message = "";
@@ -336,10 +327,13 @@ class PlatformSimulation {
             break;
 
           case "medium":
-            if (timerRatio <= 40) {
+            const hasTimeLimitSettings = Boolean(
+              level.settings.timeLimit.label
+            );
+            if (hasTimeLimitSettings && timerRatio <= 40) {
               feedback = window.i18n.get("platformsFeedbackTooFarLimit");
               monsterAnimation = "oopsy";
-            } else if (timerRatio >= 80) {
+            } else if (hasTimeLimitSettings && timerRatio >= 80) {
               feedback = window.i18n.get("platformsFeedbackTooNearLimit");
               monsterStaticFrame = 6;
             } else {

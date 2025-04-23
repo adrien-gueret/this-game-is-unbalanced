@@ -85,6 +85,7 @@ window.languages.fr = {
   platforms_1_title: "Mon premier jeu",
   platforms_2_title: "Oh, de l'eau !",
   platforms_3_title: "Laisse tomber...",
+  platforms_4_title: "Sauts en série",
   boss_1_title: "L'heure du duel !",
   boss_2_title: "C'est critique",
   boss_3_title: "Besoin de soins",
@@ -112,6 +113,9 @@ window.languages.fr = {
   platforms1WallHeightSettings: "Hauteur du mur",
   platforms2WaterLengthSettings: "Longueur de l'étendue d'eau",
   platforms3PlatformLengthSettings: "Largeur de la plateforme",
+  platforms4PlatformsTotalSettings: "Nombre de plateformes",
+  platforms4PlatformsWidthSettings: "Largeur des plateformes",
+  platforms4HolesWidthSettings: "Largeur des trous",
 
   bossPlayerLifeSettings: "Vie du joueur",
   bossPlayerAttackSettings: "Attaque du joueur",

@@ -85,6 +85,7 @@ window.languages.en = {
   platforms_1_title: "My first game",
   platforms_2_title: "Oh. Water!",
   platforms_3_title: "Let's drop it...",
+  platforms_4_title: "Jump Series",
   boss_1_title: "Time to duel!",
   boss_2_title: "It's critical",
   boss_3_title: "I need healing",
@@ -112,6 +113,9 @@ window.languages.en = {
   platforms1WallHeightSettings: "Wall height",
   platforms2WaterLengthSettings: "Water stretch length",
   platforms3PlatformLengthSettings: "Platform width",
+  platforms4PlatformsTotalSettings: "Number of platforms",
+  platforms4PlatformsWidthSettings: "Platforms width",
+  platforms4HolesWidthSettings: "Gaps width",
 
   bossPlayerLifeSettings: "Player life",
   bossPlayerAttackSettings: "Player attack",
