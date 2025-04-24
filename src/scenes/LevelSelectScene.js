@@ -63,7 +63,7 @@ class LevelSelectScene extends Phaser.Scene {
     }
 
     // Affichage des niveaux
-    this.displayLevels();
+    const areAllLevelsCompleted = this.displayLevels();
 
     createToggleSoundButton(this);
 
@@ -71,6 +71,57 @@ class LevelSelectScene extends Phaser.Scene {
 
     // Animation d'entrée
     this.cameras.main.fadeIn(500);
+
+    if (!areAllLevelsCompleted) {
+      return;
+    }
+
+    const confettis = this.add.particles(0, 0, "confettis", {
+      speed: 70, // Vitesse réduite
+      lifespan: 5000,
+      gravityY: 50, // Gravité réduite pour une chute plus lente
+      frequency: 50,
+      quantity: 2,
+      frame: [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+        20, 21, 22, 23, 24,
+      ],
+      x: { min: 0, max: width },
+      y: -10,
+      alpha: {
+        start: 1,
+        end: 0,
+        ease: "Sine.easeIn", // Effet de fondu progressif
+      },
+      scaleX: {
+        onEmit: (particle) => {
+          return -1.0;
+        },
+        onUpdate: (particle) => {
+          return particle.scaleX > 1.0 ? -1.0 : particle.scaleX + 0.05;
+        },
+      },
+      scaleY: {
+        onEmit: (particle) => {
+          // Valeur initiale aléatoire entre 0.3 et 1.0
+          return Phaser.Math.FloatBetween(0.3, 1.0);
+        },
+        onUpdate: (particle) => {
+          // Animation indépendante de scaleX
+          // Oscillation sinusoïdale pour simuler un effet de retournement
+          return 0.3 + Math.abs(Math.sin(particle.life * 0.002)) * 0.7;
+        },
+      },
+      rotate: {
+        onEmit: (particle) => {
+          return 0;
+        },
+        onUpdate: (particle) => {
+          return particle.angle + 2;
+        },
+      },
+    });
+    confettis.setDepth(10);
   }
 
   // Vérifier si un niveau est déverrouillé
@@ -157,6 +208,8 @@ class LevelSelectScene extends Phaser.Scene {
     const levelsPerRow = 4;
     const gapBetweenLevels = 15;
 
+    let areAllLevelsCompleted = true;
+
     // Parcourir chaque type de niveau
     Object.keys(levelsByType).forEach((type) => {
       const levels = levelsByType[type];
@@ -201,6 +254,8 @@ class LevelSelectScene extends Phaser.Scene {
           const levelIndex = i + j;
           const isUnlocked = this.isLevelUnlocked(type, levelIndex);
           const isCompleted = this.isLevelCompleted(type, levelIndex);
+
+          areAllLevelsCompleted &= isCompleted;
 
           // Couleurs différentes selon l'état du niveau
           let backgroundColor;
@@ -396,5 +451,7 @@ class LevelSelectScene extends Phaser.Scene {
       // Ajouter un espace entre les catégories
       currentY += 20;
     });
+
+    return areAllLevelsCompleted;
   }
 }
