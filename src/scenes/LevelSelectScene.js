@@ -271,8 +271,36 @@ class LevelSelectScene extends Phaser.Scene {
           } else {
             // Afficher un cadenas (sprite) si verrouillé
             const lockIcon = this.add.sprite(0, 15, "ui", 0).setOrigin(0.5);
-
             tileContainer.add(lockIcon);
+
+            // Ajouter une zone interactive pour les niveaux verrouillés aussi
+            const hitArea = this.add
+              .zone(0, 0, levelWidth, levelHeight)
+              .setInteractive({ useHandCursor: false });
+
+            tileContainer.add(hitArea);
+
+            // Variable pour suivre si l'animation est en cours
+            let isAnimationPlaying = false;
+
+            // Animation du cadenas au survol
+            hitArea.on("pointerover", () => {
+              // Ne jouer l'animation que si elle n'est pas déjà en cours
+              if (!isAnimationPlaying) {
+                isAnimationPlaying = true;
+
+                this.tweens.add({
+                  targets: lockIcon,
+                  x: { from: 0, to: -5, duration: 50, yoyo: true, repeat: 3 }, // Tremblement rapide de gauche à droite
+                  ease: "Sine.easeInOut",
+                  onComplete: () => {
+                    // Réinitialiser la position et le flag quand l'animation est terminée
+                    lockIcon.x = 0; // S'assurer que l'icône revient à sa position initiale
+                    isAnimationPlaying = false;
+                  },
+                });
+              }
+            });
           }
 
           // Ajouter un checkmark pour les niveaux complétés
