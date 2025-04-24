@@ -237,11 +237,23 @@ class EditorScene extends Phaser.Scene {
   createButtons() {
     const { width, height } = this.cameras.main;
 
+    // Bouton pour jouer à un autre jeu (bouton secondaire dans le coin inférieur droit)
+    createButton(
+      this,
+      window.i18n.get("selectGameLabel"),
+      width - 120,
+      height - 40,
+      () => {
+        this.scene.start("LevelSelectScene");
+      },
+      { color: "#e67e22", size: "small" }
+    );
+
     // Bouton de test
     createButton(
       this,
       window.i18n.get("editorPlayButton"),
-      width / 2,
+      width / 2 - 20,
       height - 50,
       () => {
         this.testLevel();

@@ -104,7 +104,7 @@ window.languages.en = {
   editorTitle: (levelTitle) => `Game editor - ${levelTitle}`,
   editorInstructions: "Update game parameters to balance it!",
 
-  editorPlayButton: "Test with these parameters",
+  editorPlayButton: "Test these parameters",
   editorResetButton: "Reset parameters",
 
   platformsPlayerSpeedSettings: "Player speed",
