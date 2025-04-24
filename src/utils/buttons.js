@@ -132,30 +132,60 @@ function createToggleSoundButton(
   // Position en haut à droite
   const x = scene.cameras.main.width - 40 - deltaX;
 
-  // Déterminer le label du bouton en fonction de l'état du son
-  const label = scene.sound.mute ? "🔇" : "🔊";
+  // Créer un container pour le bouton
+  const button = scene.add.container(x, y);
 
-  // Créer le bouton en utilisant la fonction createButton
-  const button = createButton(
-    scene,
-    label,
-    x,
-    y,
-    () => {
-      // Toggle l'état du son (inversé de l'état actuel)
-      const newMuteState = !scene.sound.mute;
+  // Créer l'icône du son en utilisant la spritesheet
+  const soundIconFrame = scene.sound.mute ? 3 : 2; // Index 2 pour son actif, 3 pour son coupé
+  const soundIcon = scene.add.sprite(0, 0, "ui", soundIconFrame);
+  soundIcon.setOrigin(0.5);
 
-      // Mettre à jour l'état du son
-      scene.sound.setMute(newMuteState);
+  // Ajouter l'icône au container
+  button.add(soundIcon);
 
-      // Mettre à jour le label du bouton
-      const buttonText = button.list.find((child) => child.type === "Text");
-      if (buttonText) {
-        buttonText.setText(newMuteState ? "🔇" : "🔊");
-      }
-    },
-    { size: "small" }
-  );
+  // Rendre le bouton interactif
+  button.setSize(soundIcon.width, soundIcon.height);
+  button.setInteractive({ useHandCursor: true });
+
+  // Ajouter les événements
+  button.on("pointerover", () => {
+    // Effet de surbrillance et légère augmentation
+    scene.tweens.add({
+      targets: button,
+      scale: 1.2,
+      duration: 150,
+      ease: "Sine.Out",
+    });
+
+    // Ajouter un léger effet de luminosité au survol
+    soundIcon.setTint(0xffffff);
+  });
+
+  button.on("pointerout", () => {
+    // Retour à la normale
+    scene.tweens.add({
+      targets: button,
+      scale: 1,
+      duration: 150,
+      ease: "Sine.In",
+    });
+
+    // Rétablir la couleur normale
+    soundIcon.clearTint();
+  });
+
+  button.on("pointerdown", () => {
+    scene.sound.play("click");
+
+    // Toggle l'état du son (inversé de l'état actuel)
+    const newMuteState = !scene.sound.mute;
+
+    // Mettre à jour l'état du son
+    scene.sound.setMute(newMuteState);
+
+    // Mettre à jour l'icône du son
+    soundIcon.setFrame(newMuteState ? 3 : 2);
+  });
 
   if (fadeInDelay > 0) {
     button.setAlpha(0);
@@ -165,7 +195,7 @@ function createToggleSoundButton(
       alpha: 1,
       duration: 500,
       ease: "Cubic.easeIn",
-      delay: 300,
+      delay: fadeInDelay,
     });
   }
 

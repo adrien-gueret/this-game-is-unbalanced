@@ -65,6 +65,11 @@ class BootScene extends Phaser.Scene {
       "./assets/images/platforms/background-weird.png"
     );
 
+    this.load.spritesheet("ui", "./assets/images/ui.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
+
     this.load.spritesheet(
       "tiles-platforms",
       "./assets/images/platforms/tiles.png",

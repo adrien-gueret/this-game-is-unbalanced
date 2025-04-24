@@ -255,18 +255,34 @@ class LevelSelectScene extends Phaser.Scene {
 
           tileContainer.add(levelNumber);
 
-          const displayText = isUnlocked ? levelTitle : "🔒";
+          // Affichage du titre du niveau ou du cadenas pour les niveaux verrouillés
+          if (isUnlocked) {
+            // Afficher le titre du niveau si déverrouillé
+            const levelText = this.add
+              .text(0, 15, levelTitle, {
+                fontSize: "18px",
+                fontFamily: "Arial",
+                color: "#ffffff",
+                align: "center",
+              })
+              .setOrigin(0.5);
 
-          const levelText = this.add
-            .text(0, 15, displayText, {
-              fontSize: "18px",
-              fontFamily: "Arial",
-              color: "#ffffff",
-              align: "center",
-            })
-            .setOrigin(0.5);
+            tileContainer.add(levelText);
+          } else {
+            // Afficher un cadenas (sprite) si verrouillé
+            const lockIcon = this.add.sprite(0, 15, "ui", 0).setOrigin(0.5);
 
-          tileContainer.add(levelText);
+            tileContainer.add(lockIcon);
+          }
+
+          // Ajouter un checkmark pour les niveaux complétés
+          if (isCompleted) {
+            const checkmark = this.add
+              .sprite(levelWidth / 2 - 20, -levelHeight / 2 + 20, "ui", 1)
+              .setOrigin(0.5)
+              .setAlpha(0.5);
+            tileContainer.add(checkmark);
+          }
 
           // Rendre le bouton interactif seulement si le niveau est déverrouillé
           if (isUnlocked) {
