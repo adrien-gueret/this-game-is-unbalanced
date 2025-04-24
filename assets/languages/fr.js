@@ -89,6 +89,7 @@ window.languages.fr = {
   boss_1_title: "L'heure du duel !",
   boss_2_title: "C'est critique",
   boss_3_title: "Besoin de soins",
+  boss_4_title: "Ô rage !",
   match3_1_title: "Pas un Pay-2-Win",
   match3_2_title: "C-c-combos !",
   match3_3_title: "Combo cassé...",
@@ -127,6 +128,8 @@ window.languages.fr = {
   bossSlimeCriticalChanceSettings: "Chance de critique de l'ennemi",
   bossPotitionQuantitySettings: "Quantité de potions",
   bossPotitionEfficiencySettings: "Vie récupérée par potion",
+  bossEnrageTriggerSettings: "% de vie restante pour que l'ennemi s'enrage",
+  bossEnrageMultiplicatorSettings: "Bonus mult. de dégâts lors de la rage",
 
   bossInflictDamageLog: (attackerName, targetName, damage) =>
     `${attackerName} inflige ${damage} point${
@@ -142,6 +145,9 @@ window.languages.fr = {
     `${targetName} boit une potion et regagne ${heal} point${
       heal > 1 ? "s" : ""
     } de vie !`,
+
+  bossEnrageLog: (targetName) =>
+    `${targetName} est enragé ! Il devient plus fort !`,
 
   match3Success: "Potimonstre a obtenu le score à atteindre !",
   match3MovesDepleted: "Potimonstre a épuisé tous ses coups...",

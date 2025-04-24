@@ -89,6 +89,7 @@ window.languages.en = {
   boss_1_title: "Time to duel!",
   boss_2_title: "It's critical",
   boss_3_title: "I need healing",
+  boss_4_title: "O rage!",
   match3_1_title: "Not a Pay-2-Win",
   match3_2_title: "C-c-combos!",
   match3_3_title: "Broken combo...",
@@ -127,6 +128,8 @@ window.languages.en = {
   bossSlimeCriticalChanceSettings: "Enemy critical chance",
   bossPotitionQuantitySettings: "Potion quantity",
   bossPotitionEfficiencySettings: "Health restored per potion",
+  bossEnrageTriggerSettings: "Remaining % of life for enemy to enrage",
+  bossEnrageMultiplicatorSettings: "Damage mult. bonus when enraged",
 
   bossInflictDamageLog: (attackerName, targetName, damage) =>
     `${attackerName} deals ${damage} damage${
@@ -142,6 +145,9 @@ window.languages.en = {
     `${targetName} drinks a potion and recovers ${heal} life point${
       heal > 1 ? "s" : ""
     }!`,
+
+  bossEnrageLog: (targetName) =>
+    `${targetName} is enraged! It become stronger!`,
 
   match3Blocked: "Game blocked! Shuffling the grid...",
   match3Success: "Lilmonster reached the target score!",

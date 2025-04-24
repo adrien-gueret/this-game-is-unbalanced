@@ -129,4 +129,66 @@ Level.addLevels([
       label: "bossPotitionEfficiencySettings",
     },
   }),
+  new BossLevel({
+    playerLife: {
+      value: 300,
+    },
+    bossLife: {
+      value: 500,
+    },
+    playerAttack: {
+      value: 100,
+    },
+    bossAttack: {
+      value: 50,
+    },
+    playerDefense: {
+      value: 0,
+    },
+    bossDefense: {
+      value: 0,
+    },
+    playerCriticalChance: {
+      value: 30,
+      min: 0,
+      max: 50,
+      step: 5,
+      label: "bossPlayerCriticalChanceSettings",
+    },
+    bossCriticalChance: {
+      value: 20,
+      min: 10,
+      max: 50,
+      step: 5,
+      label: "bossSlimeCriticalChanceSettings",
+    },
+    potionQuantity: {
+      value: 4,
+      min: 1,
+      max: 5,
+      step: 1,
+      label: "bossPotitionQuantitySettings",
+    },
+    potionEfficiency: {
+      value: 80,
+      min: 50,
+      max: 200,
+      step: 10,
+      label: "bossPotitionEfficiencySettings",
+    },
+    bossEnrageTrigger: {
+      value: 70,
+      min: 40,
+      max: 95,
+      step: 5,
+      label: "bossEnrageTriggerSettings",
+    },
+    bossEnrageMultiplicator: {
+      value: 3.5,
+      min: 2,
+      max: 4,
+      step: .5,
+      label: "bossEnrageMultiplicatorSettings",
+    },
+  }),
 ]);

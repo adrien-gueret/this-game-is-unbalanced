@@ -124,6 +124,36 @@ class AnimationManager {
     });
 
     scene.anims.create({
+      key: "blob-enraged-idle",
+      frames: scene.anims.generateFrameNumbers("slime-boss", {
+        start: 8,
+        end: 9,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+
+    scene.anims.create({
+      key: "blob-enraged-happy",
+      frames: scene.anims.generateFrameNumbers("slime-boss", {
+        start: 12,
+        end: 13,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+
+    scene.anims.create({
+      key: "blob-enraged-oopsy",
+      frames: scene.anims.generateFrameNumbers("slime-boss", {
+        start: 14,
+        end: 15,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+
+    scene.anims.create({
       key: "player-idle",
       frames: scene.anims.generateFrameNumbers("player-boss", {
         start: 0,

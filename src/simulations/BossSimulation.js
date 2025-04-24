@@ -119,6 +119,7 @@ class BossSimulation {
       life: level.settings.bossLife.value,
       maxLife: level.settings.bossLife.value,
       type: "ennemy",
+      isEnraged: false,
     };
 
     ennemy.sprite.anims.play("blob-idle", true);
@@ -519,6 +520,11 @@ class BossSimulation {
       damage *= 2; // Dégâts doublés pour un coup critique
     }
 
+    // Augmenter les dégâts si le boss est enragé
+    if (!isPlayerTurn && attacker.isEnraged) {
+      damage *= level.settings.bossEnrageMultiplicator.value;
+    }
+
     return new Promise((resolve) => {
       const moveDistance = 30; // Pixels à se déplacer
 
@@ -533,9 +539,17 @@ class BossSimulation {
         yoyo: true, // Retour à la position originale
         hold: 50, // Pause brève en position d'attaque
         yoyoEase: "Cubic.easeIn", // Retour plus lent pour un mouvement naturel
-        onComplete: () => {
+        onComplete: async () => {
           // Appliquer les dégâts après l'animation
-          this.inflictDamage(attacker, target, damage, isCritical);
+          await this.inflictDamage(attacker, target, damage, isCritical);
+
+          // Vérifier si le boss doit s'enrager
+          if (isPlayerTurn && !target.isEnraged && target.life > 0 && target.life / target.maxLife <= level.settings.bossEnrageTrigger.value / 100) {
+            target.isEnraged = true;
+            target.sprite.anims.play("blob-enraged-idle", true);
+            this.addToBattleLog(window.i18n.get("bossEnrageLog")(target.name), "#ff4500");
+          }
+
           resolve();
         },
       });
@@ -564,21 +578,12 @@ class BossSimulation {
     );
 
     const idleAnimation =
-      target.type === "player" ? "player-idle" : "blob-idle";
+      target.type === "player" ? "player-idle" : target.isEnraged ? "blob-enraged-idle" : "blob-idle";
 
     // Affiche la frame 2 (blessé)
-    target.sprite.setFrame(2);
+    target.sprite.anims.stop();
+    target.sprite.setFrame(target.isEnraged ? 10 : 2);
     this.scene.sound.play("hurt", { volume: 0.3 });
-
-    // Ne revenir à l'animation idle que si la cible n'est pas vaincue et que la simulation n'est pas terminée
-    if (target.life > 0 && !this.isSimulationEnd) {
-      this.scene.time.delayedCall(500, () => {
-        if (target.life > 0 && !this.isSimulationEnd) {
-          // Double vérification, la cible est toujours vivante et la simulation n'est pas terminée
-          target.sprite.anims.play(idleAnimation, true);
-        }
-      });
-    }
 
     // Effet visuel de dégâts
     this.scene.tweens.add({
@@ -586,6 +591,13 @@ class BossSimulation {
       alpha: 0.5,
       duration: 100,
       yoyo: true,
+    });
+
+    return new Promise((resolve) => {
+      this.scene.time.delayedCall(250, () => {
+        target.sprite.anims.play(idleAnimation, true);
+        resolve();
+      });
     });
   }
 
@@ -695,7 +707,7 @@ class BossSimulation {
 
         // Afficher la frame 3 du boss (défaite)
         ennemy.sprite.anims.stop();
-        ennemy.sprite.setFrame(3);
+        ennemy.sprite.setFrame(ennemy.isEnraged ? 11 : 3);
 
         // Jouer l'animation de victoire pour le joueur
         player.sprite.anims.play("player-happy", true);
@@ -728,7 +740,7 @@ class BossSimulation {
         player.sprite.setFrame(3);
 
         // Jouer l'animation d'idle pour le boss victorieux
-        ennemy.sprite.anims.play("blob-happy", true);
+        ennemy.sprite.anims.play(ennemy.isEnraged ? "blob-enraged-happy" : "blob-happy", true);
         break;
 
       case "TIMEOUT":
@@ -739,7 +751,7 @@ class BossSimulation {
         monsterAnimation = "angry";
 
         player.sprite.anims.play("player-oopsy", true);
-        ennemy.sprite.anims.play("blob-oopsy", true);
+        ennemy.sprite.anims.play(ennemy.isEnraged ? "blob-enraged-oopsy" : "blob-oopsy", true);
         break;
     }
 

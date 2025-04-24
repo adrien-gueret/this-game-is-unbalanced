@@ -130,6 +130,12 @@ class BossLevel extends Level {
         step: 10,
         label: "bossSlimeCriticalChanceSettings",
       },
+      bossEnrageTrigger: {
+        value: 0,
+      },
+      bossEnrageMultiplicator: {
+        value: 1,
+      },
     };
 
     super({
