@@ -90,4 +90,48 @@ Level.addLevels([
       label: "match3ComboMultiplierSettings",
     },
   }),
+  new Match3Level({
+    totalColors: {
+      value: 4,
+      min: 3,
+      max: 9,
+      step: 1,
+      label: "match3TotalColorsSettings",
+    },
+    targetScore: {
+      value: 1000,
+      min: 100,
+      max: 1500,
+      step: 100,
+      label: "match3TargetScoreSettings",
+    },
+    movesLimit: {
+      value: 10,
+      min: 5,
+      max: 40,
+      step: 5,
+      label: "match3MaxMovesSettings",
+    },
+    scorePerTile: {
+      value: 5,
+      min: 5,
+      max: 30,
+      step: 5,
+      label: "match3ScorePerTileSettings",
+    },
+    comboMultiplier: {
+      value: 1,
+      min: 0.5,
+      max: 1.5,
+      step: 0.5,
+      label: "match3ComboMultiplierSettings",
+    },
+    minMatch: {
+      value: 4,
+      min: 4,
+      max: 4,
+      step: 0,
+      label: "match3MinMatchSettings",
+    },
+  }),
 ]);

@@ -7,6 +7,7 @@
 const MATCH_3_GRID_COLUMNS = 8;
 const MATCH_3_GRID_ROWS = 6;
 const MATCH_3_TILE_SIZE = 64; // Réduire la taille des tuiles pour éviter les débordements
+const MATCH_3_DEFAULT_MIN_MATCH = 3; // Nombre minimum de tuiles à aligner par défaut
 const MATCH_3_COLORS = [
   "red",
   "blue",
@@ -30,6 +31,7 @@ class Match3Simulation {
     this.movesCount = 0; // Nombre de coups effectués
     this.comboMultiplier = 1; // Multiplicateur de combo initial
     this.isCombo = false; // Indique si un combo est en cours
+    this.minMatch = MATCH_3_DEFAULT_MIN_MATCH; // Nombre minimum de tuiles à aligner pour faire un match
 
     // Mappage des couleurs aux lignes de la spritesheet
     this.colorToFrame = {
@@ -62,6 +64,9 @@ class Match3Simulation {
       Math.min(Math.max(3, totalColors), MATCH_3_COLORS.length)
     );
 
+    // Définir le nombre minimum de tuiles à aligner selon les paramètres du niveau
+    this.minMatch = level.settings.minMatch?.value || MATCH_3_DEFAULT_MIN_MATCH;
+
     // Créer le conteneur de la grille avec un positionnement ajusté
     this.gridContainer = this.scene.add.container(
       width / 2 - (MATCH_3_GRID_COLUMNS * MATCH_3_TILE_SIZE) / 2,
@@ -69,7 +74,7 @@ class Match3Simulation {
     );
 
     // Initialiser la grille
-    this.initializeGrid();
+    await this.initializeGrid();
 
     this.movesCount = 0;
 
@@ -158,6 +163,16 @@ class Match3Simulation {
 
     // Vérifier qu'il n'y a pas de correspondances au départ
     this.resolveInitialMatches();
+
+    return new Promise((resolve) => {
+      const move = this.findBestMove();
+
+      if (move) {
+        resolve();
+      } else {
+        this.shuffleGrid(true).then(resolve);
+      }
+    });
   }
 
   /**
@@ -165,49 +180,71 @@ class Match3Simulation {
    */
   resolveInitialMatches() {
     let hasMatches = true;
+
     while (hasMatches) {
       hasMatches = false;
       // Vérifier les correspondances horizontales et verticales
       for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
         for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
           // Vérifier horizontalement
-          if (col < MATCH_3_GRID_COLUMNS - 2) {
-            if (
-              this.grid[row][col].color === this.grid[row][col + 1].color &&
-              this.grid[row][col].color === this.grid[row][col + 2].color
-            ) {
+          if (col < MATCH_3_GRID_COLUMNS - (this.minMatch - 1)) {
+            let isMatch = true;
+            const color = this.grid[row][col].color;
+
+            // Vérifier si les tuiles suivantes ont la même couleur
+            for (let i = 1; i < this.minMatch; i++) {
+              if (this.grid[row][col + i].color !== color) {
+                isMatch = false;
+                break;
+              }
+            }
+
+            if (isMatch) {
               const newColorIndex = Math.floor(
                 Math.random() * this.activeColors.length
               );
               const newColor = this.activeColors[newColorIndex];
               // S'assurer que la nouvelle couleur est différente
-              if (newColor === this.grid[row][col].color) {
+              if (newColor === color) {
                 const nextIndex =
                   (newColorIndex + 1) % this.activeColors.length;
-                this.grid[row][col + 2].setColor(this.activeColors[nextIndex]);
+                this.grid[row][col + (this.minMatch - 1)].setColor(
+                  this.activeColors[nextIndex]
+                );
               } else {
-                this.grid[row][col + 2].setColor(newColor);
+                this.grid[row][col + (this.minMatch - 1)].setColor(newColor);
               }
               hasMatches = true;
             }
           }
+
           // Vérifier verticalement
-          if (row < MATCH_3_GRID_ROWS - 2) {
-            if (
-              this.grid[row][col].color === this.grid[row + 1][col].color &&
-              this.grid[row][col].color === this.grid[row + 2][col].color
-            ) {
+          if (row < MATCH_3_GRID_ROWS - (this.minMatch - 1)) {
+            let isMatch = true;
+            const color = this.grid[row][col].color;
+
+            // Vérifier si les tuiles suivantes ont la même couleur
+            for (let i = 1; i < this.minMatch; i++) {
+              if (this.grid[row + i][col].color !== color) {
+                isMatch = false;
+                break;
+              }
+            }
+
+            if (isMatch) {
               const newColorIndex = Math.floor(
                 Math.random() * this.activeColors.length
               );
               const newColor = this.activeColors[newColorIndex];
               // S'assurer que la nouvelle couleur est différente
-              if (newColor === this.grid[row][col].color) {
+              if (newColor === color) {
                 const nextIndex =
                   (newColorIndex + 1) % this.activeColors.length;
-                this.grid[row + 2][col].setColor(this.activeColors[nextIndex]);
+                this.grid[row + (this.minMatch - 1)][col].setColor(
+                  this.activeColors[nextIndex]
+                );
               } else {
-                this.grid[row + 2][col].setColor(newColor);
+                this.grid[row + (this.minMatch - 1)][col].setColor(newColor);
               }
               hasMatches = true;
             }
@@ -350,7 +387,14 @@ class Match3Simulation {
             level.settings.movesLimit.value
           )
         );
-        // Vérifier si le nombre de coups a atteint la limite
+
+        // Vérifier d'abord si le score a atteint la cible (priorité à la victoire)
+        if (this.score >= level.settings.targetScore.value) {
+          this.completeSimulation("SUCCESS", level);
+          return;
+        }
+
+        // Ensuite vérifier si le nombre de coups a atteint la limite
         if (this.movesCount >= level.settings.movesLimit.value) {
           // Ajouter un délai pour laisser l'animation se terminer
           if (!this.isEndingSimulation) {
@@ -360,11 +404,6 @@ class Match3Simulation {
               this.completeSimulation("MOVES_DEPLETED", level);
             });
           }
-          return;
-        }
-        // Vérifier si le score a atteint la cible
-        if (this.score >= level.settings.targetScore.value) {
-          this.completeSimulation("SUCCESS", level);
           return;
         }
       },
@@ -379,7 +418,7 @@ class Match3Simulation {
   /**
    * Simule un coup joué par l'IA
    */
-  simulateAIMove(level) {
+  async simulateAIMove(level) {
     if (!this.isSimulating || this.isHandMoving || this.isEndingSimulation)
       return;
 
@@ -421,22 +460,25 @@ class Match3Simulation {
         repeat: 1,
       });
 
-      // Attendre 1 seconde avant de mélanger et faire disparaître le message
-      this.scene.time.delayedCall(1000, () => {
-        // Faire disparaître le message avec animation
-        this.scene.tweens.add({
-          targets: messageText,
-          alpha: 0,
-          duration: 300,
-          onComplete: () => messageText.destroy(),
-        });
+      return new Promise((resolve) => {
+        // Attendre 1 seconde avant de mélanger et faire disparaître le message
+        this.scene.time.delayedCall(1000, async () => {
+          // Faire disparaître le message avec animation
+          this.scene.tweens.add({
+            targets: messageText,
+            alpha: 0,
+            duration: 300,
+            onComplete: () => messageText.destroy(),
+          });
 
-        // Mélanger la grille
-        this.shuffleGrid();
+          // Mélanger la grille
+          await this.shuffleGrid();
 
-        // Continuer la simulation après un délai
-        this.scene.time.delayedCall(this.simulationSpeed, () => {
-          this.simulateAIMove(level);
+          // Continuer la simulation après un délai
+          this.scene.time.delayedCall(this.simulationSpeed, async () => {
+            await this.simulateAIMove(level);
+            resolve();
+          });
         });
       });
     }
@@ -642,7 +684,7 @@ class Match3Simulation {
       const horizontalMatches = [];
       for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
         let col = 0;
-        while (col < MATCH_3_GRID_COLUMNS - 2) {
+        while (col < MATCH_3_GRID_COLUMNS - (this.minMatch - 1)) {
           const color = grid[row][col].color;
           let matchLength = 1;
 
@@ -653,7 +695,7 @@ class Match3Simulation {
             matchLength++;
           }
 
-          if (matchLength >= 3) {
+          if (matchLength >= this.minMatch) {
             horizontalMatches.push({
               row,
               col,
@@ -674,7 +716,7 @@ class Match3Simulation {
       const verticalMatches = [];
       for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
         let row = 0;
-        while (row < MATCH_3_GRID_ROWS - 2) {
+        while (row < MATCH_3_GRID_ROWS - (this.minMatch - 1)) {
           const color = grid[row][col].color;
           let matchLength = 1;
 
@@ -685,7 +727,7 @@ class Match3Simulation {
             matchLength++;
           }
 
-          if (matchLength >= 3) {
+          if (matchLength >= this.minMatch) {
             verticalMatches.push({
               row,
               col,
@@ -854,7 +896,7 @@ class Match3Simulation {
     // Vérifier les correspondances horizontales
     for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
       let col = 0;
-      while (col < MATCH_3_GRID_COLUMNS - 2) {
+      while (col < MATCH_3_GRID_COLUMNS - (this.minMatch - 1)) {
         const color = this.grid[row][col].color;
         let matchLength = 1;
         // Compter les tuiles consécutives de même couleur
@@ -864,8 +906,8 @@ class Match3Simulation {
         ) {
           matchLength++;
         }
-        // Si correspondance de 3 ou plus
-        if (matchLength >= 3) {
+        // Si correspondance atteint ou dépasse le minimum requis
+        if (matchLength >= this.minMatch) {
           const tiles = [];
           for (let i = 0; i < matchLength; i++) {
             tiles.push(this.grid[row][col + i]);
@@ -881,7 +923,7 @@ class Match3Simulation {
     // Vérifier les correspondances verticales
     for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
       let row = 0;
-      while (row < MATCH_3_GRID_ROWS - 2) {
+      while (row < MATCH_3_GRID_ROWS - (this.minMatch - 1)) {
         const color = this.grid[row][col].color;
         let matchLength = 1;
         // Compter les tuiles consécutives de même couleur
@@ -891,8 +933,8 @@ class Match3Simulation {
         ) {
           matchLength++;
         }
-        // Si correspondance de 3 ou plus
-        if (matchLength >= 3) {
+        // Si correspondance atteint ou dépasse le minimum requis
+        if (matchLength >= this.minMatch) {
           const tiles = [];
           for (let i = 0; i < matchLength; i++) {
             tiles.push(this.grid[row + i][col]);
@@ -1198,116 +1240,133 @@ class Match3Simulation {
   /**
    * Mélange la grille s'il n'y a plus de mouvements possibles
    */
-  shuffleGrid() {
-    // Créer un effet flash pour indiquer que le mélange commence
-    const flashOverlay = this.scene.add
-      .rectangle(
-        this.gridContainer.x + (MATCH_3_GRID_COLUMNS * MATCH_3_TILE_SIZE) / 2,
-        this.gridContainer.y + (MATCH_3_GRID_ROWS * MATCH_3_TILE_SIZE) / 2,
-        MATCH_3_GRID_COLUMNS * MATCH_3_TILE_SIZE + 20,
-        MATCH_3_GRID_ROWS * MATCH_3_TILE_SIZE + 20,
-        0xffffff
-      )
-      .setAlpha(0);
+  async shuffleGrid(hideAnimations = false) {
+    if (!hideAnimations) {
+      // Créer un effet flash pour indiquer que le mélange commence
+      const flashOverlay = this.scene.add
+        .rectangle(
+          this.gridContainer.x + (MATCH_3_GRID_COLUMNS * MATCH_3_TILE_SIZE) / 2,
+          this.gridContainer.y + (MATCH_3_GRID_ROWS * MATCH_3_TILE_SIZE) / 2,
+          MATCH_3_GRID_COLUMNS * MATCH_3_TILE_SIZE + 20,
+          MATCH_3_GRID_ROWS * MATCH_3_TILE_SIZE + 20,
+          0xffffff
+        )
+        .setAlpha(0);
 
-    // Animation de flash
-    this.scene.tweens.add({
-      targets: flashOverlay,
-      alpha: 0.7,
-      duration: 150,
-      yoyo: true,
-      repeat: 0,
-      onComplete: () => flashOverlay.destroy(),
-    });
+      // Animation de flash
+      this.scene.tweens.add({
+        targets: flashOverlay,
+        alpha: 0.7,
+        duration: 150,
+        yoyo: true,
+        repeat: 0,
+        onComplete: () => flashOverlay.destroy(),
+      });
 
-    // Pour chaque tuile, on va l'animer individuellement
-    for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
-      for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
-        const tile = this.grid[row][col];
-
-        // Stocker la position originale pour revenir après
-        const originalPos = { x: tile.x, y: tile.y };
-        const originalScale = tile.scale;
-
-        // Pause de l'animation idle
-        if (tile.idleTimer) tile.idleTimer.paused = true;
-
-        // Animation de shake aléatoire pour chaque tuile
-        this.scene.tweens.add({
-          targets: tile,
-          x: originalPos.x + (Math.random() - 0.5) * 20,
-          y: originalPos.y + (Math.random() - 0.5) * 20,
-          scale: originalScale * (0.8 + Math.random() * 0.4),
-          rotation: (Math.random() - 0.5) * 0.2,
-          duration: 300,
-          ease: "Sine.easeInOut",
-          onComplete: () => {
-            // Animation de retour à la position d'origine
-            this.scene.tweens.add({
-              targets: tile,
-              x: originalPos.x,
-              y: originalPos.y,
-              scale: originalScale,
-              rotation: 0,
-              duration: 200,
-              ease: "Back.easeOut",
-            });
-          },
-        });
-      }
-    }
-
-    // Attendre que les animations terminent avant de mélanger les couleurs
-    this.scene.time.delayedCall(550, () => {
-      // Mélanger les couleurs des tuiles existantes
-      const colors = [];
-
-      // Collecter toutes les couleurs
-      for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
-        for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
-          colors.push(this.grid[row][col].color);
-        }
-      }
-
-      // Mélanger les couleurs
-      for (let i = colors.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [colors[i], colors[j]] = [colors[j], colors[i]];
-      }
-
-      // Réattribuer les couleurs avec une animation
-      let colorIndex = 0;
+      // Pour chaque tuile, on va l'animer individuellement
       for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
         for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
           const tile = this.grid[row][col];
-          const newColor = colors[colorIndex];
 
-          // Animation de changement de couleur
+          // Stocker la position originale pour revenir après
+          const originalPos = { x: tile.x, y: tile.y };
+          const originalScale = tile.scale;
+
+          // Pause de l'animation idle
           if (tile.idleTimer) tile.idleTimer.paused = true;
 
-          // Séquence d'images rapide pour simuler un changement de couleur
-          this.scene.time.delayedCall(50 * (row + col), () => {
-            tile.sprite.setFrame(this.colorToFrame.white + 0);
-
-            this.scene.time.delayedCall(100, () => {
-              // Changer la couleur
-              tile.setColor(newColor);
-
-              // Réactiver l'animation idle
-              if (tile.idleTimer) {
-                tile.idleState = 0;
-                tile.idleTimer.paused = false;
-              }
-            });
+          // Animation de shake aléatoire pour chaque tuile
+          this.scene.tweens.add({
+            targets: tile,
+            x: originalPos.x + (Math.random() - 0.5) * 20,
+            y: originalPos.y + (Math.random() - 0.5) * 20,
+            scale: originalScale * (0.8 + Math.random() * 0.4),
+            rotation: (Math.random() - 0.5) * 0.2,
+            duration: 300,
+            ease: "Sine.easeInOut",
+            onComplete: () => {
+              // Animation de retour à la position d'origine
+              this.scene.tweens.add({
+                targets: tile,
+                x: originalPos.x,
+                y: originalPos.y,
+                scale: originalScale,
+                rotation: 0,
+                duration: 200,
+                ease: "Back.easeOut",
+              });
+            },
           });
-
-          colorIndex++;
         }
       }
+    }
 
-      // S'assurer qu'il n'y a pas de correspondances initiales après un court délai
-      this.scene.time.delayedCall(800, () => {
-        this.resolveInitialMatches();
+    return new Promise((resolve) => {
+      // Attendre que les animations terminent avant de mélanger les couleurs
+      this.scene.time.delayedCall(hideAnimations ? 0 : 550, () => {
+        // Mélanger les couleurs des tuiles existantes
+        const colors = [];
+
+        // Collecter toutes les couleurs
+        for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
+          for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
+            colors.push(this.grid[row][col].color);
+          }
+        }
+
+        // Mélanger les couleurs
+        for (let i = colors.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [colors[i], colors[j]] = [colors[j], colors[i]];
+        }
+
+        // Réattribuer les couleurs avec une animation
+        let colorIndex = 0;
+        for (let row = 0; row < MATCH_3_GRID_ROWS; row++) {
+          for (let col = 0; col < MATCH_3_GRID_COLUMNS; col++) {
+            const tile = this.grid[row][col];
+            const newColor = colors[colorIndex];
+
+            if (!hideAnimations) {
+              // Animation de changement de couleur
+              if (tile.idleTimer) tile.idleTimer.paused = true;
+
+              // Séquence d'images rapide pour simuler un changement de couleur
+              this.scene.time.delayedCall(50 * (row + col), () => {
+                tile.sprite.setFrame(this.colorToFrame.white + 0);
+
+                this.scene.time.delayedCall(100, () => {
+                  // Changer la couleur
+                  tile.setColor(newColor);
+
+                  // Réactiver l'animation idle
+                  if (tile.idleTimer) {
+                    tile.idleState = 0;
+                    tile.idleTimer.paused = false;
+                  }
+                });
+              });
+            } else {
+              tile.setColor(newColor);
+            }
+
+            colorIndex++;
+          }
+        }
+
+        // S'assurer qu'il n'y a pas de correspondances initiales après un court délai
+        this.scene.time.delayedCall(hideAnimations ? 0 : 800, async () => {
+          this.resolveInitialMatches();
+
+          const move = this.findBestMove();
+
+          if (move) {
+            resolve();
+          } else {
+            await this.shuffleGrid(true);
+            resolve();
+          }
+        });
       });
     });
   }
@@ -1348,17 +1407,17 @@ class Match3Simulation {
 
         const difficulty = (() => {
           if (
-            level.settings.moveLimit > 20 &&
-            level.settings.totalColors < 5 &&
-            level.settings.targetScore < 500
+            level.settings.movesLimit?.value > 20 &&
+            level.settings.totalColors?.value < 5 &&
+            level.settings.targetScore?.value < 500
           ) {
             return "easy";
           }
 
           if (
-            level.settings.moveLimit < 15 &&
-            level.settings.totalColors > 6 &&
-            level.settings.targetScore > 600
+            level.settings.movesLimit?.value < 15 &&
+            level.settings.totalColors?.value > 6 &&
+            level.settings.targetScore?.value > 600
           ) {
             return "hard";
           }

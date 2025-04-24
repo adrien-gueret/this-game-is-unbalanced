@@ -183,6 +183,9 @@ class Match3Level extends Level {
         step: 0.5,
         label: "match3ComboMultiplierSettings",
       },
+      minMatch: {
+        value: 3,
+      },
     };
 
     super({

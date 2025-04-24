@@ -93,6 +93,7 @@ window.languages.en = {
   match3_1_title: "Not a Pay-2-Win",
   match3_2_title: "C-c-combos!",
   match3_3_title: "Broken combo...",
+  match3_4_title: "Connect 4",
 
   // Feedback
   feedbackTitle: "Lilmonster's Feedback",
@@ -170,4 +171,5 @@ window.languages.en = {
   match3MaxMovesSettings: "Maximum number of moves",
   match3ScorePerTileSettings: "Score per removed tile",
   match3ComboMultiplierSettings: "Combo multiplier increment",
+  match3MinMatchSettings: "Number of tiles to match",
 };

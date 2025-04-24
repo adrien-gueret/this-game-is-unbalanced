@@ -93,6 +93,7 @@ window.languages.fr = {
   match3_1_title: "Pas un Pay-2-Win",
   match3_2_title: "C-c-combos !",
   match3_3_title: "Combo cassé...",
+  match3_4_title: "Puissance 4",
 
   // Feedback
   feedbackTitle: "L'avis de Potimonstre",
@@ -171,4 +172,5 @@ window.languages.fr = {
   match3MaxMovesSettings: "Nombre de coups maximum",
   match3ScorePerTileSettings: "Score obtenu par tuile supprimée",
   match3ComboMultiplierSettings: "Incrément du combo multiplicateur",
+  match3MinMatchSettings: "Nombre de tuiles à aligner",
 };
