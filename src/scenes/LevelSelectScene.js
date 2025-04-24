@@ -212,6 +212,9 @@ class LevelSelectScene extends Phaser.Scene {
             backgroundColor = 0x3498db; // Bleu pour déverrouillé mais non complété
           }
 
+          // Créer un conteneur pour la tuile de niveau
+          const tileContainer = this.add.container(xPosition, rowY);
+
           // Créer un graphique avec des coins arrondis au lieu d'un rectangle
           const background = this.add.graphics();
           background.fillStyle(backgroundColor, 1);
@@ -219,8 +222,8 @@ class LevelSelectScene extends Phaser.Scene {
 
           // Dessiner un rectangle avec des coins arrondis (x, y, width, height, radius)
           background.fillRoundedRect(
-            xPosition - levelWidth / 2,
-            rowY - levelHeight / 2,
+            -levelWidth / 2,
+            -levelHeight / 2,
             levelWidth,
             levelHeight,
             12
@@ -228,29 +231,34 @@ class LevelSelectScene extends Phaser.Scene {
 
           // Ajouter une bordure avec des coins arrondis
           background.strokeRoundedRect(
-            xPosition - levelWidth / 2,
-            rowY - levelHeight / 2,
+            -levelWidth / 2,
+            -levelHeight / 2,
             levelWidth,
             levelHeight,
             12
           );
 
+          // Ajouter le background au conteneur
+          tileContainer.add(background);
+
           // Titre du niveau
           const levelTitle = level.getTitle();
 
           // Numéro du niveau
-          this.add
-            .text(xPosition, rowY - 15, `#${i + j + 1}`, {
+          const levelNumber = this.add
+            .text(0, -15, `#${i + j + 1}`, {
               fontSize: "16px",
               fontFamily: "Arial",
               color: "#ffffff",
             })
             .setOrigin(0.5);
 
+          tileContainer.add(levelNumber);
+
           const displayText = isUnlocked ? levelTitle : "🔒";
 
-          this.add
-            .text(xPosition, rowY + 15, displayText, {
+          const levelText = this.add
+            .text(0, 15, displayText, {
               fontSize: "18px",
               fontFamily: "Arial",
               color: "#ffffff",
@@ -258,12 +266,16 @@ class LevelSelectScene extends Phaser.Scene {
             })
             .setOrigin(0.5);
 
+          tileContainer.add(levelText);
+
           // Rendre le bouton interactif seulement si le niveau est déverrouillé
           if (isUnlocked) {
             // Créer une zone interactive invisible qui couvre la tuile
             const hitArea = this.add
-              .zone(xPosition, rowY, levelWidth, levelHeight)
+              .zone(0, 0, levelWidth, levelHeight)
               .setInteractive({ useHandCursor: true });
+
+            tileContainer.add(hitArea);
 
             hitArea.on("pointerover", () => {
               const hoverColor = isCompleted ? 0x219653 : 0x2980b9; // Vert foncé ou bleu foncé au survol
@@ -271,19 +283,28 @@ class LevelSelectScene extends Phaser.Scene {
               background.fillStyle(hoverColor, 1);
               background.lineStyle(2, 0xffffff, 1);
               background.fillRoundedRect(
-                xPosition - levelWidth / 2,
-                rowY - levelHeight / 2,
+                -levelWidth / 2,
+                -levelHeight / 2,
                 levelWidth,
                 levelHeight,
                 12
               );
               background.strokeRoundedRect(
-                xPosition - levelWidth / 2,
-                rowY - levelHeight / 2,
+                -levelWidth / 2,
+                -levelHeight / 2,
                 levelWidth,
                 levelHeight,
                 12
               );
+
+              // Effet de scale up au hover
+              this.tweens.add({
+                targets: tileContainer,
+                scaleX: 1.05,
+                scaleY: 1.05,
+                duration: 100,
+                ease: "Power2.easeIn",
+              });
             });
 
             hitArea.on("pointerout", () => {
@@ -291,19 +312,28 @@ class LevelSelectScene extends Phaser.Scene {
               background.fillStyle(backgroundColor, 1);
               background.lineStyle(2, 0xffffff, 1);
               background.fillRoundedRect(
-                xPosition - levelWidth / 2,
-                rowY - levelHeight / 2,
+                -levelWidth / 2,
+                -levelHeight / 2,
                 levelWidth,
                 levelHeight,
                 12
               );
               background.strokeRoundedRect(
-                xPosition - levelWidth / 2,
-                rowY - levelHeight / 2,
+                -levelWidth / 2,
+                -levelHeight / 2,
                 levelWidth,
                 levelHeight,
                 12
               );
+
+              // Retour à la taille normale
+              this.tweens.add({
+                targets: tileContainer,
+                scaleX: 1,
+                scaleY: 1,
+                duration: 100,
+                ease: "Power1",
+              });
             });
 
             hitArea.on("pointerdown", () => {
