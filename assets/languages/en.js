@@ -129,7 +129,7 @@ window.languages.en = {
   bossSlimeCriticalChanceSettings: "Enemy critical chance",
   bossPotitionQuantitySettings: "Potion quantity",
   bossPotitionEfficiencySettings: "Health restored per potion",
-  bossEnrageTriggerSettings: "Remaining % of life for enemy to enrage",
+  bossEnrageTriggerSettings: "Enrage threshold (%)",
   bossEnrageMultiplicatorSettings: "Damage mult. bonus when enraged",
 
   bossInflictDamageLog: (attackerName, targetName, damage) =>

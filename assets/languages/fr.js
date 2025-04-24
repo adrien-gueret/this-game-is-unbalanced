@@ -129,7 +129,7 @@ window.languages.fr = {
   bossSlimeCriticalChanceSettings: "Chance de critique de l'ennemi",
   bossPotitionQuantitySettings: "Quantité de potions",
   bossPotitionEfficiencySettings: "Vie récupérée par potion",
-  bossEnrageTriggerSettings: "% de vie restante pour que l'ennemi s'enrage",
+  bossEnrageTriggerSettings: "Seuil de rage (%)",
   bossEnrageMultiplicatorSettings: "Bonus mult. de dégâts lors de la rage",
 
   bossInflictDamageLog: (attackerName, targetName, damage) =>
