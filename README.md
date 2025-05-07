@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/29ec1cca-36c4-4112-8906-d874a7c91f39" alt="" />
+</p>
+
 # This game is unbalanced!
 
 Game developers know that: **it's hard to balance a game**.
@@ -7,12 +11,21 @@ They all have their specific desires and their own concept of what a balanced ga
 
 In "This game is unbalanced!", you watch a little monster play some games. Unfortunately they are all unbalanced for this little fella: either too easy or too difficult... So your goal is to balance them!
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/452632c5-1cd6-42e9-bac9-b86c35ccfb13" alt="" />
+</p>
+
 -----
+
 
 **A game created for [GamedevJS 2024](https://gamedevjs.com/jam/2025/).  
 Theme: BALANCE**
 
 -----
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/ed7f9c5d-1ed9-4c35-9e84-5b85d5d2ae96" alt="" />
+</p>
 
 ## Challenges
 
@@ -24,6 +37,10 @@ Theme: BALANCE**
   Goal was to vibe code a Phaser game: I've heavily used Copilot and its agent mode to build this project. Learn more about that below.
 
 -----
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/c9979416-f8e3-4ca2-a008-c9aba4441eef" alt="" />
+</p>
 
 ## Credits
 
@@ -37,6 +54,10 @@ Some sounds effect from [Kenney](https://kenney.nl/assets/category:Audio?sort=up
 Other sounds from [jsfxr](https://sfxr.me/)  
 One or two jingle effects were stored on my computer since quite a time now: I unfortunately don't remember where I get them ^^'
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/66052bd9-89c2-482f-816a-87d6c10aca27" alt="" />
+</p>
+
 ### Game concept  
 By myself
 
@@ -45,6 +66,10 @@ Around 40% of the code written by myself
 Around 60% of the code written by Copilot _(see below to know more!)_
 
 -----
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/7d3be209-c887-46cd-add6-b4a33ac04fed" alt="" />
+</p>
 
 ## Vibe coding? Is it worth it?
 
@@ -94,3 +119,7 @@ But if its goal is to only click "accept" on everything the AI suggests in order
 Oopsy, I've gone a bit beyond the scope of the game description. I may write an article about that one day! If so I'll put the link here.
 
 Thanks for reading — I hope you had fun with my first Phaser game!
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a4dc104e-2d9f-415b-ac3c-d0f8f0ef7e19" alt="" />
+</p>
